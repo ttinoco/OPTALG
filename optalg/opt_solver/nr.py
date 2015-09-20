@@ -64,15 +64,15 @@ class OptSolverNR(OptSolver):
         # Local vars
         norm2 = self.norm2
         norminf = self.norminf
-        parameters = self.parameters
+        params = self.parameters
 
         # Parameters
-        feastol = parameters['feastol']
-        maxiter = parameters['maxiter']
-        quiet = parameters['quiet']
+        feastol = params['feastol']
+        maxiter = params['maxiter']
+        quiet = params['quiet']
 
         # Linear solver
-        self.linsolver = new_linsolver(parameters['linsolver'],'unsymmetric')
+        self.linsolver = new_linsolver(params['linsolver'],'unsymmetric')
 
         # Problem
         self.problem = problem
@@ -80,22 +80,18 @@ class OptSolverNR(OptSolver):
         # Reset
         self.reset()
                 
-        # Matrices and vectors
-        b = problem.b
-        A = problem.A
-
-        # Initial point
+        # Init point
         if problem.x is not None:
             self.x = problem.x.copy()
         else:
             raise OptSolverError_BadInitPoint(self)
             
-        # Initial eval
-        fdata = self.func(self.x)               
+        # Init eval
+        fdata = self.func(self.x)
         
         # Analyze phase
         try: 
-            self.linsolver.analyze(bmat([[problem.J],[A]]))
+            self.linsolver.analyze(bmat([[problem.J],[problem.A]]))
         except RuntimeError:
             raise OptSolverError_BadLinSystem(self)
             
@@ -122,8 +118,6 @@ class OptSolverNR(OptSolver):
             # Callbacks
             map(lambda c: c(self), self.callbacks)
             fdata = self.func(self.x)
-            A = problem.A
-            b = problem.b
                         
             # Compute info quantities
             fmax = np.maximum(norminf(fdata.f),norminf(fdata.r))
@@ -155,7 +149,7 @@ class OptSolverNR(OptSolver):
             map(lambda t: t(self),self.terminations)
             
             # Search direction
-            p = self.linsolver.factorize_and_solve(bmat([[problem.J],[A]]),
+            p = self.linsolver.factorize_and_solve(bmat([[problem.J],[problem.A]]),
                                                    np.hstack([-fdata.f,-fdata.r]))
             pmax = norminf(p)
 
