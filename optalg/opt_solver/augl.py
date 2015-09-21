@@ -22,7 +22,7 @@ class OptSolverAugL(OptSolver):
                   'subtol':1e-5,         # for solving subproblem
                   'gamma':0.1,           # for determining required decrease in ||f||
                   'tau':0.1,             # for reductions in ||GradF||
-                  'kappa':1e-2,          # for initializing miu
+                  'kappa':1e-4,          # for initializing miu
                   'maxiter':300,         # maximum iterations
                   'miu_min':1e-12,       # lowest mi
                   'miu_init_min':1e-6,   # lowest initial miu
