@@ -29,7 +29,9 @@ class StochasticGradientMB(StochasticSolver):
             
             F,gF = self.problem.eval_F(x,w,approx=False)
             Fa,gFa = self.problem.eval_F(x,w,approx=True)
-                        
+
+            gFa_corr = gFa + self.problem.get_slope_correction()
+            
             EFrun += self.RATE*(F-EFrun)
 
             if not quiet:
@@ -39,16 +41,20 @@ class StochasticGradientMB(StochasticSolver):
                                                            EFrun,
                                                            np.average(x/self.problem.p_max),
                                                            100.*(F-Fa)/F,
-                                                           np.dot(gF,gFa+self.problem.Qapprox_g)/(norm(gF)*norm(gFa+self.problem.Qapprox_g)),
+                                                           np.dot(gF,gFa_corr)/(norm(gF)*norm(gFa_corr)),
                                                            self.problem.Qapprox_sigma),
                 if k % period == 0:
                     
                     EF,EgF = self.problem.eval_EF(x,samples=samples,approx=False)
                     EFa,EgFa = self.problem.eval_EF(x,samples=samples,approx=True)
+
+                    EgFa_corr = EgFa + self.problem.get_slope_correction()
                     
-                    print ',%.5e,%.2f,%.2f' %(EF,
-                                              100.*(EF-EFa)/EF,
-                                              np.dot(EgF,EgFa+self.problem.Qapprox_g)/(norm(EgF)*norm(EgFa+self.problem.Qapprox_g)))
+                    print ',%.5e,%.2f,%.2f,%.2e,%.2e' %(EF,
+                                                        100.*(EF-EFa)/EF,
+                                                        np.dot(EgF,EgFa_corr)/(norm(EgF)*norm(EgFa_corr)),
+                                                        norm(EgF),
+                                                        norm(EgFa_corr))
 
                     t0 += time.time()-t1
                 else:
@@ -58,7 +64,7 @@ class StochasticGradientMB(StochasticSolver):
             
             alpha = theta/(k0+k+1.)
             
-            xtemp = x - alpha*(gFa+self.problem.Qapprox_g)
+            xtemp = x - alpha*gF
             
             x = self.problem.project_on_X(xtemp)
             
