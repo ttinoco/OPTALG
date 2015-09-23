@@ -13,9 +13,9 @@ from solver import StochasticSolver
 class StochasticGradient(StochasticSolver):
 
     # Constants
-    RATE = 0.08
+    RATE = 0.05
 
-    def solve(self,x=None,maxiters=1001,period=50,quiet=True,theta=1.,samples=300,k0=0):
+    def solve(self,x=None,maxiters=1001,period=50,quiet=True,theta=1.,samples=500,k0=0):
                 
         EF = 0.
         t0 = time.time()
@@ -46,6 +46,8 @@ class StochasticGradient(StochasticSolver):
             x = self.problem.project_on_X(xtemp)
             
         return x
+
+
         
     
             

@@ -23,6 +23,10 @@ class StochProblem:
 
         pass
 
+    def get_size_x(self):
+
+        pass
+
     def project_on_X(self,x):
         
         pass
