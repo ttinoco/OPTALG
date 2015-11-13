@@ -379,9 +379,13 @@ class OptSolverAugL(OptSolver):
         JT = J.T
 
         t = fdata.gphi-AT*self.lam-JT*self.nu
-        W = bmat([[eta*self.Iaa,None,None],
-                  [None,eta*self.Iff,None],
-                  [AT,JT,-self.Ixx]],format='coo')
+        if problem.A.size:
+            W = bmat([[eta*self.Iaa,None,None],
+                      [None,eta*self.Iff,None],
+                      [AT,JT,-self.Ixx]],format='coo')
+        else:
+            W = bmat([[eta*self.Iff,None],
+                      [JT,-self.Ixx]],format='coo')
         b = np.hstack((A*t,
                        J*t,
                        self.ox))
