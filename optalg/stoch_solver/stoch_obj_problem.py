@@ -35,7 +35,7 @@ class StochObj_Problem:
         
         return 0.
 
-    def project_on_X(self,x):
+    def project_x(self,x):
         
         pass
 
@@ -51,7 +51,7 @@ class StochObj_Problem:
         """
         Solves
         
-        minimize(x)   F_approx(x) + g^Tx (sloped corrected)
+        minimize(x)   F_approx(x) + g^Tx (sloped correction)
         subject to    x in X.
         """
         

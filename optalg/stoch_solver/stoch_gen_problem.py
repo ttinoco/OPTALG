@@ -20,11 +20,19 @@ class StochGen_Problem:
 
         pass
 
+    def eval_FG_approx(self,x):
+
+        pass
+
     def eval_EFG(self,x):
 
         pass
 
     def eval_L(self,x,lam,w):
+
+        pass
+
+    def eval_L_approx(self,x,lam):
 
         pass
 
@@ -34,14 +42,22 @@ class StochGen_Problem:
 
     def get_size_x(self):
 
-        pass
+        return 0
+
+    def get_size_lam(self):
+
+        return 0
 
     def get_prop_x(self,x):
         
         return 0.
 
-    def project_on_X(self,x):
+    def project_x(self,x):
         
+        pass
+
+    def project_lam(self,lam):
+
         pass
 
     def sample_w(self):
@@ -52,11 +68,11 @@ class StochGen_Problem:
 
         pass
 
-    def solve_Lrelaxed_certainty_equivalent(self,lam,g_corr=None,J_corr=None,Ew=None,tol=1e-4,quiet=False,samples=500):
+    def solve_Lrelaxed_approx(self,lam,g_corr=None,J_corr=None,tol=1e-4,quiet=False):
         """
         Solves
         
-        minimize(x)   F(x,Ew) + lam^TG(x,Ew) + g^Tx + lam^TJx (slope corrected)
+        minimize(x)   F_approx + lam^TG_approx(x) + g^Tx + lam^TJx (slope correction)
         subject to    x in X
         """
 

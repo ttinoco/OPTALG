@@ -12,7 +12,7 @@ from numpy.linalg import norm
 from scipy.sparse import coo_matrix
 from solver import StochasticSolver
 
-class AdaCE_PrimalDual(StochasticSolver):
+class PrimalDual_StochaticHybrid(StochasticSolver):
 
     def solve(self,maxiters=1001,period=50,quiet=True,samples=500):
 
@@ -32,23 +32,23 @@ class AdaCE_PrimalDual(StochasticSolver):
         # Init
         t0 = time.time()
         g = np.zeros(prob.get_size_x())
+        lam = np.zeros(prob.get_size_lam())
         J = coo_matrix((prob.get.size_lam(),prob.get_size_x()))
-        Ew = prob.get_Ew(samples=samples)
         
-        # Iterations
+        # Loop
         for k in range(maxiters):
 
             # Solve approx
-            x = prob.solve_certainty_equivalent(g_corr=g,Ew=Ew,quiet=True)
+            x = prob.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True)
             
             # Sample
             w = prob.sample_w()
             
             # Eval
-            F,gF = prob.eval_F(x,w)
+            F,gF,G,JG = prob.eval_FG(x,w)
 
-            # Eval CE
-            Fce,gFce = prob.eval_F(x,Ew)
+            # Eval approx
+            F_approx,gF_approx,G_approx,JG_approx = prob.eval_FG_approx(x)
             
             # Output
             if not quiet:
@@ -57,13 +57,17 @@ class AdaCE_PrimalDual(StochasticSolver):
                 print '{0:^10.2f}'.format(t1-t0),
                 print '{0:^10.2f}'.format(prob.get_prop_x(x)),
                 if k % period == 0:
-                    print '{0:^12.5e}'.format(prob.eval_EF(x,samples=samples)[0])
+                    EF,EgF,EG,EJG = prob.eval_EFG(x,samples=samples)
+                    print '{0:^12.5e}'.format(EF),
+                    print '{0:^12.5e}'.format(np.max(EG))
                     t0 += time.time()-t1
                 else:
                     print ''
 
             # Update
-            g += (gF-gFce-g)/(k+1.)
+            lam = problem.project_lam(lam + alpha*G)
+            g += (gF-gF_approx-g)/(k+1.)
+            J = J + (JG-JG_approx-J)/(k+1.)
 
         return x
         
