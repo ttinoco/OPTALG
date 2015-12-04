@@ -15,7 +15,7 @@ from scipy.sparse import bmat,triu,eye,spdiags,coo_matrix,tril
 class OptSolverIQP(OptSolver):
     
     # Solver parameters
-    parameters = {'feastol': 1e-4, # feasibility tolerance
+    parameters = {'tol': 1e-4,     # optimality tolerance
                   'maxiter': 100,  # max iterations
                   'sigma': 0.1,    # factor for increasing subproblem solution accuracy
                   'eps': 1e-2,     # boundary proximity factor
@@ -105,7 +105,7 @@ class OptSolverIQP(OptSolver):
         parameters = self.parameters
         
         # Parameters
-        feastol = parameters['feastol']
+        tol = parameters['tol']
         maxiter = parameters['maxiter']
         quiet = parameters['quiet']
         sigma = parameters['sigma']
@@ -190,7 +190,7 @@ class OptSolverIQP(OptSolver):
             gmax = norminf(fdata.GradF)
             
             # Done
-            if fmax < feastol and sigma*np.maximum(self.eta_mu,self.eta_pi) < feastol:
+            if fmax < tol and sigma*np.maximum(self.eta_mu,self.eta_pi) < tol:
                 self.set_status(self.STATUS_SOLVED)
                 self.set_error_msg('')
                 return                
