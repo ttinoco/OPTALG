@@ -6,20 +6,21 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-class StochProblem:
+class StochGen_Problem:
     """
-    Represents a problem of the form
+    Represents a stochastic optimization problem 
+    of the form
     
-    minimize E[F(x,w)]
-    
-    subject to x in X
+    minimize(x)   E[F(x,w)]
+    subject to    E[G(x,w)] <= 0
+                  x in X
     """
 
-    def eval_F(self,x,w):
+    def eval_FG(self,x,w):
 
         pass
 
-    def eval_EF(self,x):
+    def eval_EFG(self,x):
 
         pass
 

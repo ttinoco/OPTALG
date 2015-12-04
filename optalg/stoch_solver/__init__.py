@@ -6,4 +6,5 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-from stoch_problem import StochProblem
+from stoch_obj_problem import StochObj_Problem
+from stoch_gen_problem import StochGen_Problem
