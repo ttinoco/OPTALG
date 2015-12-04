@@ -19,6 +19,10 @@ class StochObj_Problem:
 
         pass
 
+    def eval_F_approx(self,x):
+
+        pass
+
     def eval_EF(self,x):
 
         pass
@@ -41,4 +45,14 @@ class StochObj_Problem:
         
     def show(self):
 
+        pass
+
+    def solve_approx(self,g_corr=None,tol=1e-4,quiet=False):
+        """
+        Solves
+        
+        minimize(x)   F_approx(x) + g^Tx (sloped corrected)
+        subject to    x in X.
+        """
+        
         pass
