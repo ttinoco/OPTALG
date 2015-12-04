@@ -13,10 +13,16 @@ from solver import StochasticSolver
 
 class AdaCE(StochasticSolver):
 
-    # Constants
-    RATE = 0.05
-
     def solve(self,maxiters=1001,period=50,quiet=True,samples=500):
+
+        # Header
+        if not quiet:
+            print '\nAdaCE'
+            print '-----'
+            print '{0:^8s}'.format('iter'),
+            print '{0:^10s}'.format('time(s)'),
+            print '{0:^10s}'.format('prop'),
+            print '{0:^12s}'.format('EF')
 
         # Init
         t0 = time.time()
@@ -41,22 +47,17 @@ class AdaCE(StochasticSolver):
             # Output
             if not quiet:
                 t1 = time.time()
-                print '%d,%.2f,%.2e,%.2f,%.2f,' %(k,
-                                                  t1-t0,
-                                                  Fce+np.dot(g,x),
-                                                  np.average(x/self.problem.p_max),
-                                                  100.*(F-Fce-np.dot(g,x))/F),
+                print '{0:^8d}'.format(k),
+                print '{0:^10.2f}'.format(t1-t0),
+                print '{0:^10.2f}'.format(self.problem.get_prop_x(x)),
                 if k % period == 0:
-                    EF,EgF = self.problem.eval_EF(x,samples=samples)
-                    print '%.5e,%.2f,%.2f' %(EF,
-                                             100.*(EF-Fce-np.dot(g,x))/EF,
-                                             np.dot(EgF,gFce+g)/(norm(EgF)*norm(gFce+g)))
+                    print '{0:^12.5e}'.format(self.problem.eval_EF(x,samples=samples)[0])
                     t0 += time.time()-t1
                 else:
                     print ''
 
             # Update
-            g += (1./(k+1.))*(gF-gFce-g)
+            g += (gF-gFce-g)/(k+1.)
 
         return x
         

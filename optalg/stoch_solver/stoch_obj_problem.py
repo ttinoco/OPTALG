@@ -25,7 +25,11 @@ class StochObj_Problem:
 
     def get_size_x(self):
 
-        pass
+        return 0
+
+    def get_prop_x(self,x):
+        
+        return 0.
 
     def project_on_X(self,x):
         
