@@ -56,3 +56,7 @@ class StochObj_Problem:
         """
         
         pass
+
+    def get_strong_convexity_constant(self):
+
+        return 1.

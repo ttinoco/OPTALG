@@ -24,6 +24,7 @@ class PrimalDual_StochasticGradient(StochasticSolver):
             print '{0:^8s}'.format('iter'),
             print '{0:^10s}'.format('time(s)'),
             print '{0:^10s}'.format('prop'),
+            print '{0:^10s}'.format('lmax'),
             print '{0:^12s}'.format('EF'),
             print '{0:^12s}'.format('EGmax')
 
@@ -38,10 +39,10 @@ class PrimalDual_StochasticGradient(StochasticSolver):
             w = prob.sample_w()
             
             # Eval
-            F,gF,G,J = prob.eval_FG(x,w)
+            F,gF,G,JG = prob.eval_FG(x,w)
 
             # Lagrangian subgradient
-            gL = gF + J.T*lam
+            gL = gF + JG.T*lam
             
             # Show progress
             if not quiet:
@@ -49,8 +50,9 @@ class PrimalDual_StochasticGradient(StochasticSolver):
                 print '{0:^8d}'.format(k),
                 print '{0:^10.2f}'.format(t1-t0),
                 print '{0:^10.2f}'.format(prob.get_prop_x(x)),
+                print '{0:^10.2f}'.format(np.max(lam)),
                 if k % period == 0:
-                    EF,EgF,EG,EJ = prob.eval_EFG(x,samples=samples)
+                    EF,EgF,EG,EJG = prob.eval_EFG(x,samples=samples)
                     print '{0:^12.5e}'.format(EF),
                     print '{0:^12.5e}'.format(np.max(EG)),
                     t0 += time.time()-t1
