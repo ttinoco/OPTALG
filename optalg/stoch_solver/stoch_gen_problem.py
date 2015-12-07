@@ -28,18 +28,6 @@ class StochGen_Problem:
 
         pass
 
-    def eval_L(self,x,lam,w):
-
-        pass
-
-    def eval_L_approx(self,x,lam):
-
-        pass
-
-    def eval_EL(self,x,lam):
-
-        pass
-
     def get_size_x(self):
 
         return 0
