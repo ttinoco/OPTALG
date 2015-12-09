@@ -6,8 +6,6 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-import numpy as np
-
 class OptProblem:
     """
     Optimization problem class. 

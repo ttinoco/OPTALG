@@ -15,11 +15,12 @@ from scipy.sparse import bmat,triu,eye,spdiags,coo_matrix,tril
 class OptSolverIQP(OptSolver):
     
     # Solver parameters
-    parameters = {'tol': 1e-4,     # optimality tolerance
-                  'maxiter': 100,  # max iterations
-                  'sigma': 0.1,    # factor for increasing subproblem solution accuracy
-                  'eps': 1e-2,     # boundary proximity factor
-                  'quiet': False}  # quiet flag
+    parameters = {'tol': 1e-4,      # optimality tolerance
+                  'maxiter': 100,   # max iterations
+                  'sigma': 0.1,     # factor for increasing subproblem solution accuracy
+                  'eps': 1e-3,      # boundary proximity factor 
+                  'eps_cold': 1e-2, # boundary proximity factor (cold start)
+                  'quiet': False}   # quiet flag
 
     def __init__(self):
         """
@@ -86,10 +87,6 @@ class OptSolverIQP(OptSolver):
 
         return fdata
 
-    def get_sensitivities(self):
-        
-        return np.hstack((self.lam,self.mu,self.pi))
-
     def solve(self,problem):
         """
         Solves optimization problem.
@@ -110,6 +107,7 @@ class OptSolverIQP(OptSolver):
         quiet = parameters['quiet']
         sigma = parameters['sigma']
         eps = parameters['eps']
+        eps_cold = parameters['eps_cold']
         
         # Linsolver
         self.linsolver = new_linsolver('mumps','symmetric')
@@ -143,23 +141,23 @@ class OptSolverIQP(OptSolver):
         assert(np.all(self.l < self.u))
 
         # Initial point
-        if problem.x is not None:
+        if problem.x is None:
+            self.x = (self.u + self.l)/2.
+        else:
             dul = eps*(self.u-self.l)
             self.x = np.maximum(np.minimum(problem.x,self.u-dul),self.l+dul)
-        else:
-            self.x = (self.u + self.l)/2.
-        if problem.lam is not None:
-            self.lam = problem.lam.copy()
-        else:
+        if problem.lam is None:
             self.lam = np.zeros(self.m)
-        if problem.mu is not None:
+        else:
+            self.lam = problem.lam.copy()
+        if problem.mu is None:
+            self.mu = np.ones(self.x.size)*eps_cold
+        else:
             self.mu = np.maximum(problem.mu,eps)
+        if problem.pi is None:
+            self.pi = np.ones(self.x.size)*eps_cold
         else:
-            self.mu = np.ones(self.x.size)*eps
-        if problem.pi is not None:
             self.pi = np.maximum(problem.pi,eps)
-        else:
-            self.pi = np.ones(self.x.size)*eps
 
         # Check interior
         assert(np.all(self.l < self.x)) 

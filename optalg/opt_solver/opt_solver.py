@@ -125,6 +125,17 @@ class OptSolver:
         
         return self.lam,self.nu,self.mu,self.pi
 
+    def get_results(self):
+
+        return {'status': self.status,
+                'error_msg': self.error_msg,
+                'k': self.k,
+                'x': self.x,
+                'lam': self.lam,
+                'nu': self.nu,
+                'mu': self.mu,
+                'pi': self.pi}
+
     def is_status_solved(self):
         """
         Determines whether the solver solved the given problem.

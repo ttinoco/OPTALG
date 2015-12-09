@@ -13,7 +13,7 @@ from solver import StochasticSolver
 
 class StochasticHybrid(StochasticSolver):
 
-    def solve(self,maxiters=1001,period=50,quiet=True,samples=500):
+    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,warm_start=False):
 
         # Local vars
         prob = self.problem
@@ -28,6 +28,7 @@ class StochasticHybrid(StochasticSolver):
             print '{0:^12s}'.format('EF')
 
         # Init
+        sol_data = None
         t0 = time.time()
         g = np.zeros(prob.get_size_x())
         
@@ -35,7 +36,10 @@ class StochasticHybrid(StochasticSolver):
         for k in range(maxiters):
 
             # Solve approx
-            x = prob.solve_approx(g_corr=g,quiet=True)
+            if warm_start:
+                x,sol_data = prob.solve_approx(g_corr=g,quiet=True,init_data=sol_data)
+            else:
+                x,sol_data = prob.solve_approx(g_corr=g,quiet=True)                
             
             # Sample
             w = prob.sample_w()
