@@ -57,11 +57,11 @@ class PrimalDual_StochasticGradient(StochasticSolver):
                 t1 = time.time()
                 print '{0:^8d}'.format(k),
                 print '{0:^10.2f}'.format(t1-t0),
-                print '{0:^10.2f}'.format(prob.get_prop_x(x)),
-                print '{0:^10.2f}'.format(np.max(lam)),
+                print '{0:^10.2e}'.format(prob.get_prop_x(x)),
+                print '{0:^10.2e}'.format(np.max(lam)),
                 print '{0:^12.5e}'.format(EF_run),
                 print '{0:^12.5e}'.format(np.max(EG_run)),
-                if k % period == 0 and False:
+                if k % period == 0:
                     EF,EgF,EG,EJG = prob.eval_EFG(x,samples=samples)
                     print '{0:^12.5e}'.format(EF),
                     print '{0:^12.5e}'.format(np.max(EG))
