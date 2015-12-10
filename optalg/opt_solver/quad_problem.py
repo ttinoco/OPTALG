@@ -6,6 +6,7 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
+import numpy as np
 from scipy.sparse import tril
 from opt_problem import OptProblem
 
