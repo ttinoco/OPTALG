@@ -12,9 +12,9 @@ from opt_solver import OptSolver
 from optalg.lin_solver import new_linsolver
 from scipy.sparse import bmat,triu,eye,spdiags,coo_matrix,tril
 
-class OptSolverIQP(OptSolver):
+class OptSolverLCCP(OptSolver):
     """
-    Interior-point quadratic program solver.
+    Interior-point linearly-constrained convex program solver.
     """
     
     # Solver parameters
@@ -29,17 +29,17 @@ class OptSolverIQP(OptSolver):
         """
         This algorithm solves problems of the form
         
-        minimize    (1/2)x^THx + g^Tx
+        minimize    varphi(x)
         subject to  Ax = b
                     l <= x <= u
         
-        using an interior point method, where H 
-        is positive semidefinite.
+        using an interior point method, where
+        varphi is convex.
         """
         
         # Init
         OptSolver.__init__(self)
-        self.parameters = OptSolverIQP.parameters.copy()                
+        self.parameters = OptSolverLCCP.parameters.copy()                
         self.linsolver = None
         self.problem = None
 
@@ -59,13 +59,18 @@ class OptSolverIQP(OptSolver):
 
         fdata = self.fdata
         sigma = self.parameters['sigma']
+        prob = self.problem
 
         x,lam,mu,pi = self.extract_components(y)
         ux = self.u-x
         xl = x-self.l
+
+        prob.eval(x)
+
+        H = prob.Hphi + prob.Hphi.T - triu(prob.Hphi) # symmetric
         
-        rd = self.H*x+self.g-self.AT*lam+mu-pi       # dual residual
-        rp = self.A*x-self.b                         # primal residual
+        rd = prob.gphi-self.AT*lam+mu-pi     # dual residual
+        rp = self.A*x-self.b                 # primal residual
         ru = mu*ux-sigma*self.eta_mu*self.e  # residual of perturbed complementarity
         rl = pi*xl-sigma*self.eta_pi*self.e  # residual of perturbed complementarity
         
@@ -74,10 +79,12 @@ class OptSolverIQP(OptSolver):
         Dpi = spdiags(self.pi,0,self.n,self.n)
         Dxl = spdiags(xl,0,self.n,self.n)
 
-        f = np.hstack((rd,rp,ru,rl))                        # residuals
-        Jbot = bmat([[-Dmu,None,Dux,None],
-                     [Dpi,self.Onm,None,Dxl]])      # bottom part of Jacobian of residuals
-        J = bmat([[self.Jtop],[Jbot]],format='coo') # Jacobian of residuals
+        f = np.hstack((rd,rp,ru,rl))         # residuals
+        J = bmat([[H,-self.AT,self.I,-self.I],
+                  [self.A,None,None,None],
+                  [-Dmu,None,Dux,None],
+                  [Dpi,self.Onm,None,Dxl]],
+                 format='csr')
 
         fdata.rp = rp
         fdata.rd = rd
@@ -99,7 +106,7 @@ class OptSolverIQP(OptSolver):
         ----------
         problem : QuadProblem
         """
-    
+        
         # Local vars
         norm2 = self.norm2
         norminf = self.norminf
@@ -115,7 +122,7 @@ class OptSolverIQP(OptSolver):
         
         # Linsolver
         self.linsolver = new_linsolver('mumps','symmetric')
-
+        
         # Problem
         self.problem = problem
 
@@ -123,21 +130,17 @@ class OptSolverIQP(OptSolver):
         self.reset()
 
         # Data
-        self.H = problem.H
-        self.g = problem.g
         self.A = problem.A
         self.AT = problem.A.T
         self.b = problem.b
         self.l = problem.l
         self.u = problem.u
-        self.n = self.H.shape[0]
+        self.n = self.A.shape[1]
         self.m = self.A.shape[0]
         self.e = np.ones(self.n)
         self.I = eye(self.n,format='coo')
         self.Onm = coo_matrix((self.n,self.m))
         self.Omm = coo_matrix((self.m,self.m))
-        self.Jtop = bmat([[self.H,-self.AT,self.I,-self.I],
-                          [self.A,None,None,None]],format='coo')
     
         # Checks
         assert(np.all(self.l < self.u))
@@ -172,8 +175,8 @@ class OptSolverIQP(OptSolver):
 
         # Header
         if not quiet:
-            print '\nSolver: IQP'
-            print '-----------'
+            print '\nSolver: LCCP'
+            print '------------'
                                    
         # Outer
         s = 0.
@@ -219,12 +222,11 @@ class OptSolverIQP(OptSolver):
                 gmax = norminf(fdata.GradF)
                 compu = norminf(self.mu*(self.u-self.x))
                 compl = norminf(self.pi*(self.x-self.l))
-                phi = 0.5*np.dot(self.x,self.H*self.x)+np.dot(self.g,self.x)
                 
                 # Show progress
                 if not quiet:
                     print '{0:^3d}'.format(self.k),
-                    print '{0:^9.2e}'.format(phi),
+                    print '{0:^9.2e}'.format(problem.phi),
                     print '{0:^9.2e}'.format(fmax),
                     print '{0:^9.2e}'.format(gmax),
                     print '{0:^8.1e}'.format(compu),
@@ -245,7 +247,7 @@ class OptSolverIQP(OptSolver):
                 D1 = spdiags(self.mu/ux,0,self.n,self.n,format='coo')
                 D2 = spdiags(self.pi/xl,0,self.n,self.n,format='coo')
                 fbar = np.hstack((-fdata.rd+fdata.ru/ux-fdata.rl/xl,fdata.rp))
-                Jbar = bmat([[tril(self.H)+D1+D2,None],
+                Jbar = bmat([[problem.Hphi+D1+D2,None],
                              [-self.A,self.Omm]],format='coo')
                 if not self.linsolver.is_analyzed():
                     self.linsolver.analyze(Jbar)

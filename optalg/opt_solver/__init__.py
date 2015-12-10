@@ -11,5 +11,6 @@ from quad_problem import QuadProblem
 from iqp import OptSolverIQP
 from augl import OptSolverAugL
 from nr import OptSolverNR
+from lccp import OptSolverLCCP
 from opt_solver_error import OptSolverError
 from opt_solver import OptSolver,OptCallback,OptTermination

@@ -39,7 +39,7 @@ class PrimalDual_StochaticHybrid(StochasticSolver):
         for k in range(maxiters):
 
             # Solve approx
-            x = prob.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True)
+            x,sol_data = prob.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True)
             
             # Sample
             w = prob.sample_w()

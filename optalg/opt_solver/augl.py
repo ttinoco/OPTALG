@@ -9,7 +9,6 @@
 import numpy as np
 from opt_solver_error import *
 from opt_solver import OptSolver
-import scipy.sparse.linalg as la
 from scipy.sparse import bmat,eye,coo_matrix,tril
 from optalg.lin_solver import new_linsolver
 
