@@ -18,12 +18,12 @@ class OptSolverLCCP(OptSolver):
     """
     
     # Solver parameters
-    parameters = {'tol': 1e-4,      # optimality tolerance
-                  'maxiter': 100,   # max iterations
-                  'sigma': 0.1,     # factor for increasing subproblem solution accuracy
-                  'eps': 1e-3,      # boundary proximity factor 
-                  'eps_cold': 1e-2, # boundary proximity factor (cold start)
-                  'quiet': False}   # quiet flag
+    parameters = {'tol': 1e-4,        # optimality tolerance
+                  'maxiter': 1000,    # max iterations
+                  'sigma': 0.1,       # factor for increasing subproblem solution accuracy
+                  'eps': 1e-3,        # boundary proximity factor 
+                  'eps_cold': 1e-2,   # boundary proximity factor (cold start)
+                  'quiet': False}     # quiet flag
 
     def __init__(self):
         """
@@ -181,6 +181,7 @@ class OptSolverLCCP(OptSolver):
         # Outer
         s = 0.
         self.k = 0
+        pmax = 0
         while True:
 
             # Complementarity measures
@@ -211,7 +212,8 @@ class OptSolverLCCP(OptSolver):
                 print '{0:^9s}'.format('gmax'),
                 print '{0:^8s}'.format('cu'),
                 print '{0:^8s}'.format('cl'),
-                print '{0:^8s}'.format('s')
+                print '{0:^8s}'.format('s'),
+                print '{0:^8s}'.format('pmax')
  
             # Inner
             while True:
@@ -231,7 +233,8 @@ class OptSolverLCCP(OptSolver):
                     print '{0:^9.2e}'.format(gmax),
                     print '{0:^8.1e}'.format(compu),
                     print '{0:^8.1e}'.format(compl),
-                    print '{0:^8.1e}'.format(s)
+                    print '{0:^8.1e}'.format(s),
+                    print '{0:^8.1e}'.format(pmax)
                 
                 # Done
                 if gmax < tau:
@@ -257,6 +260,7 @@ class OptSolverLCCP(OptSolver):
                 pmu = (-fdata.ru + self.mu*px)/ux
                 ppi = (-fdata.rl - self.pi*px)/xl
                 p = np.hstack((pbar,pmu,ppi))
+                pmax = norminf(p)
 
                 # Steplength bounds
                 indices = px > 0

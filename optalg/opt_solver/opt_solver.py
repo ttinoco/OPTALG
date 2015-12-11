@@ -177,7 +177,7 @@ class OptSolver:
             s = 1.
         else:
             s = smax
-        u = np.NaN
+        u = np.NaN        
 
         phi = F
         dphi = np.dot(GradF,p)
