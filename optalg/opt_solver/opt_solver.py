@@ -211,6 +211,9 @@ class OptSolver:
             else:
                 s = (l + u)/2.
 
+        # Debugging
+        print 'pmax,l,s,u',self.norminf(p),l,s,u,smax,np.dot(p,GradF)/(self.norm2(p)*self.norm2(GradF))
+                
         raise OptSolverError_LineSearch(self)
 
     def reset(self):
