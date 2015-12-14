@@ -12,40 +12,53 @@ from numpy.linalg import norm
 from scipy.sparse import coo_matrix
 from solver import StochasticSolver
 
-class PrimalDual_StochaticHybrid(StochasticSolver):
+class PrimalDual_StochasticHybrid(StochasticSolver):
 
-    def solve(self,maxiters=1001,period=50,quiet=True,samples=500):
+    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,warm_start=False):
 
         # Local vars
         prob = self.problem
 
         # Header
         if not quiet:
-            print '\Primal-Dual AdaCE'
+            print '\nPrimal-Dual AdaCE'
             print '-----------------'
             print '{0:^8s}'.format('iter'),
             print '{0:^10s}'.format('time(s)'),
             print '{0:^10s}'.format('prop'),
+            print '{0:^10s}'.format('lmax'),
+            print '{0:^12s}'.format('EF_run'),
+            print '{0:^12s}'.format('EGmax_run'),
             print '{0:^12s}'.format('EF'),
             print '{0:^12s}'.format('EGmax')
 
         # Init
+        sol_data = None
         t0 = time.time()
         g = np.zeros(prob.get_size_x())
         lam = np.zeros(prob.get_size_lam())
-        J = coo_matrix((prob.get.size_lam(),prob.get_size_x()))
+        J = coo_matrix((prob.get_size_lam(),prob.get_size_x()))
+        EF_run = 0.
+        EG_run = np.zeros(prob.get_size_lam())
         
         # Loop
         for k in range(maxiters):
 
             # Solve approx
-            x,sol_data = prob.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True)
+            if warm_start:
+                x,sol_data = prob.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True,init_data=sol_data)
+            else:
+                x,sol_data = prob.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True)
             
             # Sample
             w = prob.sample_w()
             
             # Eval
             F,gF,G,JG = prob.eval_FG(x,w)
+            
+            # Running
+            EF_run += 0.05*(F-EF_run)
+            EG_run += 0.05*(G-EG_run)
 
             # Eval approx
             F_approx,gF_approx,G_approx,JG_approx = prob.eval_FG_approx(x)
@@ -56,6 +69,9 @@ class PrimalDual_StochaticHybrid(StochasticSolver):
                 print '{0:^8d}'.format(k),
                 print '{0:^10.2f}'.format(t1-t0),
                 print '{0:^10.2f}'.format(prob.get_prop_x(x)),
+                print '{0:^10.2e}'.format(np.max(lam)),
+                print '{0:^12.5e}'.format(EF_run),
+                print '{0:^12.5e}'.format(np.max(EG_run)),
                 if k % period == 0:
                     EF,EgF,EG,EJG = prob.eval_EFG(x,samples=samples)
                     print '{0:^12.5e}'.format(EF),
@@ -65,7 +81,7 @@ class PrimalDual_StochaticHybrid(StochasticSolver):
                     print ''
 
             # Update
-            lam = problem.project_lam(lam + alpha*G)
+            lam = prob.project_lam(lam + alpha*G)
             g += (gF-gF_approx-g)/(k+1.)
             J = J + (JG-JG_approx-J)/(k+1.)
 
