@@ -104,7 +104,7 @@ class OptSolverLCCP(OptSolver):
 
         Parameters
         ----------
-        problem : QuadProblem
+        problem : OptProblem
         """
         
         # Local vars
@@ -197,7 +197,7 @@ class OptSolverLCCP(OptSolver):
             if fmax < tol and sigma*np.maximum(self.eta_mu,self.eta_pi) < tol:
                 self.set_status(self.STATUS_SOLVED)
                 self.set_error_msg('')
-                return                
+                return
 
             # Target
             tau = sigma*norminf(fdata.GradF)
