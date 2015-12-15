@@ -14,7 +14,7 @@ from solver import StochasticSolver
 
 class PrimalDual_StochasticHybrid(StochasticSolver):
 
-    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,warm_start=False):
+    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,k0=0,theta=1.,warm_start=False):
 
         # Local vars
         prob = self.problem
@@ -79,11 +79,12 @@ class PrimalDual_StochasticHybrid(StochasticSolver):
                     t0 += time.time()-t1
                 else:
                     print ''
-
+                    
             # Update
+            alpha = theta/(k0+k+1.)
             lam = prob.project_lam(lam + alpha*G)
-            g += (gF-gF_approx-g)/(k+1.)
-            J = J + (JG-JG_approx-J)/(k+1.)
+            g += alpha*(gF-gF_approx-g)
+            J = J + alpha*(JG-JG_approx-J)
 
         return x
         

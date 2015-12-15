@@ -13,7 +13,7 @@ from solver import StochasticSolver
 
 class StochasticHybrid(StochasticSolver):
 
-    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,warm_start=False):
+    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,warm_start=False,theta=1.,k0=0):
 
         # Local vars
         prob = self.problem
@@ -63,7 +63,8 @@ class StochasticHybrid(StochasticSolver):
                     print ''
 
             # Update
-            g += (gF-gF_approx-g)/(k+1.)
+            alpha = theta/(k0+k+1.)
+            g += alpha*(gF-gF_approx-g)
 
         return x
         
