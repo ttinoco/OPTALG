@@ -12,7 +12,7 @@ from solver import StochasticSolver
 
 class StochasticGradient(StochasticSolver):
 
-    def solve(self,x=None,maxiters=1001,period=50,quiet=True,theta=1.,samples=500,k0=0):
+    def solve(self,x=None,maxiters=1001,period=50,quiet=True,theta=1.,samples=500,k0=0,tol=1e-4):
 
         # Local vars
         prob = self.problem
@@ -36,7 +36,7 @@ class StochasticGradient(StochasticSolver):
             w = prob.sample_w()
             
             # Eval
-            F,gF = prob.eval_F(x,w)
+            F,gF = prob.eval_F(x,w,tol=tol)
             
             # Show progress
             if not quiet:
@@ -45,7 +45,7 @@ class StochasticGradient(StochasticSolver):
                 print '{0:^10.2f}'.format(t1-t0),
                 print '{0:^10.2e}'.format(prob.get_prop_x(x)),
                 if k % period == 0:
-                    print '{0:^12.5e}'.format(prob.eval_EF(x,samples=samples)[0])
+                    print '{0:^12.5e}'.format(prob.eval_EF(x,samples=samples,tol=tol)[0])
                     t0 += time.time()-t1
                 else:
                     print ''

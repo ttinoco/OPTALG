@@ -16,15 +16,15 @@ class StochGen_Problem:
                   x in X
     """
 
-    def eval_FG(self,x,w):
+    def eval_FG(self,x,w,tol=None):
 
         pass
 
-    def eval_FG_approx(self,x):
+    def eval_FG_approx(self,x,tol=None):
 
         pass
 
-    def eval_EFG(self,x):
+    def eval_EFG(self,x,tol=None):
 
         pass
 

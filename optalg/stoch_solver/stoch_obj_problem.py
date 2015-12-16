@@ -15,15 +15,15 @@ class StochObj_Problem:
     subject to    x in X.
     """
 
-    def eval_F(self,x,w):
+    def eval_F(self,x,w,tol=None):
 
         pass
 
-    def eval_F_approx(self,x):
+    def eval_F_approx(self,x,tol=None):
 
         pass
 
-    def eval_EF(self,x):
+    def eval_EF(self,x,tol=None):
 
         pass
 
@@ -47,7 +47,7 @@ class StochObj_Problem:
 
         pass
 
-    def solve_approx(self,g_corr=None,tol=1e-4,quiet=False):
+    def solve_approx(self,g_corr=None,quiet=False,tol=1e-4):
         """
         Solves
         

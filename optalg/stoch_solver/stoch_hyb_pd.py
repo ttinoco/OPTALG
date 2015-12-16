@@ -14,7 +14,7 @@ from solver import StochasticSolver
 
 class PrimalDual_StochasticHybrid(StochasticSolver):
 
-    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,k0=0,theta=1.,warm_start=False):
+    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,k0=0,theta=1.,warm_start=False,tol=1e-4):
 
         # Local vars
         prob = self.problem
@@ -25,8 +25,8 @@ class PrimalDual_StochasticHybrid(StochasticSolver):
             print '-----------------'
             print '{0:^8s}'.format('iter'),
             print '{0:^10s}'.format('time(s)'),
-            print '{0:^10s}'.format('prop'),
-            print '{0:^10s}'.format('lmax'),
+            print '{0:^12s}'.format('prop'),
+            print '{0:^12s}'.format('lmax'),
             print '{0:^12s}'.format('EF_run'),
             print '{0:^12s}'.format('EGmax_run'),
             print '{0:^12s}'.format('EF'),
@@ -38,42 +38,44 @@ class PrimalDual_StochasticHybrid(StochasticSolver):
         g = np.zeros(prob.get_size_x())
         lam = np.zeros(prob.get_size_lam())
         J = coo_matrix((prob.get_size_lam(),prob.get_size_x()))
-        EF_run = 0.
-        EG_run = np.zeros(prob.get_size_lam())
         
         # Loop
         for k in range(maxiters):
 
             # Solve approx
             if warm_start:
-                x,sol_data = prob.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True,init_data=sol_data)
+                x,sol_data = prob.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True,init_data=sol_data,tol=tol)
             else:
-                x,sol_data = prob.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True)
+                x,sol_data = prob.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True,tol=tol)
             
             # Sample
             w = prob.sample_w()
             
             # Eval
-            F,gF,G,JG = prob.eval_FG(x,w)
+            F,gF,G,JG = prob.eval_FG(x,w,tol=tol)
             
             # Running
-            EF_run += 0.05*(F-EF_run)
-            EG_run += 0.05*(G-EG_run)
+            if k == 0:
+                EF_run = F
+                EG_run = G.copy()
+            else:
+                EF_run += 0.05*(F-EF_run)
+                EG_run += 0.05*(G-EG_run)
 
             # Eval approx
-            F_approx,gF_approx,G_approx,JG_approx = prob.eval_FG_approx(x)
+            F_approx,gF_approx,G_approx,JG_approx = prob.eval_FG_approx(x,tol=tol)
             
             # Output
             if not quiet:
                 t1 = time.time()
                 print '{0:^8d}'.format(k),
                 print '{0:^10.2f}'.format(t1-t0),
-                print '{0:^10.2f}'.format(prob.get_prop_x(x)),
-                print '{0:^10.2e}'.format(np.max(lam)),
+                print '{0:^12.2e}'.format(prob.get_prop_x(x)),
+                print '{0:^12.2e}'.format(np.max(lam)),
                 print '{0:^12.5e}'.format(EF_run),
                 print '{0:^12.5e}'.format(np.max(EG_run)),
                 if k % period == 0:
-                    EF,EgF,EG,EJG = prob.eval_EFG(x,samples=samples)
+                    EF,EgF,EG,EJG = prob.eval_EFG(x,samples=samples,tol=tol)
                     print '{0:^12.5e}'.format(EF),
                     print '{0:^12.5e}'.format(np.max(EG))
                     t0 += time.time()-t1

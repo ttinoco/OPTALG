@@ -13,7 +13,7 @@ from solver import StochasticSolver
 
 class StochasticHybrid(StochasticSolver):
 
-    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,warm_start=False,theta=1.,k0=0):
+    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,warm_start=False,theta=1.,k0=0,tol=1e-4):
 
         # Local vars
         prob = self.problem
@@ -37,18 +37,18 @@ class StochasticHybrid(StochasticSolver):
 
             # Solve approx
             if warm_start:
-                x,sol_data = prob.solve_approx(g_corr=g,quiet=True,init_data=sol_data)
+                x,sol_data = prob.solve_approx(g_corr=g,quiet=True,init_data=sol_data,tol=tol)
             else:
-                x,sol_data = prob.solve_approx(g_corr=g,quiet=True)                
+                x,sol_data = prob.solve_approx(g_corr=g,quiet=True,tol=tol)                
             
             # Sample
             w = prob.sample_w()
             
             # Eval
-            F,gF = prob.eval_F(x,w)
+            F,gF = prob.eval_F(x,w,tol=tol)
 
             # Eval approx
-            F_approx,gF_approx = prob.eval_F_approx(x)
+            F_approx,gF_approx = prob.eval_F_approx(x,tol=tol)
             
             # Output
             if not quiet:
@@ -57,7 +57,7 @@ class StochasticHybrid(StochasticSolver):
                 print '{0:^10.2f}'.format(t1-t0),
                 print '{0:^10.2f}'.format(prob.get_prop_x(x)),
                 if k % period == 0:
-                    print '{0:^12.5e}'.format(prob.eval_EF(x,samples=samples)[0])
+                    print '{0:^12.5e}'.format(prob.eval_EF(x,samples=samples,tol=tol)[0])
                     t0 += time.time()-t1
                 else:
                     print ''

@@ -12,7 +12,7 @@ from solver import StochasticSolver
 
 class PrimalDual_StochasticGradient(StochasticSolver):
 
-    def solve(self,x=None,maxiters=1001,period=50,quiet=True,theta=1.,samples=500,k0=0):
+    def solve(self,x=None,maxiters=1001,period=50,quiet=True,theta=1.,samples=500,k0=0,tol=1e-4):
 
         # Local vars
         prob = self.problem
@@ -23,8 +23,8 @@ class PrimalDual_StochasticGradient(StochasticSolver):
             print '-------------------------------'
             print '{0:^8s}'.format('iter'),
             print '{0:^10s}'.format('time(s)'),
-            print '{0:^10s}'.format('prop'),
-            print '{0:^10s}'.format('lmax'),
+            print '{0:^12s}'.format('prop'),
+            print '{0:^12s}'.format('lmax'),
             print '{0:^12s}'.format('EF_run'),
             print '{0:^12s}'.format('EGmax_run'),
             print '{0:^12s}'.format('EF'),
@@ -33,8 +33,6 @@ class PrimalDual_StochasticGradient(StochasticSolver):
         # Init
         t0 = time.time()
         lam = np.zeros(prob.get_size_lam())
-        EF_run = 0.
-        EG_run = np.zeros(prob.get_size_lam())
         
         # Loop
         for k in range(maxiters):
@@ -43,26 +41,30 @@ class PrimalDual_StochasticGradient(StochasticSolver):
             w = prob.sample_w()
             
             # Eval
-            F,gF,G,JG = prob.eval_FG(x,w,debug=False)
+            F,gF,G,JG = prob.eval_FG(x,w,tol=tol,debug=False)
             
             # Lagrangian subgradient
             gL = gF + JG.T*lam
 
             # Running
-            EF_run += 0.05*(F-EF_run)
-            EG_run += 0.05*(G-EG_run)
+            if k == 0:
+                EF_run = F
+                EG_run = G.copy()
+            else:
+                EF_run += 0.05*(F-EF_run)
+                EG_run += 0.05*(G-EG_run)
             
             # Show progress
             if not quiet:
                 t1 = time.time()
                 print '{0:^8d}'.format(k),
-                print '{0:^10.2f}'.format(t1-t0),
-                print '{0:^10.2e}'.format(prob.get_prop_x(x)),
-                print '{0:^10.2e}'.format(np.max(lam)),
+                print '{0:^1.2f}'.format(t1-t0),
+                print '{0:^12.2e}'.format(prob.get_prop_x(x)),
+                print '{0:^12.2e}'.format(np.max(lam)),
                 print '{0:^12.5e}'.format(EF_run),
                 print '{0:^12.5e}'.format(np.max(EG_run)),
                 if k % period == 0:
-                    EF,EgF,EG,EJG = prob.eval_EFG(x,samples=samples)
+                    EF,EgF,EG,EJG = prob.eval_EFG(x,samples=samples,tol=tol)
                     print '{0:^12.5e}'.format(EF),
                     print '{0:^12.5e}'.format(np.max(EG))
                     t0 += time.time()-t1
