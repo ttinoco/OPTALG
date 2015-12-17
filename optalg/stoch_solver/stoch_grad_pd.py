@@ -58,7 +58,7 @@ class PrimalDual_StochasticGradient(StochasticSolver):
             if not quiet:
                 t1 = time.time()
                 print '{0:^8d}'.format(k),
-                print '{0:^1.2f}'.format(t1-t0),
+                print '{0:^10.2f}'.format(t1-t0),
                 print '{0:^12.2e}'.format(prob.get_prop_x(x)),
                 print '{0:^12.2e}'.format(np.max(lam)),
                 print '{0:^12.5e}'.format(EF_run),

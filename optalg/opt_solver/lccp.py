@@ -21,7 +21,7 @@ class OptSolverLCCP(OptSolver):
     parameters = {'tol': 1e-4,        # optimality tolerance
                   'maxiter': 1000,    # max iterations
                   'sigma': 0.1,       # factor for increasing subproblem solution accuracy
-                  'eps': 1e-5,        # boundary proximity factor 
+                  'eps': 1e-5,       # boundary proximity factor 
                   'eps_cold': 1e-2,   # boundary proximity factor (cold start)
                   'quiet': False}     # quiet flag
 
