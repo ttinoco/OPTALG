@@ -24,7 +24,7 @@ class PrimalDual_StochasticGradient(StochasticSolver):
             print '{0:^8s}'.format('iter'),
             print '{0:^10s}'.format('time(s)'),
             print '{0:^12s}'.format('prop'),
-            print '{0:^12s}'.format('lmax'),
+            print '{0:^17s}'.format('lmax'),
             print '{0:^12s}'.format('EF_run'),
             print '{0:^12s}'.format('EGmax_run'),
             print '{0:^12s}'.format('EF'),
@@ -60,7 +60,7 @@ class PrimalDual_StochasticGradient(StochasticSolver):
                 print '{0:^8d}'.format(k),
                 print '{0:^10.2f}'.format(t1-t0),
                 print '{0:^12.2e}'.format(prob.get_prop_x(x)),
-                print '{0:^12.2e}'.format(np.max(lam)),
+                print '{0:^17.7e}'.format(np.max(lam)),
                 print '{0:^12.5e}'.format(EF_run),
                 print '{0:^12.5e}'.format(np.max(EG_run)),
                 if k % period == 0:
@@ -72,9 +72,10 @@ class PrimalDual_StochasticGradient(StochasticSolver):
                     print ''
             
             # Update
-            alpha = theta/(k0+k+1.)
-            x = prob.project_x(x - alpha*gL)
-            lam = prob.project_lam(lam + alpha*G)
+            alpha_x = theta/(k+1.)
+            alpha_lam = theta/(k0+k+1.)
+            x = prob.project_x(x - alpha_x*gL)
+            lam = prob.project_lam(lam + alpha_lam*G)
 
         return x
 
