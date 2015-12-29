@@ -72,7 +72,7 @@ class PrimalDual_StochasticGradient(StochasticSolver):
                     print ''
             
             # Update
-            alpha_x = theta/(k+1.)
+            alpha_x = theta/(k0+k+1.)
             alpha_lam = theta/(k0+k+1.)
             x = prob.project_x(x - alpha_x*gL)
             lam = prob.project_lam(lam + alpha_lam*G)
