@@ -55,7 +55,7 @@ class PrimalDual_StochasticGradient(StochasticSolver):
                 EG_run += 0.05*(G-EG_run)
             
             # Show progress
-            if not quiet:
+            if not quiet and k % period == 0:
                 t1 = time.time()
                 print '{0:^8d}'.format(k),
                 print '{0:^10.2f}'.format(t1-t0),
@@ -63,13 +63,10 @@ class PrimalDual_StochasticGradient(StochasticSolver):
                 print '{0:^17.7e}'.format(np.max(lam)),
                 print '{0:^12.5e}'.format(EF_run),
                 print '{0:^12.5e}'.format(np.max(EG_run)),
-                if k % period == 0:
-                    EF,EgF,EG,EJG = prob.eval_EFG(x,samples=samples,tol=tol)
-                    print '{0:^12.5e}'.format(EF),
-                    print '{0:^12.5e}'.format(np.max(EG))
-                    t0 += time.time()-t1
-                else:
-                    print ''
+                EF,EgF,EG,EJG = prob.eval_EFG(x,samples=samples,tol=tol)
+                print '{0:^12.5e}'.format(EF),
+                print '{0:^12.5e}'.format(np.max(EG))
+                t0 += time.time()-t1
             
             # Update
             alpha_x = theta/(k0+k+1.)
