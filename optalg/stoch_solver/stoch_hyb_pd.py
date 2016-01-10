@@ -26,7 +26,7 @@ class PrimalDual_StochasticHybrid(StochasticSolver):
             print '{0:^8s}'.format('iter'),
             print '{0:^10s}'.format('time(s)'),
             print '{0:^12s}'.format('prop'),
-            print '{0:^17s}'.format('lmax'),
+            print '{0:^12s}'.format('lmax'),
             print '{0:^12s}'.format('EF_run'),
             print '{0:^12s}'.format('EGmax_run'),
             print '{0:^12s}'.format('EF'),
@@ -71,8 +71,8 @@ class PrimalDual_StochasticHybrid(StochasticSolver):
                 t1 = time.time()
                 print '{0:^8d}'.format(k),
                 print '{0:^10.2f}'.format(t1-t0),
-                print '{0:^12.2e}'.format(prob.get_prop_x(x)),
-                print '{0:^17.7e}'.format(np.max(lam)),
+                print '{0:^12.5e}'.format(prob.get_prop_x(x)),
+                print '{0:^12.5e}'.format(np.max(lam)),
                 print '{0:^12.5e}'.format(EF_run),
                 print '{0:^12.5e}'.format(np.max(EG_run)),
                 EF,EgF,EG,EJG,info = prob.eval_EFG(x,samples=samples,tol=tol,info=True)
