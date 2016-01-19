@@ -12,7 +12,7 @@ from solver import StochasticSolver
 
 class PrimalDual_StochasticGradient(StochasticSolver):
 
-    def solve(self,x=None,maxiters=1001,period=50,quiet=True,theta=1.,samples=500,k0=0,tol=1e-4):
+    def solve(self,x=None,maxiters=1001,period=50,quiet=True,theta=1.,samples=500,k0=0,tol=1e-4,no_G=False):
 
         # Local vars
         prob = self.problem
@@ -74,7 +74,8 @@ class PrimalDual_StochasticGradient(StochasticSolver):
             alpha_x = theta/(k0+k+1.)
             alpha_lam = theta/(k0+k+1.)
             x = prob.project_x(x - alpha_x*gL)
-            lam = prob.project_lam(lam + alpha_lam*G)
+            if not no_G:
+                lam = prob.project_lam(lam + alpha_lam*G)
 
         return x
 

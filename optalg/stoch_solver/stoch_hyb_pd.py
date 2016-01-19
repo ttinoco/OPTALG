@@ -14,7 +14,7 @@ from solver import StochasticSolver
 
 class PrimalDual_StochasticHybrid(StochasticSolver):
 
-    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,k0=0,theta=1.,warm_start=False,tol=1e-4):
+    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,k0=0,theta=1.,warm_start=False,tol=1e-4,no_G=False):
         
         # Local vars
         prob = self.problem
@@ -84,7 +84,8 @@ class PrimalDual_StochasticHybrid(StochasticSolver):
             # Update
             alpha_slope = theta/(k0+k+1.)
             alpha_lam = theta/(k0+k+1.)
-            lam = prob.project_lam(lam + alpha_lam*G)
+            if not no_G:
+                lam = prob.project_lam(lam + alpha_lam*G)
             g += alpha_slope*(gF-gF_approx-g)
             J = J + alpha_slope*(JG-JG_approx-J)
 
