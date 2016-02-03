@@ -14,7 +14,7 @@ from solver import StochasticSolver
 
 class PrimalDual_StochasticHybrid(StochasticSolver):
 
-    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,k0=0,theta=1.,warm_start=False,tol=1e-4,no_G=False):
+    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,k0=0,theta=1.,warm_start=False,tol=1e-4,no_G=False,callback=None):
         
         # Local vars
         prob = self.problem
@@ -67,18 +67,21 @@ class PrimalDual_StochasticHybrid(StochasticSolver):
             F_approx,gF_approx,G_approx,JG_approx = prob.eval_FG_approx(x,tol=tol)
             
             # Output
-            if not quiet and k % period == 0:
+            if k % period == 0:
                 t1 = time.time()
-                print '{0:^8d}'.format(k),
-                print '{0:^10.2f}'.format(t1-t0),
-                print '{0:^12.5e}'.format(prob.get_prop_x(x)),
-                print '{0:^12.5e}'.format(np.max(lam)),
-                print '{0:^12.5e}'.format(EF_run),
-                print '{0:^12.5e}'.format(np.max(EG_run)),
-                EF,EgF,EG,EJG,info = prob.eval_EFG(x,samples=samples,tol=tol,info=True)
-                print '{0:^12.5e}'.format(EF),
-                print '{0:^12.5e}'.format(np.max(EG)),
-                print '{0:^12.5e}'.format(info)
+                if callback:
+                    callback(x)
+                if not quiet:
+                    print '{0:^8d}'.format(k),
+                    print '{0:^10.2f}'.format(t1-t0),
+                    print '{0:^12.5e}'.format(prob.get_prop_x(x)),
+                    print '{0:^12.5e}'.format(np.max(lam)),
+                    print '{0:^12.5e}'.format(EF_run),
+                    print '{0:^12.5e}'.format(np.max(EG_run)),
+                    EF,EgF,EG,EJG,info = prob.eval_EFG(x,samples=samples,tol=tol,info=True)
+                    print '{0:^12.5e}'.format(EF),
+                    print '{0:^12.5e}'.format(np.max(EG)),
+                    print '{0:^12.5e}'.format(info)
                 t0 += time.time()-t1
                     
             # Update

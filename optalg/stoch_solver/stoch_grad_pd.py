@@ -12,7 +12,7 @@ from solver import StochasticSolver
 
 class PrimalDual_StochasticGradient(StochasticSolver):
 
-    def solve(self,x=None,maxiters=1001,period=50,quiet=True,theta=1.,samples=500,k0=0,tol=1e-4,no_G=False):
+    def solve(self,x=None,maxiters=1001,period=50,quiet=True,theta=1.,samples=500,k0=0,tol=1e-4,no_G=False,callback=None):
 
         # Local vars
         prob = self.problem
@@ -56,18 +56,21 @@ class PrimalDual_StochasticGradient(StochasticSolver):
                 EG_run += 0.05*(G-EG_run)
             
             # Show progress
-            if not quiet and k % period == 0:
+            if k % period == 0:
                 t1 = time.time()
-                print '{0:^8d}'.format(k),
-                print '{0:^10.2f}'.format(t1-t0),
-                print '{0:^12.5e}'.format(prob.get_prop_x(x)),
-                print '{0:^12.5e}'.format(np.max(lam)),
-                print '{0:^12.5e}'.format(EF_run),
-                print '{0:^12.5e}'.format(np.max(EG_run)),
-                EF,EgF,EG,EJG,info = prob.eval_EFG(x,samples=samples,tol=tol,info=True)
-                print '{0:^12.5e}'.format(EF),
-                print '{0:^12.5e}'.format(np.max(EG)),
-                print '{0:^12.5e}'.format(info)
+                if callback:
+                    callback(x)
+                if not quiet:
+                    print '{0:^8d}'.format(k),
+                    print '{0:^10.2f}'.format(t1-t0),
+                    print '{0:^12.5e}'.format(prob.get_prop_x(x)),
+                    print '{0:^12.5e}'.format(np.max(lam)),
+                    print '{0:^12.5e}'.format(EF_run),
+                    print '{0:^12.5e}'.format(np.max(EG_run)),
+                    EF,EgF,EG,EJG,info = prob.eval_EFG(x,samples=samples,tol=tol,info=True)
+                    print '{0:^12.5e}'.format(EF),
+                    print '{0:^12.5e}'.format(np.max(EG)),
+                    print '{0:^12.5e}'.format(info)
                 t0 += time.time()-t1
             
             # Update
