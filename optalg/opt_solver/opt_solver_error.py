@@ -37,6 +37,14 @@ class OptSolverError_LinFeasLost(OptSolverError):
     def __init__(self,solver=None):
         OptSolverError.__init__(self,solver,'linear equality constraint feasibility lost')
 
+class OptSolverError_Infeasibility(OptSolverError):
+    def __init__(self,solver=None):
+        OptSolverError.__init__(self,solver,'infeasible problem')
+
+class OptSolverError_NoInterior(OptSolverError):
+    def __init__(self,solver=None):
+        OptSolverError.__init__(self,solver,'empty interior')
+
 class OptSolverError_MaxIters(OptSolverError):
     def __init__(self,solver=None):
         OptSolverError.__init__(self,solver,'maximum number of iterations')

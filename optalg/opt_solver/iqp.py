@@ -140,7 +140,10 @@ class OptSolverIQP(OptSolver):
                           [self.A,None,None,None]],format='coo')
     
         # Checks
-        assert(np.all(self.l < self.u))
+        try:
+            assert(np.all(self.l < self.u))
+        except AssertionError:
+            raise OptSolverError_NoInterior(self)
 
         # Initial point
         if problem.x is None:
@@ -162,10 +165,13 @@ class OptSolverIQP(OptSolver):
             self.pi = np.maximum(problem.pi,eps)
 
         # Check interior
-        assert(np.all(self.l < self.x)) 
-        assert(np.all(self.x < self.u))
-        assert(np.all(self.mu > 0))
-        assert(np.all(self.pi > 0))
+        try:
+            assert(np.all(self.l < self.x)) 
+            assert(np.all(self.x < self.u))
+            assert(np.all(self.mu > 0))
+            assert(np.all(self.pi > 0))
+        except AssertionError:
+            raise OptSolverError_Infeasibility(self)
 
         # Init vector
         self.y = np.hstack((self.x,self.lam,self.mu,self.pi))
@@ -276,9 +282,12 @@ class OptSolverIQP(OptSolver):
                 self.x,self.lam,self.mu,self.pi = self.extract_components(self.y)
 
                 # Check
-                assert(np.all(self.x < self.u))
-                assert(np.all(self.x > self.l))
-                assert(np.all(self.mu > 0))
-                assert(np.all(self.pi > 0))
+                try:
+                    assert(np.all(self.x < self.u))
+                    assert(np.all(self.x > self.l))
+                    assert(np.all(self.mu > 0))
+                    assert(np.all(self.pi > 0))
+                except AssertionError:
+                    raise OptSolverError_Infeasibility(self)
 
         
