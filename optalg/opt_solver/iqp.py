@@ -114,7 +114,7 @@ class OptSolverIQP(OptSolver):
         eps_cold = parameters['eps_cold']
         
         # Linsolver
-        self.linsolver = new_linsolver('mumps','symmetric')
+        self.linsolver = new_linsolver('default','symmetric')
 
         # Problem
         self.problem = problem

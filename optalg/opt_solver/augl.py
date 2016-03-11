@@ -28,7 +28,7 @@ class OptSolverAugL(OptSolver):
                   'miu_init_max':1e6,    # largest initial miu
                   'lam_reg':1e-2,        # eta/miu ratio for regularization of first order dual update
                   'subprob_force':10,    # for periodic miu decrease
-                  'linsolver':'mumps',   # linear solver
+                  'linsolver':'default', # linear solver
                   'quiet':False}         # flag for omitting output
     
     def __init__(self):

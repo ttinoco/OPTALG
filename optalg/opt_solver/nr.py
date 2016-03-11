@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -16,7 +16,7 @@ class OptSolverNR(OptSolver):
     
     parameters = {'feastol':1e-4,
                   'maxiter':100,
-                  'linsolver':'mumps',
+                  'linsolver':'superlu',
                   'quiet':False}
 
     def __init__(self):
