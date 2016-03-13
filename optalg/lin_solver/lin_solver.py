@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -81,7 +81,7 @@ class LinSolver:
 
     def factorize_and_solve(self,A,b):
         """
-        Factorizes A and sovles Ax=b.
+        Factorizes A and solves Ax=b.
 
         Returns
         -------

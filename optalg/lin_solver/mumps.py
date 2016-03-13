@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -16,12 +16,7 @@ class LinSolverMUMPS(LinSolver):
 
     def __init__(self,prop='unsymmetric'):
         """
-        Class constructor.
-        
-        Parameters
-        ----------
-        
-        prop : {symmetric,unsymmetric}
+        Linear solver based on MUMPS.
         """
 
         # Import mumps

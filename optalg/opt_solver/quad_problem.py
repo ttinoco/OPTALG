@@ -1,14 +1,14 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
 import numpy as np
-from scipy.sparse import tril
 from opt_problem import OptProblem
+from scipy.sparse import tril, coo_matrix
 
 class QuadProblem(OptProblem):
     """
@@ -22,13 +22,13 @@ class QuadProblem(OptProblem):
 
     def __init__(self,H,g,A,b,l,u,x=None,lam=None,mu=None,pi=None):
         """
-        Class constructor.
+        Quadratic program class.
         
         Parameters
         ----------
-        H : symmetric sparse matrix
+        H : symmetric matrix
         g : vector
-        A : sparse matrix
+        A : matrix
         l : vector
         u : vector
         x : vector
@@ -36,10 +36,10 @@ class QuadProblem(OptProblem):
 
         OptProblem.__init__(self)
 
-        self.Hphi = tril(H) # lower triangular
-        self.H = H
+        self.H = coo_matrix(H)
+        self.Hphi = tril(self.H) # lower triangular
         self.g = g
-        self.A = A
+        self.A = coo_matrix(A)
         self.b = b
         self.u = u
         self.l = l
@@ -54,5 +54,6 @@ class QuadProblem(OptProblem):
 
         self.phi = 0.5*np.dot(x,self.H*x) + np.dot(self.g,x)
         self.gphi = self.H*x + self.g
+        
         
         

@@ -21,12 +21,7 @@ class OptSolverNR(OptSolver):
 
     def __init__(self):
         """
-        This algorithm solves system of equations
-        
-                 Ax = b
-                 f(x) = 0
-        
-        using the Newton-Raphson method.
+        Newton-Raphson algorithm.
         """
         
         # Init

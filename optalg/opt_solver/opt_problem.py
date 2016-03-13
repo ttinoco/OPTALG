@@ -1,53 +1,62 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
 class OptProblem:
-    """
-    Optimization problem class. 
-    It represents problem of the form
-    
-    minimize    phi(x)
-
-    subject to  Ax = 0       : lam
-                f(x) = 0     : nu
-                x <= u       : mu
-                x >= l       : pi
-    """
 
     def __init__(self):
         """
-        Constructor.
+        Class for representing general optimization problems.
         """
         
-        # Objective
-        self.phi = 0     # value
-        self.gphi = None # gradient
-        self.Hphi = None # Hessian (lower triangular)
+        #: Objective function value
+        self.phi = 0     
+
+        #: Objective function gradient
+        self.gphi = None 
+
+        #: Objective function Hessian (lower triangular)
+        self.Hphi = None 
         
-        # Linear constraints
+        #: Matrix for linear equality constraints
         self.A = None
+
+        #: Right-hand side for linear equality constraints
         self.b = None
 
-        # Nonlinear constraints
-        self.f = None     # violations
-        self.J = None     # Jacobian
-        self.Hcomb = None # linear combination of constraint Hessians
-        
-        # Bounds
-        self.u = None # upper bound
-        self.l = None # lower bound
+        #: Nonlinear equality constraint function
+        self.f = None    
 
-        # Initial point
-        self.x = None   # primal
-        self.lam = None # dual (lin constr)
-        self.nu = None  # dual (nonlin constr)
-        self.mu = None  # dual (upper bounds)
-        self.pi = None  # dual (lower bounds)
+        #: Jacobian of nonlinear constraints
+        self.J = None    
+
+        #: Linear combination of Hessians of nonlinear constraints
+        self.H_combined = None
+        
+        #: Upper limits 
+        self.u = None
+
+        #: Lower limits
+        self.l = None
+
+        #: Initial point
+        self.x = None
+
+        #: Lagrande multipliers for linear equality constraints
+        self.lam = None
+
+        #: Lagrande multipliers for nonlinear equality constraints
+        self.nu = None 
+
+        #: Lagrande multipliers for upper limits
+        self.mu = None 
+
+        #: Lagrande multipliers for lower limits 
+        self.pi = None 
         
     def eval(self,x):
         """

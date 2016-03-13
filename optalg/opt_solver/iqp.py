@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -27,14 +27,7 @@ class OptSolverIQP(OptSolver):
 
     def __init__(self):
         """
-        This algorithm solves problems of the form
-        
-        minimize    (1/2)x^THx + g^Tx
-        subject to  Ax = b
-                    l <= x <= u
-        
-        using an interior point method, where H 
-        is positive semidefinite.
+        Interior-point quadratic program solver.
         """
         
         # Init

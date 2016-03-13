@@ -14,7 +14,7 @@ from scipy.sparse import bmat,triu,eye,spdiags,coo_matrix,tril
 
 class OptSolverLCCP(OptSolver):
     """
-    Interior-point linearly-constrained convex program solver.
+    Interior-point solver for linearly-constrained convex programs.
     """
     
     # Solver parameters
@@ -27,14 +27,7 @@ class OptSolverLCCP(OptSolver):
 
     def __init__(self):
         """
-        This algorithm solves problems of the form
-        
-        minimize    varphi(x)
-        subject to  Ax = b
-                    l <= x <= u
-        
-        using an interior point method, where
-        varphi is convex.
+        Interior-point solver for linearly-constrained convex programs.
         """
         
         # Init

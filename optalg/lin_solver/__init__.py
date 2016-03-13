@@ -9,6 +9,18 @@
 from lin_solver import LinSolver
 
 def new_linsolver(name,prop):
+    """
+    Creates a linear solver.
+
+    Parameters
+    ----------
+    name : string
+    prop : string
+    
+    Returns
+    -------
+    solver : :class:`LinSolver <optalg.lin_solver.LinSolver>`
+    """
     
     if name == 'mumps':
         from mumps import LinSolverMUMPS

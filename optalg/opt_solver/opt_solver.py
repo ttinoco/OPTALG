@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -85,7 +85,7 @@ class OptSolver:
         
     def get_iterations(self):
         """
-        Gets solver number of iterations.
+        Gets number of iterations.
         
         Returns
         -------
@@ -107,7 +107,7 @@ class OptSolver:
 
     def get_primal_variables(self):
         """
-        Gets solver optimization variables.
+        Gets primal variables.
 
         Returns
         -------
@@ -117,15 +117,27 @@ class OptSolver:
         return self.x
 
     def get_dual_variables(self):
-        """        
+        """
+        Gets dual variables.
+        
         Returns
         -------
-        
+        lam : vector
+        nu : vector
+        mu : vector
+        pi : vector
         """
         
         return self.lam,self.nu,self.mu,self.pi
 
     def get_results(self):
+        """
+        Gets results.
+
+        Returns
+        -------
+        results : dictionary
+        """
 
         return {'status': self.status,
                 'error_msg': self.error_msg,
@@ -150,7 +162,7 @@ class OptSolver:
     def line_search(self,x,p,F,GradF,func,smax=np.inf):
         """
         Finds steplength along search direction p that 
-        satisfies the Wolfe conditions.
+        satisfies the strong Wolfe conditions.
         
         Parameters
         ----------
