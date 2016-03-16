@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -60,7 +60,7 @@ class StochGen_Problem:
         """
         Solves
         
-        minimize(x)   F_approx + lam^TG_approx(x) + g^Tx + lam^TJx (slope correction)
+        minimize(x)   F_approx(x) + lam^TG_approx(x) + g^Tx + lam^TJx (slope correction)
         subject to    x in X
         """
 

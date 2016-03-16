@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -21,8 +21,8 @@ class PrimalDual_StochasticHybrid(StochasticSolver):
 
         # Header
         if not quiet:
-            print '\nPrimal-Dual AdaCE'
-            print '-----------------'
+            print '\nPrimal-Dual Stochastic Hybrid'
+            print '-----------------------------'
             print '{0:^8s}'.format('iter'),
             print '{0:^10s}'.format('time(s)'),
             print '{0:^12s}'.format('prop'),

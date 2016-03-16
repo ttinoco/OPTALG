@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -13,7 +13,7 @@ from solver import StochasticSolver
 
 class StochasticHybrid(StochasticSolver):
 
-    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,warm_start=False,theta=1.,k0=0,tol=1e-4):
+    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,k0=0,theta=1.,warm_start=False,tol=1e-4):
 
         # Local vars
         prob = self.problem
@@ -24,7 +24,7 @@ class StochasticHybrid(StochasticSolver):
             print '-----------------'
             print '{0:^8s}'.format('iter'),
             print '{0:^10s}'.format('time(s)'),
-            print '{0:^10s}'.format('prop'),
+            print '{0:^12s}'.format('prop'),
             print '{0:^12s}'.format('EF')
 
         # Init
@@ -51,16 +51,15 @@ class StochasticHybrid(StochasticSolver):
             F_approx,gF_approx = prob.eval_F_approx(x,tol=tol)
             
             # Output
-            if not quiet:
+            if k % period == 0:
                 t1 = time.time()
-                print '{0:^8d}'.format(k),
-                print '{0:^10.2f}'.format(t1-t0),
-                print '{0:^10.2f}'.format(prob.get_prop_x(x)),
-                if k % period == 0:
-                    print '{0:^12.5e}'.format(prob.eval_EF(x,samples=samples,tol=tol)[0])
-                    t0 += time.time()-t1
-                else:
-                    print ''
+                if not quiet:
+                    print '{0:^8d}'.format(k),
+                    print '{0:^10.2f}'.format(t1-t0),
+                    print '{0:^12.5e}'.format(prob.get_prop_x(x)),
+                    EF,EgF = prob.eval_EF(x,samples=samples,tol=tol)
+                    print '{0:^12.5e}'.format(EF)
+                t0 += time.time()-t1
 
             # Update
             alpha = theta/(k0+k+1.)
