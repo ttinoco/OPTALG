@@ -246,9 +246,12 @@ class OptSolverIQP(OptSolver):
                 fbar = np.hstack((-fdata.rd+fdata.ru/ux-fdata.rl/xl,fdata.rp))
                 Jbar = bmat([[tril(self.H)+D1+D2,None],
                              [-self.A,self.Omm]],format='coo')
-                if not self.linsolver.is_analyzed():
-                    self.linsolver.analyze(Jbar)
-                pbar = self.linsolver.factorize_and_solve(Jbar,fbar)
+                try:
+                    if not self.linsolver.is_analyzed():
+                        self.linsolver.analyze(Jbar)
+                    pbar = self.linsolver.factorize_and_solve(Jbar,fbar)
+                except RuntimeError:
+                    raise OptSolverError_BadLinSystem(self)
                 px = pbar[:self.n]
                 plam = pbar[self.n:self.n+self.m]                
                 pmu = (-fdata.ru + self.mu*px)/ux
