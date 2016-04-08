@@ -192,7 +192,7 @@ class OptSolverIQP(OptSolver):
             if fmax < tol and sigma*np.maximum(self.eta_mu,self.eta_pi) < tol:
                 self.set_status(self.STATUS_SOLVED)
                 self.set_error_msg('')
-                return                
+                return
 
             # Target
             tau = sigma*norminf(fdata.GradF)
@@ -232,6 +232,10 @@ class OptSolverIQP(OptSolver):
                 
                 # Done
                 if gmax < tau:
+                    break
+
+                # Done
+                if fmax < tol and np.maximum(compu,compl) < tol:
                     break
 
                 # Maxiters
