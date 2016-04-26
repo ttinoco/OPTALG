@@ -18,9 +18,7 @@ OPTALG is released under the BSD 2-clause license.
 
 **Contact**
 
-If you have any questions about OPTALG or if you are interested in collaborating, send me an email:
-
-* Tomas Tinoco De Rubira (ttinoco5687@gmail.com).
+* `Tomas Tinoco De Rubira <http://n.ethz.ch/~tomast/>`_ (principal developer)
 
 **Documentation Contents**
 
