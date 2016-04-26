@@ -26,6 +26,6 @@ The latest version of the package can be downloaded from https://github.com/ttin
 * [Scipy](http://www.scipy.org) (>=0.13.3)
 * [MUMPS](http://mumps-solver.org) (==4.10)
  
-## Contact ##
+## Contributors ##
 
-* Tomas Tinoco De Rubira (<ttinoco5687@gmail.com>)
+* [Tomas Tinoco De Rubira](http://n.ethz.ch/~tomast/) (principal developer)
