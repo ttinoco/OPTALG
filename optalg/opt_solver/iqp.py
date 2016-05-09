@@ -18,12 +18,13 @@ class OptSolverIQP(OptSolver):
     """
     
     # Solver parameters
-    parameters = {'tol': 1e-4,      # optimality tolerance
-                  'maxiter': 1000,  # max iterations
-                  'sigma': 0.1,     # factor for increasing subproblem solution accuracy
-                  'eps': 1e-3,      # boundary proximity factor 
-                  'eps_cold': 1e-2, # boundary proximity factor (cold start)
-                  'quiet': False}   # quiet flag
+    parameters = {'tol': 1e-4,            # optimality tolerance
+                  'maxiter': 1000,        # max iterations
+                  'sigma': 0.1,           # factor for increasing subproblem solution accuracy
+                  'eps': 1e-3,            # boundary proximity factor 
+                  'eps_cold': 1e-2,       # boundary proximity factor (cold start)
+                  'linsolver': 'default', # linear solver
+                  'quiet': False}         # quiet flag
 
     def __init__(self):
         """
@@ -107,7 +108,7 @@ class OptSolverIQP(OptSolver):
         eps_cold = parameters['eps_cold']
         
         # Linsolver
-        self.linsolver = new_linsolver('default','symmetric')
+        self.linsolver = new_linsolver(parameters['linsolver'],'symmetric')
 
         # Problem
         self.problem = problem
