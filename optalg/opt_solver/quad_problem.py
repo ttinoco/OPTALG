@@ -49,11 +49,21 @@ class QuadProblem(OptProblem):
         self.lam = lam
         self.mu = mu
         self.pi = pi
+
+        # Check data
+        # TODO
         
     def eval(self,x):
 
         self.phi = 0.5*np.dot(x,self.H*x) + np.dot(self.g,x)
         self.gphi = self.H*x + self.g
         
+    def show(self):
         
+        print '\nQP Problem'
+        print '----------'
+        print 'H shape : (%d,%d)' %(self.H.shape[0],self.H.shape[1])
+        print 'H nnz   : %.2f %%' %(100.*self.H.nnz/(self.H.shape[0]*self.H.shape[1]))
+        print 'A shape : (%d,%d)' %(self.A.shape[0],self.A.shape[1])
+        print 'A nnz   : %.2f %%' %(100.*self.A.nnz/(self.A.shape[0]*self.A.shape[1]))
         
