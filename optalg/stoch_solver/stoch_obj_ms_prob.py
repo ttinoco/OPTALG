@@ -40,6 +40,17 @@ class StochObjMS_Problem:
 
         return 0
 
+    def get_x_prev(self):
+        """
+        Gets constant x for time before t=0.
+
+        Returns
+        -------
+        x_prev : vector
+        """
+        
+        return None
+
     def eval_stage_approx(self,t,w_list,x_prev,g_corr=[],quiet=False,tol=1e-4):
         """
         Evaluates approximate optimal stage cost.
