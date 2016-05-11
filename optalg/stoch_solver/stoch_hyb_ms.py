@@ -15,7 +15,7 @@ from solver import StochasticSolver
 
 class MultiStage_StochasticHybrid(StochasticSolver):
 
-    def solve(self,maxiters=1001,msize=100,quiet=True,k0=0,theta=1.,warm_start=False,tol=1e-4,callback=None):
+    def solve(self,maxiters=1001,msize=100,quiet=True,k0=0,theta=1.,warm_start=False,tol=1e-4,callback=None,debug=False):
         """
         Solves multi stage stochastic optimization problem
 
@@ -32,6 +32,9 @@ class MultiStage_StochasticHybrid(StochasticSolver):
         prob = self.problem
         T = prob.get_num_stages()
         n = prob.get_size_x()
+        
+        # Time
+        t0 = time.time()
 
         # Header
         if not quiet:
@@ -39,11 +42,11 @@ class MultiStage_StochasticHybrid(StochasticSolver):
             print '-----------------------------'
             print '{0:^8s}'.format('iter'),
             print '{0:^10s}'.format('time(s)'),
-            print '{0:^12s}'.format('prop'),
-            print '{0:^12s}'.format('cost'),
-            print '{0:^12s}'.format('info')
+            print '{0:^12s}'.format('dx0'),
+            print '{0:^12s}'.format('cost0')
 
         # Init
+        x0_prev = np.zeros(n)
         samples = deque(maxlen=msize)                       # sampled realizations of uncertainty
         dslopes = [deque(maxlen=msize) for i in range(T-1)] # slope corrections (includes steplengths)
         gammas = [1./(t+1.) for t in range(T-1)]            # scaling factors
@@ -86,6 +89,7 @@ class MultiStage_StochasticHybrid(StochasticSolver):
                 g_corr.append(g(t,Wt,samples,dslopes))
 
             # Solve subproblems
+            costs = []
             solutions = {-1 : prob.get_x_prev()}
             for t in range(T):
                 w_list = sample[:t+1]
@@ -96,8 +100,10 @@ class MultiStage_StochasticHybrid(StochasticSolver):
                 xt,Qt,gQt = prob.eval_stage_approx(t,
                                                    w_list[t:],
                                                    solutions[t-1],
-                                                   g_corr=g_corr_pr)
+                                                   g_corr=g_corr_pr,
+                                                   quiet=not debug)
                 solutions[t] = xt
+                costs.append(Qt)
 
             # Update samples
             samples.append(sample)
@@ -116,14 +122,26 @@ class MultiStage_StochasticHybrid(StochasticSolver):
                 xt_xi,Qt_xi,gQt_xi = prob.eval_stage_approx(t,
                                                             w_list_xi[t:],
                                                             solutions[t-1],
-                                                            g_corr=g_corr_xi)
+                                                            g_corr=g_corr_xi,
+                                                            quiet=not debug)
                 xt_et,Qt_et,gQt_et = prob.eval_stage_approx(t,
                                                             w_list_et[t:],
                                                             solutions[t-1],
-                                                            g_corr=g_corr_et)
+                                                            g_corr=g_corr_et,
+                                                            quiet=not debug)
                 alpha = theta/(k0+k+1.)
                 dslopes[t-1].append(alpha*(gQt_xi-gQt_et-g_corr[t-1]))
                 
-            break
-                                                   
+            # Output
+            if not quiet:
+                print '{0:^8d}'.format(k),
+                print '{0:^10.2f}'.format(time.time()-t0),
+                print '{0:^12.5e}'.format(norm(solutions[0]-x0_prev)/norm(solutions[0])),
+                print '{0:^12.5e}'.format(costs[0])
                 
+            # Hold
+            if debug:
+                raw_input()
+                
+            # Update
+            x0_prev = solutions[0]
