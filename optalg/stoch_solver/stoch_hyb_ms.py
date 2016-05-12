@@ -38,7 +38,7 @@ class MultiStage_StochasticHybrid(StochasticSolver):
 
         # Header
         if not quiet:
-            print 'Multi-Stage Stochastic Hybrid'
+            print '\nMulti-Stage Stochastic Hybrid'
             print '-----------------------------'
             print '{0:^8s}'.format('iter'),
             print '{0:^10s}'.format('time(s)'),
