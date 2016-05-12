@@ -90,6 +90,8 @@ class MultiStage_StochasticHybrid(StochasticSolver):
 
             # Solve subproblems
             costs = []
+            xi_vecs = {}
+            et_vecs = {}
             solutions = {-1 : prob.get_x_prev()}
             for t in range(T):
                 w_list = sample[:t+1]
@@ -97,40 +99,23 @@ class MultiStage_StochasticHybrid(StochasticSolver):
                 for tau in range(t+1,T):
                     w_list.append(prob.predict_w(tau,w_list))
                     g_corr_pr.append(g(tau,w_list,samples,dslopes))
-                xt,Qt,gQt = prob.eval_stage_approx(t,
-                                                   w_list[t:],
-                                                   solutions[t-1],
-                                                   g_corr=g_corr_pr,
-                                                   quiet=not debug)
+                xt,Qt,gQt,gQtt = prob.eval_stage_approx(t,
+                                                        w_list[t:],
+                                                        solutions[t-1],
+                                                        g_corr=g_corr_pr,
+                                                        quiet=not debug)
                 solutions[t] = xt
+                xi_vecs[t-1] = gQt
+                et_vecs[t] = gQtt
                 costs.append(Qt)
 
             # Update samples
             samples.append(sample)
 
             # Update slopes
-            for t in range(T-1,0,-1):
-                w_list_xi = sample[:t+1]
-                w_list_et = sample[:t]+[prob.predict_w(t,sample[:t])]
-                g_corr_xi = [g(t,w_list_xi,samples,dslopes)]
-                g_corr_et = [g(t,w_list_et,samples,dslopes)]
-                for tau in range(t+1,T):
-                    w_list_xi.append(prob.predict_w(tau,w_list_xi))
-                    w_list_et.append(prob.predict_w(tau,w_list_et))
-                    g_corr_xi.append(g(tau,w_list_xi,samples,dslopes))
-                    g_corr_et.append(g(tau,w_list_et,samples,dslopes))
-                xt_xi,Qt_xi,gQt_xi = prob.eval_stage_approx(t,
-                                                            w_list_xi[t:],
-                                                            solutions[t-1],
-                                                            g_corr=g_corr_xi,
-                                                            quiet=not debug)
-                xt_et,Qt_et,gQt_et = prob.eval_stage_approx(t,
-                                                            w_list_et[t:],
-                                                            solutions[t-1],
-                                                            g_corr=g_corr_et,
-                                                            quiet=not debug)
+            for t in range(T-1):
                 alpha = theta/(k0+k+1.)
-                dslopes[t-1].append(alpha*(gQt_xi-gQt_et-g_corr[t-1]))
+                dslopes[t-1].append(alpha*(xi_vecs[t]-et_vecs[t]-g_corr[t-1]))
                 
             # Output
             if not quiet:
