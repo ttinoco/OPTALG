@@ -34,13 +34,52 @@ class MultiStage_StochHybrid(StochSolver):
         StochSolver.__init__(self)
         self.parameters = MultiStage_StochHybrid.parameters.copy()
 
+    def g(self,t,Wt):
+        """
+        Slope correction function.
+        
+        Parameters
+        ----------
+        t : int
+        Wt : list
+
+        Returns
+        -------
+        g_corr : vector
+        """
+        
+        T = self.T
+        n = self.n
+        samples = self.samples
+        dslopes = self.dslopes
+        gammas = self.gammas
+
+        if t == T-1:
+            return np.zeros(n)
+
+        assert(0 <= t < T-1)
+        assert(len(Wt) == t+1)
+        assert(len(samples) == len(dslopes[t]))
+
+        corr = np.zeros(n)
+        for i in range(len(samples)):
+
+            W = samples[i][:t+1]
+            assert(len(W) == t+1)
+
+            dslope = dslopes[t][i]
+
+            corr += dslope*np.exp(-gammas[t]*(norm(np.array(Wt)-np.array(W))**2.))
+            
+        return corr
+
     def solve(self,problem):
         
         # Local vars
         params = self.parameters
-        T = problem.get_num_stages()
-        n = problem.get_size_x()
-       
+        self.T = problem.get_num_stages()
+        self.n = problem.get_size_x()
+        
         # Parameters
         maxiters = params['maxiters']
         msize = params['msize']
@@ -63,59 +102,37 @@ class MultiStage_StochHybrid(StochSolver):
 
         # Init
         t0 = time.time()
-        x0_prev = np.zeros(n)
-        samples = deque(maxlen=msize)                       # sampled realizations of uncertainty
-        dslopes = [deque(maxlen=msize) for i in range(T-1)] # slope corrections (includes steplengths)
-        gammas = [1./(t+1.) for t in range(T-1)]            # scaling factors
-
-        # Slope correction function
-        def g(t,Wt,samples,dslopes):
-
-            if t == T-1:
-                return np.zeros(n)
-
-            assert(0 <= t < T-1)
-            assert(len(Wt) == t+1)
-            assert(len(samples) == len(dslopes[t]))
-
-            corr = np.zeros(n)
-            for i in range(len(samples)):
-
-                W = samples[i][:t+1]
-                assert(len(W) == t+1)
-
-                dslope = dslopes[t][i]
-
-                corr += dslope*np.exp(-gammas[t]*(norm(np.array(Wt)-np.array(W))**2.))
-                
-            return corr
+        x0_prev = np.zeros(self.n)
+        self.samples = deque(maxlen=msize)                            # sampled realizations of uncertainty
+        self.dslopes = [deque(maxlen=msize) for i in range(self.T-1)] # slope corrections (includes steplengths)
+        self.gammas = [1./(t+1.) for t in range(self.T-1)]            # scaling factors
 
         # Loop
         for k in range(maxiters+1):
             
             # Sample uncertainty
             sample = []
-            for t in range(T):
+            for t in range(self.T):
                 sample.append(problem.sample_w(t,sample))
-            assert(len(sample) == T)
+            assert(len(sample) == self.T)
 
             # Slope corrections
             g_corr = []
-            for t in range(T):
+            for t in range(self.T):
                 Wt = sample[:t+1]
-                g_corr.append(g(t,Wt,samples,dslopes))
+                g_corr.append(self.g(t,Wt))
 
             # Solve subproblems
             costs = []
             xi_vecs = {}
             et_vecs = {}
             solutions = {-1 : problem.get_x_prev()}
-            for t in range(T):
+            for t in range(self.T):
                 w_list = sample[:t+1]
                 g_corr_pr = [g_corr[t]]
-                for tau in range(t+1,T):
+                for tau in range(t+1,self.T):
                     w_list.append(problem.predict_w(tau,w_list))
-                    g_corr_pr.append(g(tau,w_list,samples,dslopes))
+                    g_corr_pr.append(self.g(tau,w_list))
                 xt,Qt,gQt,gQtt = problem.eval_stage_approx(t,
                                                            w_list[t:],
                                                            solutions[t-1],
@@ -128,12 +145,12 @@ class MultiStage_StochHybrid(StochSolver):
             self.x = solutions[0]
 
             # Update samples
-            samples.append(sample)
+            self.samples.append(sample)
 
             # Update slopes
-            for t in range(T-1):
+            for t in range(self.T-1):
                 alpha = theta/(k0+k+1.)
-                dslopes[t-1].append(alpha*(xi_vecs[t]-et_vecs[t]-g_corr[t-1]))
+                self.dslopes[t-1].append(alpha*(xi_vecs[t]-et_vecs[t]-g_corr[t-1]))
                 
             # Output
             if not quiet:
