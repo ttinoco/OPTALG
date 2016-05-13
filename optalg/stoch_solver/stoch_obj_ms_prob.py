@@ -58,8 +58,8 @@ class StochObjMS_Problem:
         Parameters
         ----------
         t : int (stage)
-        x_prev : vector
         w_list : list of random vectors for stage t,...,T
+        x_prev : vector of previous stage variables
         g_corr : list of slope corrections for stage t,...,T
         quiet : {True,False}
 
@@ -89,9 +89,25 @@ class StochObjMS_Problem:
 
         return None
 
+    def sample_W(self,t):
+        """
+        Samples realization of renewable powers up
+        to the given stage.
+
+        Parameters
+        ----------
+        t : int (stage)
+
+        Parameters
+        ----------
+        W : list
+        """
+
+        return None
+
     def predict_w(self,t,observations):
         """
-        Prodicts renewable powers for the given stage
+        Predicts renewable powers for the given stage
         given the observations.
 
         Parameters
@@ -102,6 +118,22 @@ class StochObjMS_Problem:
         Returns
         -------
         w : vector
+        """
+
+        return None
+
+    def predict_W(self,t):
+        """
+        Predicts renewable powers up to the
+        given stage.
+
+        Parameters
+        ----------
+        t : int (stage)
+
+        Returns
+        -------
+        W : list
         """
 
         return None
