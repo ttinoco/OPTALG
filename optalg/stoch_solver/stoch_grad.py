@@ -8,14 +8,40 @@
 
 import time
 import numpy as np
-from solver import StochasticSolver
+from stoch_solver import StochSolver
 
-class StochasticGradient(StochasticSolver):
+class StochGradient(StochSolver):
 
-    def solve(self,x=None,maxiters=1001,period=50,quiet=True,theta=1.,samples=500,k0=0,tol=1e-4):
+    parameters = {'maxiters': 1000,
+                  'period': 50,
+                  'quiet' : True,
+                  'theta': 1.,
+                  'num_samples': 500,
+                  'k0': 0
+                  'tol': 1e-4}
+    
+    def __init__(self):
+        """
+        Stochastic Gradient Algorithm.
+        """
+        
+        # Init
+        StochSolver.__init__(self)
+        self.parameters = StochGradient.parameters.copy()
 
+    def solve(self,problem):
+        
         # Local vars
-        prob = self.problem
+        params = self.parameters
+
+        # Parameters
+        maxiters = params['maxiters']
+        period = params['period']
+        quiet = params['quiet']
+        theta = params['theta']
+        num_samples = params['num_samples']
+        k0 = params['k0']
+        tol = params['tol']
 
         # Header
         if not quiet:
@@ -28,15 +54,16 @@ class StochasticGradient(StochasticSolver):
 
         # Init
         t0 = time.time()
+        self.x = problem.x
         
         # Loop
-        for k in range(maxiters):
+        for k in range(maxiters+1):
             
             # Sample
-            w = prob.sample_w()
+            w = problem.sample_w()
             
             # Eval
-            F,gF = prob.eval_F(x,w,tol=tol)
+            F,gF = problem.eval_F(self.x,w,tol=tol)
             
             # Show progress
             if k % period == 0:
@@ -44,17 +71,14 @@ class StochasticGradient(StochasticSolver):
                 if not quiet:
                     print '{0:^8d}'.format(k),
                     print '{0:^10.2f}'.format(t1-t0),
-                    print '{0:^12.5e}'.format(prob.get_prop_x(x)),
-                    EF,EgF = prob.eval_EF(x,samples=samples,tol=tol)
+                    print '{0:^12.5e}'.format(problem.get_prop_x(self.x)),
+                    EF,EgF = problem.eval_EF(x,samples=num_samples,tol=tol)
                     print '{0:^12.5e}'.format(EF)
                 t0 += time.time()-t1
             
             # Update
             alpha = theta/(k0+k+1.)
-            x = prob.project_x(x - alpha*gF)
-            
-        return x
-
+            self.x = problem.project_x(self.x - alpha*gF)
 
         
     

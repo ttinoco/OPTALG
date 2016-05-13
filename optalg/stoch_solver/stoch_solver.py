@@ -1,0 +1,47 @@
+#****************************************************#
+# This file is part of OPTALG.                       #
+#                                                    #
+# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
+#                                                    #
+# OPTALG is released under the BSD 2-clause license. #
+#****************************************************#
+
+class StochSolver:
+    """"
+    Parent class for stochastic optimnization solvers.
+    """
+
+    def __init__(self):
+        
+        self.parameters = {}
+
+        self.x = None
+
+    def set_parameters(self,parameters):
+        """
+        Sets solver parameters.
+        
+        Parameters
+        ----------
+        parameters : dict
+        """
+        
+        for key,value in parameters.items():
+            if self.parameters.has_key(key):
+                self.parameters[key] = value
+
+    def solve(self,problem):
+        """
+        Solves stochatic optimization problem.
+
+        Parameters
+        ----------
+        problem : StochObj_Problem, StochGen_Problem, StochObjMS_Problem
+        """
+
+        pass
+        
+    
+        
+
+    

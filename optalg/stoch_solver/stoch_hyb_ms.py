@@ -25,7 +25,7 @@ class MultiStage_StochasticHybrid(StochasticSolver):
 
         Returns
         -------
-        policy : function
+        policy : StochObjMS_Policy
         """
         
         # Local vars
