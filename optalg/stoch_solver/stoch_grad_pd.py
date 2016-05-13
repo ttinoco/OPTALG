@@ -17,7 +17,7 @@ class PrimalDual_StochGradient(StochSolver):
                   'quiet' : True,
                   'theta': 1.,
                   'num_samples': 500,
-                  'k0': 0
+                  'k0': 0,
                   'tol': 1e-4,
                   'no_G': False,
                   'callback': None}
@@ -64,16 +64,16 @@ class PrimalDual_StochGradient(StochSolver):
         # Init
         t0 = time.time()
         self.x = problem.x
-        lam = np.zeros(prob.get_size_lam())
+        lam = np.zeros(problem.get_size_lam())
         
         # Loop
         for k in range(maxiters+1):
             
             # Sample
-            w = prob.sample_w()
+            w = problem.sample_w()
             
             # Eval
-            F,gF,G,JG = prob.eval_FG(self.x,w,tol=tol)
+            F,gF,G,JG = problem.eval_FG(self.x,w,tol=tol)
             
             # Lagrangian subgradient
             gL = gF + JG.T*lam
@@ -94,11 +94,11 @@ class PrimalDual_StochGradient(StochSolver):
                 if not quiet:
                     print '{0:^8d}'.format(k),
                     print '{0:^10.2f}'.format(t1-t0),
-                    print '{0:^12.5e}'.format(prob.get_prop_x(self.x)),
+                    print '{0:^12.5e}'.format(problem.get_prop_x(self.x)),
                     print '{0:^12.5e}'.format(np.max(lam)),
                     print '{0:^12.5e}'.format(EF_run),
                     print '{0:^12.5e}'.format(np.max(EG_run)),
-                    EF,EgF,EG,EJG,info = prob.eval_EFG(self.x,samples=num_samples,tol=tol,info=True)
+                    EF,EgF,EG,EJG,info = problem.eval_EFG(self.x,samples=num_samples,tol=tol,info=True)
                     print '{0:^12.5e}'.format(EF),
                     print '{0:^12.5e}'.format(np.max(EG)),
                     print '{0:^12.5e}'.format(info)
@@ -107,9 +107,9 @@ class PrimalDual_StochGradient(StochSolver):
             # Update
             alpha_x = theta/(k0+k+1.)
             alpha_lam = theta/(k0+k+1.)
-            self.x = prob.project_x(self.x - alpha_x*gL)
+            self.x = problem.project_x(self.x - alpha_x*gL)
             if not no_G:
-                lam = prob.project_lam(lam + alpha_lam*G)
+                lam = problem.project_lam(lam + alpha_lam*G)
 
         
     

@@ -9,14 +9,42 @@
 import time
 import numpy as np
 from numpy.linalg import norm
-from solver import StochasticSolver
+from stoch_solver import StochSolver
 
-class StochasticHybrid(StochasticSolver):
+class StochHybrid(StochSolver):
 
-    def solve(self,maxiters=1001,period=50,quiet=True,samples=500,k0=0,theta=1.,warm_start=False,tol=1e-4):
+    parameters = {'maxiters': 1000,
+                  'period': 50,
+                  'quiet' : True,
+                  'theta': 1.,
+                  'num_samples': 500,
+                  'warm_start': False,
+                  'k0': 0,
+                  'tol': 1e-4}
+
+    def __init__(self):
+        """
+        Stochastic Hybrid Approximation Algorithm.
+        """
+        
+        # Init
+        StochSolver.__init__(self)
+        self.parameters = StochHybrid.parameters.copy()
+
+    def solve(self,problem):
 
         # Local vars
-        prob = self.problem
+        params = self.parameters
+
+        # Parameters
+        maxiters = params['maxiters']
+        period = params['period']
+        quiet = params['quiet']
+        theta = params['theta']
+        num_samples = params['num_samples']
+        warm_start = params['warm_start']
+        k0 = params['k0']
+        tol = params['tol']
 
         # Header
         if not quiet:
@@ -30,25 +58,25 @@ class StochasticHybrid(StochasticSolver):
         # Init
         sol_data = None
         t0 = time.time()
-        g = np.zeros(prob.get_size_x())
+        g = np.zeros(problem.get_size_x())
         
         # Loop
-        for k in range(maxiters):
+        for k in range(maxiters+1):
 
             # Solve approx
             if warm_start:
-                x,sol_data = prob.solve_approx(g_corr=g,quiet=True,init_data=sol_data,tol=tol)
+                self.x,sol_data = problem.solve_approx(g_corr=g,quiet=True,init_data=sol_data,tol=tol)
             else:
-                x,sol_data = prob.solve_approx(g_corr=g,quiet=True,tol=tol)                
+                self.x,sol_data = problem.solve_approx(g_corr=g,quiet=True,tol=tol)                
             
             # Sample
-            w = prob.sample_w()
+            w = problem.sample_w()
             
             # Eval
-            F,gF = prob.eval_F(x,w,tol=tol)
+            F,gF = problem.eval_F(self.x,w,tol=tol)
 
-            # Eval approx
-            F_approx,gF_approx = prob.eval_F_approx(x,tol=tol)
+            # Eval approx (should be extracted from solve_approx)
+            F_approx,gF_approx = problem.eval_F_approx(self.x,tol=tol)
             
             # Output
             if k % period == 0:
@@ -56,16 +84,13 @@ class StochasticHybrid(StochasticSolver):
                 if not quiet:
                     print '{0:^8d}'.format(k),
                     print '{0:^10.2f}'.format(t1-t0),
-                    print '{0:^12.5e}'.format(prob.get_prop_x(x)),
-                    EF,EgF = prob.eval_EF(x,samples=samples,tol=tol)
+                    print '{0:^12.5e}'.format(problem.get_prop_x(self.x)),
+                    EF,EgF = problem.eval_EF(x,samples=num_samples,tol=tol)
                     print '{0:^12.5e}'.format(EF)
                 t0 += time.time()-t1
 
             # Update
             alpha = theta/(k0+k+1.)
-            g += alpha*(gF-gF_approx-g)
-
-        return x
-        
+            g += alpha*(gF-gF_approx-g)        
     
             

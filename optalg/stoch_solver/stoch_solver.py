@@ -17,6 +17,17 @@ class StochSolver:
 
         self.x = None
 
+    def get_primal_variables(self):
+        """
+        Gets primal variables.
+        
+        Returns
+        -------
+        variables : ndarray
+        """
+
+        return self.x
+
     def set_parameters(self,parameters):
         """
         Sets solver parameters.

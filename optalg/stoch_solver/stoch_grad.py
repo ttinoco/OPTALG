@@ -17,7 +17,7 @@ class StochGradient(StochSolver):
                   'quiet' : True,
                   'theta': 1.,
                   'num_samples': 500,
-                  'k0': 0
+                  'k0': 0,
                   'tol': 1e-4}
     
     def __init__(self):

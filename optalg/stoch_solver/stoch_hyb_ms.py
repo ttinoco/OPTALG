@@ -11,31 +11,47 @@ import numpy as np
 from numpy.linalg import norm
 from collections import deque
 from scipy.sparse import coo_matrix
-from solver import StochasticSolver
+from stoch_solver import StochSolver
 
-class MultiStage_StochasticHybrid(StochasticSolver):
+class MultiStage_StochHybrid(StochSolver):
 
-    def solve(self,maxiters=1001,msize=100,quiet=True,k0=0,theta=1.,warm_start=False,tol=1e-4,callback=None,debug=False):
+    parameters = {'maxiters': 1000,
+                  'msize': 100,
+                  'quiet' : True,
+                  'theta': 1.,
+                  'warm_start': False,
+                  'callback': None,
+                  'debug': False,
+                  'k0': 0,
+                  'tol': 1e-4}
+
+    def __init__(self):
         """
-        Solves multi stage stochastic optimization problem
-
-        Parameters
-        ----------
-        a bunch
-
-        Returns
-        -------
-        policy : StochObjMS_Policy
+        Multi-Stage Stochastic Hybrid Approximation Algorithm.
         """
+        
+        # Init
+        StochSolver.__init__(self)
+        self.parameters = MultiStage_StochHybrid.parameters.copy()
+
+    def solve(self,problem):
         
         # Local vars
-        prob = self.problem
-        T = prob.get_num_stages()
-        n = prob.get_size_x()
-        
-        # Time
-        t0 = time.time()
-
+        params = self.parameters
+        T = problem.get_num_stages()
+        n = problem.get_size_x()
+       
+        # Parameters
+        maxiters = params['maxiters']
+        msize = params['msize']
+        quiet = params['quiet']
+        theta = params['theta']
+        warm_start = params['warm_start']
+        callback = params['callback']
+        debug = params['debug']
+        k0 = params['k0']
+        tol = params['tol']
+ 
         # Header
         if not quiet:
             print '\nMulti-Stage Stochastic Hybrid'
@@ -46,6 +62,7 @@ class MultiStage_StochasticHybrid(StochasticSolver):
             print '{0:^12s}'.format('cost0')
 
         # Init
+        t0 = time.time()
         x0_prev = np.zeros(n)
         samples = deque(maxlen=msize)                       # sampled realizations of uncertainty
         dslopes = [deque(maxlen=msize) for i in range(T-1)] # slope corrections (includes steplengths)
@@ -74,12 +91,12 @@ class MultiStage_StochasticHybrid(StochasticSolver):
             return corr
 
         # Loop
-        for k in range(maxiters):
+        for k in range(maxiters+1):
             
             # Sample uncertainty
             sample = []
             for t in range(T):
-                sample.append(prob.sample_w(t,sample))
+                sample.append(problem.sample_w(t,sample))
             assert(len(sample) == T)
 
             # Slope corrections
@@ -92,22 +109,23 @@ class MultiStage_StochasticHybrid(StochasticSolver):
             costs = []
             xi_vecs = {}
             et_vecs = {}
-            solutions = {-1 : prob.get_x_prev()}
+            solutions = {-1 : problem.get_x_prev()}
             for t in range(T):
                 w_list = sample[:t+1]
                 g_corr_pr = [g_corr[t]]
                 for tau in range(t+1,T):
-                    w_list.append(prob.predict_w(tau,w_list))
+                    w_list.append(problem.predict_w(tau,w_list))
                     g_corr_pr.append(g(tau,w_list,samples,dslopes))
-                xt,Qt,gQt,gQtt = prob.eval_stage_approx(t,
-                                                        w_list[t:],
-                                                        solutions[t-1],
-                                                        g_corr=g_corr_pr,
-                                                        quiet=not debug)
+                xt,Qt,gQt,gQtt = problem.eval_stage_approx(t,
+                                                           w_list[t:],
+                                                           solutions[t-1],
+                                                           g_corr=g_corr_pr,
+                                                           quiet=not debug)
                 solutions[t] = xt
                 xi_vecs[t-1] = gQt
                 et_vecs[t] = gQtt
                 costs.append(Qt)
+            self.x = solutions[0]
 
             # Update samples
             samples.append(sample)
