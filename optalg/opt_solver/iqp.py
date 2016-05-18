@@ -69,9 +69,14 @@ class OptSolverIQP(OptSolver):
         Dxl = spdiags(xl,0,self.n,self.n)
 
         f = np.hstack((rd,rp,ru,rl))                        # residuals
-        Jbot = bmat([[-Dmu,None,Dux,None],
-                     [Dpi,self.Onm,None,Dxl]])      # bottom part of Jacobian of residuals
-        J = bmat([[self.Jtop],[Jbot]],format='coo') # Jacobian of residuals
+        
+        if self.A.shape[0] > 0:
+            Jbot = bmat([[-Dmu,None,Dux,None],
+                         [Dpi,self.Onm,None,Dxl]])      # bottom part of Jacobian of residuals
+        else:
+            Jbot = bmat([[-Dmu,Dux,None],
+                         [Dpi,None,Dxl]])               # bottom part of Jacobian of residuals
+        J = bmat([[self.Jtop],[Jbot]],format='coo')     # Jacobian of residuals
 
         fdata.rp = rp
         fdata.rd = rd
@@ -130,8 +135,12 @@ class OptSolverIQP(OptSolver):
         self.I = eye(self.n,format='coo')
         self.Onm = coo_matrix((self.n,self.m))
         self.Omm = coo_matrix((self.m,self.m))
-        self.Jtop = bmat([[self.H,-self.AT,self.I,-self.I],
-                          [self.A,None,None,None]],format='coo')
+        if self.A.shape[0] > 0:
+            self.Jtop = bmat([[self.H,-self.AT,self.I,-self.I],
+                              [self.A,None,None,None]],format='coo')
+        else:
+            self.Jtop = bmat([[self.H,self.I,-self.I]],
+                             format='coo')
     
         # Checks
         try:
@@ -249,8 +258,12 @@ class OptSolverIQP(OptSolver):
                 D1 = spdiags(self.mu/ux,0,self.n,self.n,format='coo')
                 D2 = spdiags(self.pi/xl,0,self.n,self.n,format='coo')
                 fbar = np.hstack((-fdata.rd+fdata.ru/ux-fdata.rl/xl,fdata.rp))
-                Jbar = bmat([[tril(self.H)+D1+D2,None],
-                             [-self.A,self.Omm]],format='coo')
+                if self.A.shape[0] > 0:
+                    Jbar = bmat([[tril(self.H)+D1+D2,None],
+                                 [-self.A,self.Omm]],format='coo')
+                else:
+                    Jbar = bmat([[tril(self.H)+D1+D2]],
+                                format='coo')
                 try:
                     if not self.linsolver.is_analyzed():
                         self.linsolver.analyze(Jbar)
