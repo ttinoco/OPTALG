@@ -17,3 +17,6 @@ from stoch_hyb import StochHybrid
 from stoch_grad_pd import PrimalDual_StochGradient
 from stoch_hyb_pd import PrimalDual_StochHybrid
 from stoch_hyb_ms import MultiStage_StochHybrid
+
+# Policy
+from stoch_obj_ms_policy import StochObjMS_Policy
