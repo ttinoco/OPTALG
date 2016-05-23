@@ -12,6 +12,44 @@ class StochObjMS_Policy:
     optimization problem (StochObjMS_Problem).
     """
 
+    def __init__(self,problem,name='',data=None):
+        """
+        Operation policy for multistage stochastic
+        optimization problem.
+        
+        Parameters
+        ----------
+        problem : StochObjMS_Problem
+        name : string
+        data : Object
+        """
+
+        self.name = name
+        self.data = data
+        self.problem = problem
+
+    def get_name(self):
+        """
+        Gets policy name.
+
+        Return
+        ------
+        name : str
+        """
+        
+        return self.name
+
+    def get_problem(self):
+        """
+        Gets problem.
+
+        Return
+        ------
+        problem : StochObjMS_Problem
+        """
+        
+        return self.problem
+
     def apply(self,t,x_prev,Wt):
         """
         Applies operation policy at stage t
