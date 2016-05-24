@@ -8,10 +8,12 @@
 
 import time
 import numpy as np
+from types import MethodType
 from numpy.linalg import norm
 from collections import deque
 from scipy.sparse import coo_matrix
 from stoch_solver import StochSolver
+from stoch_obj_ms_policy import StochObjMS_Policy
 
 class MultiStage_StochHybrid(StochSolver):
 
@@ -33,6 +35,13 @@ class MultiStage_StochHybrid(StochSolver):
         # Init
         StochSolver.__init__(self)
         self.parameters = MultiStage_StochHybrid.parameters.copy()
+
+        self.T = 0
+        self.n = 0
+        self.samples = None
+        self.dslopes = None 
+        self.gammas = None
+        self.problem = None
 
     def g(self,t,Wt):
         """
@@ -77,6 +86,7 @@ class MultiStage_StochHybrid(StochSolver):
         
         # Local vars
         params = self.parameters
+        self.problem = problem
         self.T = problem.get_num_stages()
         self.n = problem.get_size_x()
         
@@ -96,7 +106,7 @@ class MultiStage_StochHybrid(StochSolver):
             print '\nMulti-Stage Stochastic Hybrid'
             print '-----------------------------'
             print '{0:^8s}'.format('iter'),
-            print '{0:^10s}'.format('time(s)'),
+            print '{0:^10s}'.format('time'),
             print '{0:^12s}'.format('dx0'),
             print '{0:^12s}'.format('cost0')
 
@@ -111,9 +121,7 @@ class MultiStage_StochHybrid(StochSolver):
         for k in range(maxiters+1):
             
             # Sample uncertainty
-            sample = []
-            for t in range(self.T):
-                sample.append(problem.sample_w(t,sample))
+            sample = problem.sample_W(self.T-1)
             assert(len(sample) == self.T)
 
             # Slope corrections
@@ -133,15 +141,16 @@ class MultiStage_StochHybrid(StochSolver):
                 for tau in range(t+1,self.T):
                     w_list.append(problem.predict_w(tau,w_list))
                     g_corr_pr.append(self.g(tau,w_list))
-                xt,Qt,gQt,gQtt = problem.eval_stage_approx(t,
-                                                           w_list[t:],
-                                                           solutions[t-1],
-                                                           g_corr=g_corr_pr,
-                                                           quiet=not debug)
-                solutions[t] = xt
-                xi_vecs[t-1] = gQt
-                et_vecs[t] = gQtt
-                costs.append(Qt)
+                x_list,Q_list,gQ_list = problem.eval_stage_approx(t,
+                                                                  w_list[t:],
+                                                                  solutions[t-1],
+                                                                  g_corr=g_corr_pr,
+                                                                  quiet=not debug)
+                solutions[t] = x_list[0]
+                xi_vecs[t-1] = gQ_list[0]
+                if t < self.T-1:
+                    et_vecs[t] = gQ_list[1]
+                costs.append(Q_list[0])
             self.x = solutions[0]
 
             # Update samples
@@ -150,7 +159,7 @@ class MultiStage_StochHybrid(StochSolver):
             # Update slopes
             for t in range(self.T-1):
                 alpha = theta/(k0+k+1.)
-                self.dslopes[t-1].append(alpha*(xi_vecs[t]-et_vecs[t]-g_corr[t-1]))
+                self.dslopes[t].append(alpha*(xi_vecs[t]-et_vecs[t]-g_corr[t]))
                 
             # Output
             if not quiet:
@@ -165,3 +174,44 @@ class MultiStage_StochHybrid(StochSolver):
                 
             # Update
             x0_prev = solutions[0]
+
+    def get_policy(self):
+        """
+        Gets operation policy.
+        
+        Returns
+        -------
+        policy : 
+        """
+
+        # Construct policy
+        def apply(cls,t,x_prev,Wt):
+            
+            assert(0 <= t < cls.problem.T)
+            assert(len(Wt) == t+1)
+
+            solver = cls.data
+            
+            w_list = list(Wt)
+            g_corr_pr = [solver.g(t,Wt)]
+            for tau in range(t+1,self.T):
+                w_list.append(cls.problem.predict_w(tau,w_list))
+                g_corr_pr.append(self.g(tau,w_list))
+            x_list,Q_list,gQ_list = cls.problem.eval_stage_approx(t,
+                                                                  w_list[t:],
+                                                                  x_prev,
+                                                                  g_corr=g_corr_pr,
+                                                                  quiet=True)
+            
+            # Check feasibility
+            if not cls.problem.is_point_feasible(t,x_list[0],x_prev,Wt[-1]):
+                raise ValueError('point not feasible')
+            
+            # Return
+            return x_list[0]
+            
+        policy = StochObjMS_Policy(self.problem,data=self,name='Multi-Stage Stochastic Hybrid')
+        policy.apply = MethodType(apply,policy)
+        
+        # Return
+        return policy

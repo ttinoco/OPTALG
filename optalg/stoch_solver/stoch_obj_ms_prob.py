@@ -72,6 +72,21 @@ class StochObjMS_Problem:
 
         return None,None,None
 
+    def is_point_feasible(self,t,x,x_prev,w):
+        """
+        Checks wether point is feasible for the given stage.
+
+        Parameters
+        ----------
+        a lot
+
+        Returns
+        -------
+        flag : {True,False}
+        """
+        
+        return False
+
     def sample_w(self,t,observations):
         """
         Samples realization of renewable powers for the given stage
