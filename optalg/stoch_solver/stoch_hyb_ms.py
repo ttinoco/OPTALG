@@ -78,7 +78,7 @@ class MultiStage_StochHybrid(StochSolver):
 
             dslope = dslopes[t][i]
 
-            corr += dslope*np.exp(-gammas[t]*(norm(np.array(Wt)-np.array(W))**2.))
+            corr += dslope*np.exp(-gammas[t]*norm(np.array(Wt)-np.array(W))/norm(W))
             
         return corr
 
@@ -107,15 +107,17 @@ class MultiStage_StochHybrid(StochSolver):
             print '-----------------------------'
             print '{0:^8s}'.format('iter'),
             print '{0:^10s}'.format('time'),
-            print '{0:^12s}'.format('dx0'),
-            print '{0:^12s}'.format('cost0')
+            print '{0:^12s}'.format('dx'),            
+            print '{0:^12s}'.format('gc'),
+            print '{0:^12s}'.format('cost')
 
         # Init
         t0 = time.time()
+        sol_data = self.T*[None]
         x0_prev = np.zeros(self.n)
         self.samples = deque(maxlen=msize)                            # sampled realizations of uncertainty
         self.dslopes = [deque(maxlen=msize) for i in range(self.T-1)] # slope corrections (includes steplengths)
-        self.gammas = [1./(t+1.) for t in range(self.T-1)]            # scaling factors
+        self.gammas = [1e-4 for t in range(self.T-1)]                  # scaling factors
 
         # Loop
         for k in range(maxiters+1):
@@ -134,7 +136,6 @@ class MultiStage_StochHybrid(StochSolver):
             costs = []
             xi_vecs = {}
             et_vecs = {}
-            sol_data = self.T*[None]
             solutions = {-1 : problem.get_x_prev()}
             for t in range(self.T):
                 w_list = sample[:t+1]
@@ -147,6 +148,7 @@ class MultiStage_StochHybrid(StochSolver):
                                                                           solutions[t-1],
                                                                           g_corr=g_corr_pr,
                                                                           quiet=not debug,
+                                                                          tol=tol,
                                                                           init_data=sol_data[t] if warm_start else None)
                 
                 if k == 0:
@@ -170,15 +172,16 @@ class MultiStage_StochHybrid(StochSolver):
             if not quiet:
                 print '{0:^8d}'.format(k),
                 print '{0:^10.2f}'.format(time.time()-t0),
-                print '{0:^12.5e}'.format(norm(solutions[0]-x0_prev)/norm(solutions[0])),
-                print '{0:^12.5e}'.format(costs[0])
+                print '{0:^12.5e}'.format(norm(self.x-x0_prev,np.inf)/np.average(np.abs(self.x))),
+                print '{0:^12.5e}'.format(norm(g_corr[0])),
+                print '{0:^12.5e}'.format(sum(costs))
                 
             # Hold
             if debug:
                 raw_input()
                 
             # Update
-            x0_prev = solutions[0]
+            x0_prev = self.x.copy()
 
     def get_policy(self):
         """
