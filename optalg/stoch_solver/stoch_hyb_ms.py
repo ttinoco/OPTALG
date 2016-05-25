@@ -134,6 +134,7 @@ class MultiStage_StochHybrid(StochSolver):
             costs = []
             xi_vecs = {}
             et_vecs = {}
+            sol_data = self.T*[None]
             solutions = {-1 : problem.get_x_prev()}
             for t in range(self.T):
                 w_list = sample[:t+1]
@@ -141,11 +142,15 @@ class MultiStage_StochHybrid(StochSolver):
                 for tau in range(t+1,self.T):
                     w_list.append(problem.predict_w(tau,w_list))
                     g_corr_pr.append(self.g(tau,w_list))
-                x_list,Q_list,gQ_list = problem.eval_stage_approx(t,
-                                                                  w_list[t:],
-                                                                  solutions[t-1],
-                                                                  g_corr=g_corr_pr,
-                                                                  quiet=not debug)
+                x_list,Q_list,gQ_list,results = problem.eval_stage_approx(t,
+                                                                          w_list[t:],
+                                                                          solutions[t-1],
+                                                                          g_corr=g_corr_pr,
+                                                                          quiet=not debug,
+                                                                          init_data=sol_data[t] if warm_start else None)
+                
+                if k == 0:
+                    sol_data[t] = results
                 solutions[t] = x_list[0]
                 xi_vecs[t-1] = gQ_list[0]
                 if t < self.T-1:
@@ -197,11 +202,11 @@ class MultiStage_StochHybrid(StochSolver):
             for tau in range(t+1,self.T):
                 w_list.append(cls.problem.predict_w(tau,w_list))
                 g_corr_pr.append(self.g(tau,w_list))
-            x_list,Q_list,gQ_list = cls.problem.eval_stage_approx(t,
-                                                                  w_list[t:],
-                                                                  x_prev,
-                                                                  g_corr=g_corr_pr,
-                                                                  quiet=True)
+            x_list,Q_list,gQ_list,results = cls.problem.eval_stage_approx(t,
+                                                                          w_list[t:],
+                                                                          x_prev,
+                                                                          g_corr=g_corr_pr,
+                                                                          quiet=True)
             
             # Check feasibility
             if not cls.problem.is_point_feasible(t,x_list[0],x_prev,Wt[-1]):
