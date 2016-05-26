@@ -63,6 +63,7 @@ class MultiStage_StochHybrid(StochSolver):
         samples = self.samples
         dslopes = self.dslopes
         gammas = self.gammas
+        theta = self.parameters['theta']
 
         if t == T-1:
             return np.zeros(n)
@@ -83,10 +84,10 @@ class MultiStage_StochHybrid(StochSolver):
             phi = np.exp(-gammas[t]*norm(np.hstack(Wt)-np.hstack(W))/np.sqrt(float(np.hstack(W).size)))
             sum_phi += phi
 
-            alpha = phi/max([1.,sum_phi])
+            alpha = theta*phi/max([1.,sum_phi])
 
             corr += alpha*dslope
-            
+        
         return corr
 
     def solve(self,problem):
@@ -101,7 +102,6 @@ class MultiStage_StochHybrid(StochSolver):
         maxiters = params['maxiters']
         msize = params['msize']
         quiet = params['quiet']
-        theta = params['theta']
         warm_start = params['warm_start']
         callback = params['callback']
         debug = params['debug']
@@ -122,7 +122,6 @@ class MultiStage_StochHybrid(StochSolver):
         # Init
         t0 = time.time()
         sol_data = self.T*[None]
-        x0_prev = np.zeros(self.n)
         self.samples = deque(maxlen=msize)                            # sampled realizations of uncertainty
         self.dslopes = [deque(maxlen=msize) for i in range(self.T-1)] # slope corrections (no steplengths)
         self.gammas = [gamma for t in range(self.T-1)]                # scaling factors
@@ -158,7 +157,6 @@ class MultiStage_StochHybrid(StochSolver):
                                                                           quiet=not debug,
                                                                           tol=tol,
                                                                           init_data=sol_data[t] if warm_start else None)
-                
                 if k == 0:
                     sol_data[t] = results
                 solutions[t] = x_list[0]
@@ -167,29 +165,30 @@ class MultiStage_StochHybrid(StochSolver):
                     et_vecs[t] = gQ_list[1]
                 costs.append(Q_list[0])
             self.x = solutions[0]
+            
+            # Reference
+            if k == 0:
+                x0_ce = self.x.copy()
 
             # Update samples
             self.samples.append(sample)
 
             # Update slopes
             for t in range(self.T-1):
-                self.dslopes[t].append(xi_vecs[t]-et_vecs[t]-g_corr[t])
+                self.dslopes[t].append(np.zeros(self.n))#xi_vecs[t]-et_vecs[t]-g_corr[t])
                 
             # Output
             if not quiet:
                 print '{0:^8d}'.format(k),
                 print '{0:^10.2f}'.format(time.time()-t0),
-                print '{0:^12.5e}'.format(norm(self.x-x0_prev,np.inf)/np.average(np.abs(self.x))),
-                print '{0:^12.5e}'.format(norm(g_corr[0])),
+                print '{0:^12.5e}'.format(norm(self.x-x0_ce)),
+                print '{0:^12.5e}'.format(np.average(map(norm,g_corr))),
                 print '{0:^12.5e}'.format(sum(costs))
                 
             # Hold
             if debug:
                 raw_input()
                 
-            # Update
-            x0_prev = self.x.copy()
-
     def get_policy(self):
         """
         Gets operation policy.
