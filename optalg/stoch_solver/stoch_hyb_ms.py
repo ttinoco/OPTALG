@@ -25,6 +25,7 @@ class MultiStage_StochHybrid(StochSolver):
                   'callback': None,
                   'debug': False,
                   'k0': 0,
+                  'gamma': 1e0,
                   'tol': 1e-4}
 
     def __init__(self):
@@ -35,7 +36,7 @@ class MultiStage_StochHybrid(StochSolver):
         # Init
         StochSolver.__init__(self)
         self.parameters = MultiStage_StochHybrid.parameters.copy()
-
+        
         self.T = 0
         self.n = 0
         self.samples = None
@@ -70,6 +71,7 @@ class MultiStage_StochHybrid(StochSolver):
         assert(len(Wt) == t+1)
         assert(len(samples) == len(dslopes[t]))
 
+        sum_phi = 0.
         corr = np.zeros(n)
         for i in range(len(samples)):
 
@@ -77,8 +79,13 @@ class MultiStage_StochHybrid(StochSolver):
             assert(len(W) == t+1)
 
             dslope = dslopes[t][i]
+            
+            phi = np.exp(-gammas[t]*norm(np.hstack(Wt)-np.hstack(W))/np.sqrt(float(np.hstack(W).size)))
+            sum_phi += phi
 
-            corr += dslope*np.exp(-gammas[t]*norm(np.array(Wt)-np.array(W))/norm(W))
+            alpha = phi/max([1.,sum_phi])
+
+            corr += alpha*dslope
             
         return corr
 
@@ -99,6 +106,7 @@ class MultiStage_StochHybrid(StochSolver):
         callback = params['callback']
         debug = params['debug']
         k0 = params['k0']
+        gamma = params['gamma']
         tol = params['tol']
  
         # Header
@@ -116,8 +124,8 @@ class MultiStage_StochHybrid(StochSolver):
         sol_data = self.T*[None]
         x0_prev = np.zeros(self.n)
         self.samples = deque(maxlen=msize)                            # sampled realizations of uncertainty
-        self.dslopes = [deque(maxlen=msize) for i in range(self.T-1)] # slope corrections (includes steplengths)
-        self.gammas = [1e-4 for t in range(self.T-1)]                  # scaling factors
+        self.dslopes = [deque(maxlen=msize) for i in range(self.T-1)] # slope corrections (no steplengths)
+        self.gammas = [gamma for t in range(self.T-1)]                # scaling factors
 
         # Loop
         for k in range(maxiters+1):
@@ -165,8 +173,7 @@ class MultiStage_StochHybrid(StochSolver):
 
             # Update slopes
             for t in range(self.T-1):
-                alpha = theta/(k0+k+1.)
-                self.dslopes[t].append(alpha*(xi_vecs[t]-et_vecs[t]-g_corr[t]))
+                self.dslopes[t].append(xi_vecs[t]-et_vecs[t]-g_corr[t])
                 
             # Output
             if not quiet:
