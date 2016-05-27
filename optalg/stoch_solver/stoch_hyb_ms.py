@@ -140,6 +140,8 @@ class MultiStage_StochHybrid(StochSolver):
 
             # Solve subproblems
             xi_vecs = {}
+            foo = {}
+            xfoo = {}
             solutions = {-1 : problem.get_x_prev()}
             for t in range(self.T):
                 w_list = sample[:t+1]
@@ -147,31 +149,35 @@ class MultiStage_StochHybrid(StochSolver):
                 for tau in range(t+1,self.T):
                     w_list.append(problem.predict_w(tau,w_list))
                     g_corr_pr.append(self.g(tau,w_list))
-                x_list,Q_list,gQ_list,results = problem.eval_stage_approx(t,
-                                                                          w_list[t:],
-                                                                          solutions[t-1],
-                                                                          g_corr=g_corr_pr,
-                                                                          quiet=not debug,
-                                                                          tol=tol,
-                                                                          init_data=sol_data[t] if warm_start else None)
-                solutions[t] = x_list[0]
-                xi_vecs[t-1] = gQ_list[0]
+                x,Q,gQ,results = problem.eval_stage_approx(t,
+                                                           w_list[t:],
+                                                           solutions[t-1],
+                                                           g_corr=g_corr_pr,
+                                                           quiet=not debug,
+                                                           tol=tol,
+                                                           init_data=sol_data[t] if warm_start else None)
+                solutions[t] = x
+                xi_vecs[t-1] = gQ
                 sol_data[t] = results if k == 0 else None
+
+                # TESTING
+                #foo[t] = results['gQn']
+                #xfoo[t+1] = results['xn']
 
                 # DEBUG: Check xi
                 #****************
                 if debug:
                     for i in range(10):
                         d = (1e-3)*np.random.randn(self.n)
-                        x1 = solutions[t-1]+d
-                        x1_list,Q1_list,gQ1_list,results1 = problem.eval_stage_approx(t,
-                                                                                      w_list[t:],
-                                                                                      x1,
-                                                                                      g_corr=g_corr_pr,
-                                                                                      quiet=True,
-                                                                                      tol=tol,
-                                                                                      init_data=sol_data[t] if warm_start else None)
-                        assert(sum(Q1_list) >= sum(Q_list)+np.dot(xi_vecs[t-1],d))
+                        xper = solutions[t-1]+d
+                        x1,Q1,gQ1,results1 = problem.eval_stage_approx(t,
+                                                                       w_list[t:],
+                                                                       xper,
+                                                                       g_corr=g_corr_pr,
+                                                                       quiet=True,
+                                                                       tol=tol,
+                                                                       init_data=sol_data[t] if warm_start else None)
+                        assert(Q1 >= Q+np.dot(xi_vecs[t-1],d))
 
             self.x = solutions[0]
            
@@ -183,29 +189,34 @@ class MultiStage_StochHybrid(StochSolver):
                 for tau in range(t,self.T):
                     w_list.append(problem.predict_w(tau,w_list))
                     g_corr_pr.append(self.g(tau,w_list))
-                x_list,Q_list,gQ_list,results = problem.eval_stage_approx(t,
-                                                                          w_list[t:],
-                                                                          solutions[t-1],
-                                                                          g_corr=g_corr_pr,
-                                                                          quiet=not debug,
-                                                                          tol=tol,
-                                                                          init_data=sol_data[t] if warm_start else None)
-                et_vecs[t-1] = gQ_list[0]
+                x,Q,gQ,results = problem.eval_stage_approx(t,
+                                                           w_list[t:],
+                                                           solutions[t-1],
+                                                           g_corr=g_corr_pr,
+                                                           quiet=not debug,
+                                                           tol=tol,
+                                                           init_data=sol_data[t] if warm_start else None)
+                et_vecs[t-1] = gQ
+
+                #print norm(et_vecs[t-1]-foo[t-1])
+                #print norm(x-xfoo[t])
+                #raw_input()
+                #raw_input()
 
                 # DEBUG: Check eta
                 #*****************
                 if debug:
                     for i in range(10):
                         d = (1e-3)*np.random.randn(self.n)
-                        x1 = solutions[t-1]+d
-                        x1_list,Q1_list,gQ1_list,results1 = problem.eval_stage_approx(t,
-                                                                                      w_list[t:],
-                                                                                      x1,
-                                                                                      g_corr=g_corr_pr,
-                                                                                      quiet=True,
-                                                                                      tol=tol,
-                                                                                      init_data=sol_data[t] if warm_start else None)
-                        assert(sum(Q1_list) >= sum(Q_list)+np.dot(et_vecs[t-1],d))
+                        xper = solutions[t-1]+d
+                        x1,Q1,gQ1,results1 = problem.eval_stage_approx(t,
+                                                                       w_list[t:],
+                                                                       xper,
+                                                                       g_corr=g_corr_pr,
+                                                                       quiet=True,
+                                                                       tol=tol,
+                                                                       init_data=sol_data[t] if warm_start else None)
+                        assert(Q1 >= Q+np.dot(et_vecs[t-1],d))
 
             # Reference
             if k == 0:
@@ -247,18 +258,18 @@ class MultiStage_StochHybrid(StochSolver):
             for tau in range(t+1,self.T):
                 w_list.append(cls.problem.predict_w(tau,w_list))
                 g_corr_pr.append(self.g(tau,w_list))
-            x_list,Q_list,gQ_list,results = cls.problem.eval_stage_approx(t,
-                                                                          w_list[t:],
-                                                                          x_prev,
-                                                                          g_corr=g_corr_pr,
-                                                                          quiet=True)
+            x,Q,gQ,results = cls.problem.eval_stage_approx(t,
+                                                           w_list[t:],
+                                                           x_prev,
+                                                           g_corr=g_corr_pr,
+                                                           quiet=True)
             
             # Check feasibility
-            if not cls.problem.is_point_feasible(t,x_list[0],x_prev,Wt[-1]):
+            if not cls.problem.is_point_feasible(t,x,x_prev,Wt[-1]):
                 raise ValueError('point not feasible')
             
             # Return
-            return x_list[0]
+            return x
             
         policy = StochObjMS_Policy(self.problem,data=self,name='Multi-Stage Stochastic Hybrid')
         policy.apply = MethodType(apply,policy)
