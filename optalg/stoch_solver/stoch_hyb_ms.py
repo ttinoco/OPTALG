@@ -64,6 +64,7 @@ class MultiStage_StochHybrid(StochSolver):
         dslopes = self.dslopes
         gammas = self.gammas
         theta = self.parameters['theta']
+        k0 = self.parameters['k0']
 
         if t == T-1:
             return np.zeros(n)
@@ -84,7 +85,7 @@ class MultiStage_StochHybrid(StochSolver):
             phi = np.exp(-gammas[t]*norm(np.hstack(Wt)-np.hstack(W))/np.sqrt(float(np.hstack(W).size)))
             sum_phi += phi
 
-            alpha = theta*phi/max([1.,sum_phi])
+            alpha = theta*phi/max([1.,k0+sum_phi])
 
             corr += alpha*dslope
         
@@ -105,7 +106,6 @@ class MultiStage_StochHybrid(StochSolver):
         warm_start = params['warm_start']
         callback = params['callback']
         debug = params['debug']
-        k0 = params['k0']
         gamma = params['gamma']
         tol = params['tol']
  
@@ -116,8 +116,7 @@ class MultiStage_StochHybrid(StochSolver):
             print '{0:^8s}'.format('iter'),
             print '{0:^10s}'.format('time'),
             print '{0:^12s}'.format('dx'),            
-            print '{0:^12s}'.format('gc'),
-            print '{0:^12s}'.format('cost')
+            print '{0:^12s}'.format('gc')
 
         # Init
         t0 = time.time()
@@ -140,9 +139,7 @@ class MultiStage_StochHybrid(StochSolver):
                 g_corr.append(self.g(t,Wt))
 
             # Solve subproblems
-            costs = []
             xi_vecs = {}
-            et_vecs = {}
             solutions = {-1 : problem.get_x_prev()}
             for t in range(self.T):
                 w_list = sample[:t+1]
@@ -157,15 +154,59 @@ class MultiStage_StochHybrid(StochSolver):
                                                                           quiet=not debug,
                                                                           tol=tol,
                                                                           init_data=sol_data[t] if warm_start else None)
-                if k == 0:
-                    sol_data[t] = results
                 solutions[t] = x_list[0]
                 xi_vecs[t-1] = gQ_list[0]
-                if t < self.T-1:
-                    et_vecs[t] = gQ_list[1]
-                costs.append(Q_list[0])
+                sol_data[t] = results if k == 0 else None
+
+                # DEBUG: Check xi
+                #****************
+                if debug:
+                    for i in range(10):
+                        d = (1e-3)*np.random.randn(self.n)
+                        x1 = solutions[t-1]+d
+                        x1_list,Q1_list,gQ1_list,results1 = problem.eval_stage_approx(t,
+                                                                                      w_list[t:],
+                                                                                      x1,
+                                                                                      g_corr=g_corr_pr,
+                                                                                      quiet=True,
+                                                                                      tol=tol,
+                                                                                      init_data=sol_data[t] if warm_start else None)
+                        assert(sum(Q1_list) >= sum(Q_list)+np.dot(xi_vecs[t-1],d))
+
             self.x = solutions[0]
-            
+           
+            # Get gradients
+            et_vecs = {}
+            for t in range(1,self.T):
+                w_list = sample[:t]
+                g_corr_pr = []
+                for tau in range(t,self.T):
+                    w_list.append(problem.predict_w(tau,w_list))
+                    g_corr_pr.append(self.g(tau,w_list))
+                x_list,Q_list,gQ_list,results = problem.eval_stage_approx(t,
+                                                                          w_list[t:],
+                                                                          solutions[t-1],
+                                                                          g_corr=g_corr_pr,
+                                                                          quiet=not debug,
+                                                                          tol=tol,
+                                                                          init_data=sol_data[t] if warm_start else None)
+                et_vecs[t-1] = gQ_list[0]
+
+                # DEBUG: Check eta
+                #*****************
+                if debug:
+                    for i in range(10):
+                        d = (1e-3)*np.random.randn(self.n)
+                        x1 = solutions[t-1]+d
+                        x1_list,Q1_list,gQ1_list,results1 = problem.eval_stage_approx(t,
+                                                                                      w_list[t:],
+                                                                                      x1,
+                                                                                      g_corr=g_corr_pr,
+                                                                                      quiet=True,
+                                                                                      tol=tol,
+                                                                                      init_data=sol_data[t] if warm_start else None)
+                        assert(sum(Q1_list) >= sum(Q_list)+np.dot(et_vecs[t-1],d))
+
             # Reference
             if k == 0:
                 x0_ce = self.x.copy()
@@ -175,20 +216,15 @@ class MultiStage_StochHybrid(StochSolver):
 
             # Update slopes
             for t in range(self.T-1):
-                self.dslopes[t].append(np.zeros(self.n))#xi_vecs[t]-et_vecs[t]-g_corr[t])
+                self.dslopes[t].append(xi_vecs[t]-et_vecs[t]-g_corr[t])
                 
             # Output
             if not quiet:
                 print '{0:^8d}'.format(k),
                 print '{0:^10.2f}'.format(time.time()-t0),
                 print '{0:^12.5e}'.format(norm(self.x-x0_ce)),
-                print '{0:^12.5e}'.format(np.average(map(norm,g_corr))),
-                print '{0:^12.5e}'.format(sum(costs))
-                
-            # Hold
-            if debug:
-                raw_input()
-                
+                print '{0:^12.5e}'.format(np.average(map(norm,g_corr)))
+                                
     def get_policy(self):
         """
         Gets operation policy.
