@@ -140,84 +140,79 @@ class MultiStage_StochHybrid(StochSolver):
 
             # Solve subproblems
             xi_vecs = {}
-            foo = {}
-            xfoo = {}
+            et_vecs = {}
+            inits = {0: None}
             solutions = {-1 : problem.get_x_prev()}
             for t in range(self.T):
-                w_list = sample[:t+1]
-                g_corr_pr = [g_corr[t]]
-                for tau in range(t+1,self.T):
-                    w_list.append(problem.predict_w(tau,w_list))
-                    g_corr_pr.append(self.g(tau,w_list))
-                x,Q,gQ,results = problem.eval_stage_approx(t,
-                                                           w_list[t:],
-                                                           solutions[t-1],
-                                                           g_corr=g_corr_pr,
-                                                           quiet=not debug,
-                                                           tol=tol,
-                                                           init_data=sol_data[t] if warm_start else None)
-                solutions[t] = x
-                xi_vecs[t-1] = gQ
-                sol_data[t] = results if k == 0 else None
 
-                # TESTING
-                #foo[t] = results['gQn']
-                #xfoo[t+1] = results['xn']
+                w_list_xi = sample[:t+1]
+                g_corr_xi = [g_corr[t]]
+                for tau in range(t+1,self.T):
+                    w_list_xi.append(problem.predict_w(tau,w_list_xi))
+                    g_corr_xi.append(self.g(tau,w_list_xi))
+
+                w_list_et = sample[:t]
+                g_corr_et = []
+                for tau in range(t,self.T):
+                    w_list_et.append(problem.predict_w(tau,w_list_et))
+                    g_corr_et.append(self.g(tau,w_list_et))
+                    
+                x_xi,Q_xi,gQ_xi,results_xi = problem.eval_stage_approx(t,
+                                                                       w_list_xi[t:],
+                                                                       solutions[t-1],
+                                                                       g_corr=g_corr_xi,
+                                                                       quiet=not debug,
+                                                                       tol=tol,
+                                                                       init_data=sol_data[t] if warm_start else None)
+                
+                x_et,Q_et,gQ_et,results_et = problem.eval_stage_approx(t,
+                                                                       w_list_et[t:],
+                                                                       solutions[t-1],
+                                                                       g_corr=g_corr_et,
+                                                                       quiet=not debug,
+                                                                       tol=tol,
+                                                                       init_data=sol_data[t] if warm_start else None,
+                                                                       xover=inits[t])
+                
+                inits[t+1] = results_xi['xn']
+                solutions[t] = x_xi
+                xi_vecs[t-1] = gQ_xi
+                et_vecs[t-1] = gQ_et
+                sol_data[t] = results_xi if k == 0 else None
 
                 # DEBUG: Check xi
                 #****************
                 if debug:
                     for i in range(10):
-                        d = (1e-3)*np.random.randn(self.n)
+                        d = np.random.randn(self.n)*1e-3
                         xper = solutions[t-1]+d
                         x1,Q1,gQ1,results1 = problem.eval_stage_approx(t,
-                                                                       w_list[t:],
+                                                                       w_list_xi[t:],
                                                                        xper,
-                                                                       g_corr=g_corr_pr,
+                                                                       g_corr=g_corr_xi,
                                                                        quiet=True,
                                                                        tol=tol,
                                                                        init_data=sol_data[t] if warm_start else None)
-                        assert(Q1 >= Q+np.dot(xi_vecs[t-1],d))
-
-            self.x = solutions[0]
-           
-            # Get gradients
-            et_vecs = {}
-            for t in range(1,self.T):
-                w_list = sample[:t]
-                g_corr_pr = []
-                for tau in range(t,self.T):
-                    w_list.append(problem.predict_w(tau,w_list))
-                    g_corr_pr.append(self.g(tau,w_list))
-                x,Q,gQ,results = problem.eval_stage_approx(t,
-                                                           w_list[t:],
-                                                           solutions[t-1],
-                                                           g_corr=g_corr_pr,
-                                                           quiet=not debug,
-                                                           tol=tol,
-                                                           init_data=sol_data[t] if warm_start else None)
-                et_vecs[t-1] = gQ
-
-                #print norm(et_vecs[t-1]-foo[t-1])
-                #print norm(x-xfoo[t])
-                #raw_input()
-                #raw_input()
+                        assert(Q1 >= Q_xi+np.dot(xi_vecs[t-1],d))
 
                 # DEBUG: Check eta
                 #*****************
-                if debug:
+                if debug and t >= 1:
                     for i in range(10):
-                        d = (1e-3)*np.random.randn(self.n)
+                        d = np.random.randn(self.n)*1e-3
                         xper = solutions[t-1]+d
                         x1,Q1,gQ1,results1 = problem.eval_stage_approx(t,
-                                                                       w_list[t:],
+                                                                       w_list_et[t:],
                                                                        xper,
-                                                                       g_corr=g_corr_pr,
+                                                                       g_corr=g_corr_et,
                                                                        quiet=True,
                                                                        tol=tol,
                                                                        init_data=sol_data[t] if warm_start else None)
-                        assert(Q1 >= Q+np.dot(et_vecs[t-1],d))
+                        assert(Q1 >= Q_et+np.dot(et_vecs[t-1],d))
 
+            # Save sol
+            self.x = solutions[0]
+           
             # Reference
             if k == 0:
                 x0_ce = self.x.copy()
