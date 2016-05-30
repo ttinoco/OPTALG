@@ -8,6 +8,7 @@
 
 import time
 import numpy as np
+from utils import ApplyFunc
 from types import MethodType
 from numpy.linalg import norm
 from collections import deque
@@ -93,12 +94,16 @@ class MultiStage_StochHybrid(StochSolver):
 
     def solve(self,problem):
         
+        # Imports
+        from multiprocess import Pool, cpu_count
+
         # Local vars
         params = self.parameters
         self.problem = problem
         self.T = problem.get_num_stages()
         self.n = problem.get_size_x()
-        
+        pool = Pool(cpu_count())
+ 
         # Parameters
         maxiters = params['maxiters']
         msize = params['msize']
@@ -145,18 +150,44 @@ class MultiStage_StochHybrid(StochSolver):
             solutions = {-1 : problem.get_x_prev()}
             for t in range(self.T):
 
+                tasks = []
+
                 w_list_xi = sample[:t+1]
                 g_corr_xi = [g_corr[t]]
                 for tau in range(t+1,self.T):
                     w_list_xi.append(problem.predict_w(tau,w_list_xi))
                     g_corr_xi.append(self.g(tau,w_list_xi))
+                tasks.append((problem,
+                              'eval_stage_approx',
+                              t,
+                              w_list_xi[t:],
+                              solutions[t-1],
+                              g_corr_xi,
+                              sol_data[t] if warm_start else None,
+                              None,
+                              None,
+                              not debug,
+                              tol))
 
-                w_list_et = sample[:t]
-                g_corr_et = []
-                for tau in range(t,self.T):
-                    w_list_et.append(problem.predict_w(tau,w_list_et))
-                    g_corr_et.append(self.g(tau,w_list_et))
-                    
+                if t >= 1:
+                    w_list_et = sample[:t]
+                    g_corr_et = []
+                    for tau in range(t,self.T):
+                        w_list_et.append(problem.predict_w(tau,w_list_et))
+                        g_corr_et.append(self.g(tau,w_list_et))
+                    tasks.append((problem,
+                                  'eval_stage_approx',
+                                  t,
+                                  w_list_et[t:],
+                                  solutions[t-1],
+                                  g_corr_et,
+                                  sol_data[t] if warm_start else None,
+                                  inits[t],
+                                  None,
+                                  not debug,
+                                  tol))
+                
+                #"""
                 x_xi,Q_xi,gQ_xi,results_xi = problem.eval_stage_approx(t,
                                                                        w_list_xi[t:],
                                                                        solutions[t-1],
@@ -165,19 +196,32 @@ class MultiStage_StochHybrid(StochSolver):
                                                                        tol=tol,
                                                                        init_data=sol_data[t] if warm_start else None)
                 
-                x_et,Q_et,gQ_et,results_et = problem.eval_stage_approx(t,
-                                                                       w_list_et[t:],
-                                                                       solutions[t-1],
-                                                                       g_corr=g_corr_et,
-                                                                       quiet=not debug,
-                                                                       tol=tol,
-                                                                       init_data=sol_data[t] if warm_start else None,
-                                                                       xover=inits[t])
-                
+                if t >= 1:
+                    x_et,Q_et,gQ_et,results_et = problem.eval_stage_approx(t,
+                                                                           w_list_et[t:],
+                                                                           solutions[t-1],
+                                                                           g_corr=g_corr_et,
+                                                                           quiet=not debug,
+                                                                           tol=tol,
+                                                                           init_data=sol_data[t] if warm_start else None,
+                                                                           xover=inits[t])
+                #"""
+
+                """
+                results = pool.map(ApplyFunc,tasks)
+                if t == 0:
+                    assert(len(results) == 1)
+                    x_xi,Q_xi,gQ_xi,results_xi = results[0]
+                else:
+                    assert(len(results) == 2)
+                    x_xi,Q_xi,gQ_xi,results_xi = results[0]
+                    x_et,Q_et,gQ_et,results_et = results[1]
+                """
+ 
                 inits[t+1] = results_xi['xn']
                 solutions[t] = x_xi
                 xi_vecs[t-1] = gQ_xi
-                et_vecs[t-1] = gQ_et
+                et_vecs[t-1] = gQ_et if t >= 1 else None
                 sol_data[t] = results_xi if k == 0 else None
 
                 # DEBUG: Check xi
@@ -194,6 +238,7 @@ class MultiStage_StochHybrid(StochSolver):
                                                                        tol=tol,
                                                                        init_data=sol_data[t] if warm_start else None)
                         assert(Q1 >= Q_xi+np.dot(xi_vecs[t-1],d))
+                        print 'xi vec ok'
 
                 # DEBUG: Check eta
                 #*****************
@@ -209,6 +254,7 @@ class MultiStage_StochHybrid(StochSolver):
                                                                        tol=tol,
                                                                        init_data=sol_data[t] if warm_start else None)
                         assert(Q1 >= Q_et+np.dot(et_vecs[t-1],d))
+                        print 'et vec ok'
 
             # Save sol
             self.x = solutions[0]
