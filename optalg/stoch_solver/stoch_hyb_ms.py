@@ -140,12 +140,6 @@ class MultiStage_StochHybrid(StochSolver):
                 g_corr.append(self.g(t,Wt))
 
             # Solve subproblems
-            foo_gQ = {}
-            foo_lam = {}
-            foo_mu = {}
-            foo_pi = {}
-            foo_x = {0: None}
-
             xi_vecs = {}
             et_vecs = {}
             solutions = {-1 : problem.get_x_prev()}
@@ -169,40 +163,8 @@ class MultiStage_StochHybrid(StochSolver):
                 solutions[t] = x_xi
                 xi_vecs[t-1] = gQ_xi
                 sol_data[t] = results_xi if k == 0 else None
-
-                foo_x[t+1] = results_xi['xn']
-                foo_gQ[t] = results_xi['gQn']
-                foo_lam[t+1] = results_xi['lamn']
-                foo_mu[t+1] = results_xi['mun']
-                foo_pi[t+1] = results_xi['pin']
-
-                if t < self.T-1:
-                    #w_list_et = sample[:t+1]
-                    #g_corr_et = []
-                    #for tau in range(t,self.T):
-                    #    w_list_et.append(problem.predict_w(tau,w_list_et))
-                    #    g_corr_et.append(self.g(tau,w_list_et))
-                    
-                    x_et,Q_et,gQ_et,results_et = problem.eval_stage_approx(t+1,
-                                                                           w_list_xi[t+1:],
-                                                                           solutions[t],
-                                                                           g_corr=g_corr_xi[1:],
-                                                                           quiet=not debug,
-                                                                           tol=tol,
-                                                                           init_data=sol_data[t+1] if warm_start else None)
-                
-                    et_vecs[t] = gQ_et
-
-                # DEBUG: Check gQn
-                #*****************
-                if t < self.T-1:
-                    print 'checking xn',norm(results_et['x']-foo_x[t+1])
-                    print 'checking gQn',norm(et_vecs[t]-foo_gQ[t]),norm(et_vecs[t]),norm(foo_gQ[t])
-                    print 'checking lamn',norm(results_et['lam']-foo_lam[t+1]),norm(results_et['lam']),norm(foo_lam[t+1])
-                    print 'checking mun',norm(results_et['mu']-foo_mu[t+1]),norm(results_et['mu']),norm(foo_mu[t+1])
-                    print 'checking pin',norm(results_et['pi']-foo_pi[t+1]),norm(results_et['pi']),norm(foo_pi[t+1])
-                print 'CHECKING,t = %d' %t
-                raw_input()
+                et_vecs[t] = results_xi['gQn']
+                Q_et = results_xi['Qn']
 
                 # DEBUG: Check xi
                 #****************
@@ -233,7 +195,7 @@ class MultiStage_StochHybrid(StochSolver):
                                                                        quiet=True,
                                                                        tol=tol,
                                                                        init_data=sol_data[t+1] if warm_start else None)
-                        assert(Q1 >= Q_et+np.dot(foo_gQ[t],d))
+                        assert(Q1 >= Q_et+np.dot(et_vecs[t],d))
                         print 'et vec ok'
 
             # Save sol
