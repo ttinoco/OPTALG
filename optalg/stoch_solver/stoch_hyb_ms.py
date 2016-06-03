@@ -227,11 +227,16 @@ class MultiStage_StochHybrid(StochSolver):
                     g_corr[i].append(self.g(t,Wt))
 
             # Solve subproblems
-            results = pool.map(ApplyFunc,[(self,
-                                           'solve_subproblems',
-                                           sample[i],
-                                           g_corr[i],
-                                           k == 0 and i == 0) for i in range(num_procs)])
+            tasks = [(self,
+                      'solve_subproblems',
+                      sample[i],
+                      g_corr[i],
+                      k == 0 and i == 0) for i in range(num_procs)]
+            if num_procs > 1:
+                results = pool.map(ApplyFunc,tasks)
+            else:
+                results = map(ApplyFunc,tasks)
+
             assert(len(results) == num_procs)
 
             # Save sol
