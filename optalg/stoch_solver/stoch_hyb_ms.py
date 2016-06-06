@@ -147,7 +147,7 @@ class MultiStage_StochHybrid(StochSolver):
                                                                    quiet=True,
                                                                    tol=tol,
                                                                    init_data=sol_data[t] if warm_start else None)
-                    assert(Q1 >= Q_xi+np.dot(xi_vecs[t-1],d))
+                    assert(Q1+1e-8 >= Q_xi+np.dot(xi_vecs[t-1],d))
                     print 'xi vec ok'
 
             # DEBUG: Check eta
@@ -163,7 +163,7 @@ class MultiStage_StochHybrid(StochSolver):
                                                                    quiet=True,
                                                                    tol=tol,
                                                                    init_data=sol_data[t+1] if warm_start else None)
-                    assert(Q1 >= Q_et+np.dot(et_vecs[t],d))
+                    assert(Q1+1e-8 >= Q_et+np.dot(et_vecs[t],d))
                     print 'et vec ok'
 
         # Return

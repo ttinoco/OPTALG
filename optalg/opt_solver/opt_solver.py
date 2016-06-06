@@ -38,13 +38,14 @@ class OptSolver:
 
         # Other
         self.k = 0.
-        self.x = None
-        self.lam = None
-        self.nu = None
-        self.mu = None
-        self.pi = None
+        self.x = np.zeros(0)
+        self.lam = np.zeros(0)
+        self.nu = np.zeros(0)
+        self.mu = np.zeros(0)
+        self.pi = np.zeros(0)
         self.status = self.STATUS_UNKNOWN
-        self.error_msg = ''              
+        self.error_msg = ''
+        self.obj_sca = 1. # objective scaling
 
         # Norms
         self.norminf = lambda x: np.linalg.norm(x,np.inf) if x.size else 0.
@@ -93,7 +94,7 @@ class OptSolver:
         """
 
         return self.k
-
+        
     def get_status(self):
         """
         Gets solver status.
@@ -128,7 +129,10 @@ class OptSolver:
         pi : vector
         """
         
-        return self.lam,self.nu,self.mu,self.pi
+        return (self.lam*self.obj_sca,
+                self.nu*self.obj_sca,
+                self.mu*self.obj_sca,
+                self.pi*self.obj_sca)
 
     def get_results(self):
         """
@@ -143,10 +147,10 @@ class OptSolver:
                 'error_msg': self.error_msg,
                 'k': self.k,
                 'x': self.x,
-                'lam': self.lam,
-                'nu': self.nu,
-                'mu': self.mu,
-                'pi': self.pi}
+                'lam': self.lam*self.obj_sca,
+                'nu': self.nu*self.obj_sca,
+                'mu': self.mu*self.obj_sca,
+                'pi': self.pi*self.obj_sca}
 
     def is_status_solved(self):
         """
@@ -231,13 +235,14 @@ class OptSolver:
         """
         
         self.k = 0.
-        self.x = None
-        self.lam = None
-        self.nu = None
-        self.mu = None
-        self.pi = None
+        self.x = np.zeros(0)
+        self.lam = np.zeros(0)
+        self.nu = np.zeros(0)
+        self.mu = np.zeros(0)
+        self.pi = np.zeros(0)
         self.status = self.STATUS_UNKNOWN
         self.error_msg = ''
+        self.obj_sca = 1. # objective scaling
 
     def set_error_msg(self,msg):
         """

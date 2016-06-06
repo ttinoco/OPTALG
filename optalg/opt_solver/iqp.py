@@ -36,7 +36,7 @@ class OptSolverIQP(OptSolver):
         self.parameters = OptSolverIQP.parameters.copy()                
         self.linsolver = None
         self.problem = None
-
+        
     def extract_components(self,y):
 
         n = self.n
@@ -122,8 +122,9 @@ class OptSolverIQP(OptSolver):
         self.reset()
 
         # Data
-        self.H = problem.H
-        self.g = problem.g
+        self.obj_sca = np.maximum(norminf(problem.g),1.)
+        self.H = problem.H/self.obj_sca
+        self.g = problem.g/self.obj_sca
         self.A = problem.A
         self.AT = problem.A.T
         self.b = problem.b
@@ -149,23 +150,23 @@ class OptSolverIQP(OptSolver):
             raise OptSolverError_NoInterior(self)
 
         # Initial point
-        if problem.x is None:
+        if problem.x is None or not problem.x.size:
             self.x = (self.u + self.l)/2.
         else:
             dul = eps*(self.u-self.l)
             self.x = np.maximum(np.minimum(problem.x,self.u-dul),self.l+dul)
-        if problem.lam is None:
+        if problem.lam is None or not problem.lam.size:
             self.lam = np.zeros(self.m)
         else:
-            self.lam = problem.lam.copy()
-        if problem.mu is None:
+            self.lam = problem.lam.copy()/self.obj_sca
+        if problem.mu is None or not problem.mu.size:
             self.mu = np.ones(self.x.size)*eps_cold
         else:
-            self.mu = np.maximum(problem.mu,eps)
-        if problem.pi is None:
+            self.mu = np.maximum(problem.mu,eps)/self.obj_sca
+        if problem.pi is None or not problem.pi.size:
             self.pi = np.ones(self.x.size)*eps_cold
         else:
-            self.pi = np.maximum(problem.pi,eps)
+            self.pi = np.maximum(problem.pi,eps)/self.obj_sca
 
         # Check interior
         try:
