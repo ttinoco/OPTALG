@@ -1,0 +1,11 @@
+
+# PyCharm Project Files
+.idea/*
+
+# Builds
+build/*
+
+# PyCache
+*__pycache__*
+.pyc
+
