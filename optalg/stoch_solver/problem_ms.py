@@ -6,7 +6,7 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-class StochObjMS_Problem:
+class StochProblemMS:
     """
     Represents a stochastic multi-stage optimization problem 
     of the form

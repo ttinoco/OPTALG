@@ -66,7 +66,7 @@ class Node:
 
         map(lambda c: c.show(),self.children)
 
-class ScenarioTree:
+class StochProblemMS_Tree:
 
     def __init__(self,problem,branching_factor,seed=None):
         """

@@ -10,7 +10,7 @@ import time
 import numpy as np
 from stoch_solver import StochSolver
 
-class PrimalDual_StochGradient(StochSolver):
+class StochGradientPD(StochSolver):
 
     parameters = {'maxiters': 1000,
                   'period': 50,
@@ -29,7 +29,7 @@ class PrimalDual_StochGradient(StochSolver):
         
         # Init
         StochSolver.__init__(self)
-        self.parameters = PrimalDual_StochGradient.parameters.copy()
+        self.parameters = StochGradientPD.parameters.copy()
 
     def solve(self,problem):
 

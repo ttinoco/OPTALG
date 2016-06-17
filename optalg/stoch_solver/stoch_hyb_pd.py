@@ -12,7 +12,7 @@ from numpy.linalg import norm
 from scipy.sparse import coo_matrix
 from stoch_solver import StochSolver
 
-class PrimalDual_StochHybrid(StochSolver):
+class StochHybridPD(StochSolver):
 
     parameters = {'maxiters': 1000,
                   'period': 50,
@@ -32,7 +32,7 @@ class PrimalDual_StochHybrid(StochSolver):
         
         # Init
         StochSolver.__init__(self)
-        self.parameters = PrimalDual_StochHybrid.parameters.copy()
+        self.parameters = StochHybridPD.parameters.copy()
 
     def solve(self,problem):
         

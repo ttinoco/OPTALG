@@ -7,8 +7,8 @@
 #****************************************************#
 
 import numpy as np
-from opt_problem import OptProblem
-from scipy.sparse import tril, coo_matrix
+from problem import OptProblem
+from scipy.sparse import tril,coo_matrix
 
 class QuadProblem(OptProblem):
     """

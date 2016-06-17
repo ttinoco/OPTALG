@@ -6,10 +6,10 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-class StochObjMS_Policy:
+class StochProblemMS_Policy:
     """
     Operation policy for multi-stage stochatic
-    optimization problem (StochObjMS_Problem).
+    optimization problem.
     """
 
     def __init__(self,problem,name='',data=None):
@@ -19,7 +19,7 @@ class StochObjMS_Policy:
         
         Parameters
         ----------
-        problem : StochObjMS_Problem
+        problem : StochProblemMS
         name : string
         data : Object
         """

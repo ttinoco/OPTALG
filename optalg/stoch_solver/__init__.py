@@ -7,19 +7,19 @@
 #****************************************************#
 
 # Problems
-from stoch_gen_prob import StochGen_Problem
-from stoch_obj_prob import StochObj_Problem
-from stoch_obj_ms_prob import StochObjMS_Problem
+from problem import StochProblem
+from problem_c import StochProblemC
+from problem_ts import StochProblemTS
+from problem_ms import StochProblemMS
+from problem_ms_policy import StochProblemMS_Policy
+from problem_ms_tree import StochProblemMS_Tree
 
 # Solvers
 from stoch_grad import StochGradient
+from stoch_grad_pd import StochGradientPD
 from stoch_hyb import StochHybrid
-from stoch_grad_pd import PrimalDual_StochGradient
-from stoch_hyb_pd import PrimalDual_StochHybrid
-from stoch_hyb_ms import MultiStage_StochHybrid
+from stoch_hyb_pd import StochHybridPD
+from stoch_hyb_ms import StochHybridMS
+from stoch_dual_dyn_prog import StochDualDynProg
 
-# Policy
-from stoch_obj_ms_policy import StochObjMS_Policy
 
-# Tree
-from scenario_tree import ScenarioTree

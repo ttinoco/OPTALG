@@ -6,7 +6,7 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-class StochGen_Problem:
+class StochProblemC:
     """
     Represents a stochastic optimization problem 
     of the form

@@ -15,9 +15,9 @@ from collections import deque
 from multiprocess import Pool
 from scipy.sparse import coo_matrix
 from stoch_solver import StochSolver
-from stoch_obj_ms_policy import StochObjMS_Policy
+from problem_ms_policy import StochProblemMS_Policy
 
-class MultiStage_StochHybrid(StochSolver):
+class StochHybridMS(StochSolver):
 
     parameters = {'maxiters': 1000,
                   'num_procs': 1,
@@ -38,7 +38,7 @@ class MultiStage_StochHybrid(StochSolver):
         
         # Init
         StochSolver.__init__(self)
-        self.parameters = MultiStage_StochHybrid.parameters.copy()
+        self.parameters = StochHybridMS.parameters.copy()
         
         self.T = 0
         self.n = 0
@@ -311,7 +311,7 @@ class MultiStage_StochHybrid(StochSolver):
             # Return
             return x
             
-        policy = StochObjMS_Policy(self.problem,data=self,name='Multi-Stage Stochastic Hybrid')
+        policy = StochProblemMS_Policy(self.problem,data=self,name='Multi-Stage Stochastic Hybrid')
         policy.apply = MethodType(apply,policy)
         
         # Return

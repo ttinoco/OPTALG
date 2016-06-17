@@ -13,9 +13,9 @@ from types import MethodType
 from numpy.linalg import norm
 from scipy.sparse import coo_matrix
 from stoch_solver import StochSolver
-from stoch_obj_ms_policy import StochObjMS_Policy
+from problem_ms_policy import StochProblemMS_Policy
 
-class MultiStage_StochDualDynProg(StochSolver):
+class StochDualDynProg(StochSolver):
 
     parameters = {'maxiters': 1000,
                   'num_procs': 1,
@@ -31,7 +31,7 @@ class MultiStage_StochDualDynProg(StochSolver):
         
         # Init
         StochSolver.__init__(self)
-        self.parameters = MultiStage_StochDualDynProg.parameters.copy()
+        self.parameters = StochDualDynProg.parameters.copy()
         
     def solve(self,problem,tree):
         """
