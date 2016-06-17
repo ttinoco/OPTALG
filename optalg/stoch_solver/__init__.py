@@ -20,3 +20,6 @@ from stoch_hyb_ms import MultiStage_StochHybrid
 
 # Policy
 from stoch_obj_ms_policy import StochObjMS_Policy
+
+# Tree
+from scenario_tree import ScenarioTree
