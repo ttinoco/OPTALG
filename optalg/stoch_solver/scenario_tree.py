@@ -134,5 +134,3 @@ class ScenarioTree:
         print '\nScenarios:'
         for node in self.get_leaf_nodes():
             print map(lambda n: n.get_id(),node.get_ancestors()+[node])
-        
-        
