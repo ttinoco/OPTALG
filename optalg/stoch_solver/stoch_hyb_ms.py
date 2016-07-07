@@ -119,14 +119,14 @@ class StochHybridMS(StochSolver):
                 w_list_xi.append(problem.predict_w(tau,w_list_xi))
                 g_corr_xi.append(self.g(tau,w_list_xi))
 
-            x_xi,Q_xi,gQ_xi,results_xi = problem.eval_stage_approx(t,
-                                                                   w_list_xi[t:],
-                                                                   solutions[t-1],
-                                                                   g_corr=g_corr_xi,
-                                                                   quiet=not debug,
-                                                                   tol=tol,
-                                                                   init_data=sol_data[t] if warm_start else None,
-                                                                   next_stage=True)
+            x_xi,Q_xi,gQ_xi,results_xi = problem.solve_stages(t,
+                                                              w_list_xi[t:],
+                                                              solutions[t-1],
+                                                              g_corr=g_corr_xi,
+                                                              quiet=not debug,
+                                                              tol=tol,
+                                                              init_data=sol_data[t] if warm_start else None,
+                                                              next_stage=True)
 
             solutions[t] = x_xi
             xi_vecs[t-1] = gQ_xi
@@ -140,13 +140,13 @@ class StochHybridMS(StochSolver):
                 for i in range(10):
                     d = np.random.randn(self.n)*1e-3
                     xper = solutions[t-1]+d
-                    x1,Q1,gQ1,results1 = problem.eval_stage_approx(t,
-                                                                   w_list_xi[t:],
-                                                                   xper,
-                                                                   g_corr=g_corr_xi,
-                                                                   quiet=True,
-                                                                   tol=tol,
-                                                                   init_data=sol_data[t] if warm_start else None)
+                    x1,Q1,gQ1,results1 = problem.solve_stages(t,
+                                                              w_list_xi[t:],
+                                                              xper,
+                                                              g_corr=g_corr_xi,
+                                                              quiet=True,
+                                                              tol=tol,
+                                                              init_data=sol_data[t] if warm_start else None)
                     assert(Q1+1e-8 >= Q_xi+np.dot(xi_vecs[t-1],d))
                     print 'xi vec ok'
 
@@ -156,13 +156,13 @@ class StochHybridMS(StochSolver):
                 for i in range(10):
                     d = np.random.randn(self.n)*1e-3
                     xper = solutions[t]+d
-                    x1,Q1,gQ1,results1 = problem.eval_stage_approx(t+1,
-                                                                   w_list_xi[t+1:],
-                                                                   xper,
-                                                                   g_corr=g_corr_xi[1:],
-                                                                   quiet=True,
-                                                                   tol=tol,
-                                                                   init_data=sol_data[t+1] if warm_start else None)
+                    x1,Q1,gQ1,results1 = problem.solve_stages(t+1,
+                                                              w_list_xi[t+1:],
+                                                              xper,
+                                                              g_corr=g_corr_xi[1:],
+                                                              quiet=True,
+                                                              tol=tol,
+                                                              init_data=sol_data[t+1] if warm_start else None)
                     assert(Q1+1e-8 >= Q_et+np.dot(et_vecs[t],d))
                     print 'et vec ok'
 
@@ -236,7 +236,6 @@ class StochHybridMS(StochSolver):
                 results = pool.map(ApplyFunc,tasks)
             else:
                 results = map(ApplyFunc,tasks)
-
             assert(len(results) == num_procs)
 
             # Save sol
@@ -298,11 +297,11 @@ class StochHybridMS(StochSolver):
             for tau in range(t+1,self.T):
                 w_list.append(cls.problem.predict_w(tau,w_list))
                 g_corr_pr.append(self.g(tau,w_list))
-            x,Q,gQ,results = cls.problem.eval_stage_approx(t,
-                                                           w_list[t:],
-                                                           x_prev,
-                                                           g_corr=g_corr_pr,
-                                                           quiet=True)
+            x,Q,gQ,results = cls.problem.solve_stages(t,
+                                                      w_list[t:],
+                                                      x_prev,
+                                                      g_corr=g_corr_pr,
+                                                      quiet=True)
             
             # Check feasibility
             if not cls.problem.is_point_feasible(t,x,x_prev,Wt[-1]):

@@ -7,6 +7,17 @@
 #*****************************************************#
 
 def ApplyFunc(args):
+    """
+    Applies class method to arguments.
+
+    Parameters
+    ----------
+    args: (class, method name, arg1, ..., argn)
+
+    Results
+    -------
+    r : Object
+    """
 
     cls = args[0]
     fnc = args[1]

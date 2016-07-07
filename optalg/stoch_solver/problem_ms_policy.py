@@ -45,7 +45,7 @@ class StochProblemMS_Policy:
 
         Return
         ------
-        problem : StochObjMS_Problem
+        problem : StochProblemMS
         """
         
         return self.problem

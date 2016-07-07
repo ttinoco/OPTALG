@@ -14,7 +14,7 @@ class StochProblemMS:
     minimize(x)   F_t(x_t,w_t) + E[ Q_{t+1}(x_t,W_{t+1}) | W_t ]
     subject to    x_t in X(x_{t-1},w_t),
 
-    where Q_{t+1} captures the optimal objective value of
+    for t = 0,...,T-1, where Q_{t+1} captures the optimal objective value of
     the next stage for a particular realization of the uncertainty.
     """
 
@@ -51,17 +51,48 @@ class StochProblemMS:
         
         return None
 
-    def eval_stage_approx(self,t,w_list,x_prev,g_corr=[],quiet=False,tol=1e-4):
+    def solve_stage_with_cuts(self,t,w,x_prev,A,b,quiet=False,tol=1e-4):
         """
-        Evaluates approximate optimal stage cost.
+        Solves approximate stage problem for given realization of
+        uncertainty and cuts that approximate cost-to-go function.
+        More specifically, problem solved is
+
+        minimize(x_t,y_t)   F_t(x_t,w_t) + y_t
+        subject to          x_t in X(x_{t-1},w_t)
+                            Ax_t + b + 1y_t >= 0.
 
         Parameters
         ----------
         t : int (stage)
-        w_list : list of random vectors for stage t,...,T
+        w : random vector
         x_prev : vector of previous stage variables
-        g_corr : list of slope corrections of objective functions for stage t,...,T
+        A : matrix for constructing cuts
+        b : vector for contructing cuts
+
+        Results
+        -------
+        x : stage solution
+        Q : stage cost
+        gQ : stage cost subgradient wrt x_prev
+        """
+        
+        return None,None,None
+
+    def solve_stages(self,t,w_list,x_prev,g_corr=[],tf=None,quiet=False,tol=1e-4):
+        """
+        Solves stages using given realizations of uncertainty 
+        and cost-to-go slope corrections.
+
+        Parameters
+        ----------
+        t : int (start stage)
+        w_list : list of random vectors for stage t,...,tf
+        x_prev : vector of previous stage variables
+        g_corr : list of slope corrections of objective functions for stage t,...,tf
+        tf : int (end stage, last stage by default)
         quiet : {True,False}
+        tol : float
+        quiet : 
 
         Returns
         -------
