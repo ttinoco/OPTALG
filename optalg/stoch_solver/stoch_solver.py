@@ -47,7 +47,7 @@ class StochSolver:
 
         Parameters
         ----------
-        problem : StochObj_Problem, StochGen_Problem, StochObjMS_Problem
+        problem : StochProblem, StochProblemC, StochProblemMS
         """
 
         pass

@@ -36,7 +36,7 @@ class StochProblem:
 
     def eval_F_approx(self,x,tol=None):
         """
-        Evaluates deterministic approximation of objective funciton.
+        Evaluates deterministic approximation of objective function.
         
         Parameters
         ----------
@@ -53,7 +53,7 @@ class StochProblem:
 
     def eval_EF(self,x,samples=100,tol=None):
         """
-        Evaluates objective funciton.
+        Evaluates objective function.
 
         Parameters
         ----------
@@ -106,7 +106,7 @@ class StochProblem:
 
         Returns
         -------
-        y : vector
+        xp : vector
         """
 
         pass
@@ -131,7 +131,7 @@ class StochProblem:
 
     def solve_approx(self,g_corr=None,quiet=False,tol=1e-4):
         """
-        Solves slope-corrected problem
+        Solves slope-corrected approximate problem
         
         minimize(x)   F_approx(x) + g^Tx (sloped correction)
         subject to    x in X.

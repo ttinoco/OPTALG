@@ -75,9 +75,9 @@ class StochProblemMS_Tree:
         
         Parameters
         ----------
-        problem : 
-        branching_factor :
-        seed :
+        problem : StochProblemMS
+        branching_factor : int
+        seed : int
         """
 
         self.problem = problem
@@ -101,7 +101,6 @@ class StochProblemMS_Tree:
                 new_nodes += node.get_children()
             nodes = new_nodes
         num_nodes = sum([branching_factor**tau for tau in range(T)])
-        print num_nodes,len(self.get_nodes())
         assert(num_nodes == counter)
         assert(num_nodes == len(self.get_nodes()))
 
@@ -124,8 +123,10 @@ class StochProblemMS_Tree:
         node = self.root
         for tau in range(t):
             node = node.get_child(np.random.randint(0,node.get_num_children()))            
-        return node.get_ancestors()+[node]
-            
+        branch = node.get_ancestors()+[node]
+        assert(len(branch) == t+1)
+        return branch
+ 
     def show(self):
         
         self.root.show()

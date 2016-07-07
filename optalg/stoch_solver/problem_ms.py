@@ -11,7 +11,7 @@ class StochProblemMS:
     Represents a stochastic multi-stage optimization problem 
     of the form
     
-    minimize(x)   F(x_t,w_t) + E[ Q_{t+1}(x_t,W_{t+1}) | W_t ]
+    minimize(x)   F_t(x_t,w_t) + E[ Q_{t+1}(x_t,W_{t+1}) | W_t ]
     subject to    x_t in X(x_{t-1},w_t),
 
     where Q_{t+1} captures the optimal objective value of
@@ -21,7 +21,7 @@ class StochProblemMS:
     def get_num_stages(self):
         """
         Gets number of stages.
-
+        
         Returns
         -------
         num : int
@@ -43,7 +43,7 @@ class StochProblemMS:
     def get_x_prev(self):
         """
         Gets constant x for time before t=0.
-
+        
         Returns
         -------
         x_prev : vector
@@ -60,7 +60,7 @@ class StochProblemMS:
         t : int (stage)
         w_list : list of random vectors for stage t,...,T
         x_prev : vector of previous stage variables
-        g_corr : list of slope corrections for stage t,...,T
+        g_corr : list of slope corrections of objective functions for stage t,...,T
         quiet : {True,False}
 
         Returns
@@ -89,7 +89,7 @@ class StochProblemMS:
 
     def sample_w(self,t,observations):
         """
-        Samples realization of renewable powers for the given stage
+        Samples realization of uncertainty for the given stage
         given the observations.
 
         Parameters
@@ -106,7 +106,7 @@ class StochProblemMS:
 
     def sample_W(self,t):
         """
-        Samples realization of renewable powers up
+        Samples realization of uncertainty up
         to the given stage.
 
         Parameters
@@ -122,7 +122,7 @@ class StochProblemMS:
 
     def predict_w(self,t,observations):
         """
-        Predicts renewable powers for the given stage
+        Predicts realizatoin of uncertainty for the given stage
         given the observations.
 
         Parameters
@@ -139,7 +139,7 @@ class StochProblemMS:
 
     def predict_W(self,t):
         """
-        Predicts renewable powers up to the
+        Predicts realizations of uncertainty up to the
         given stage.
 
         Parameters
