@@ -7,6 +7,7 @@
 #****************************************************#
 
 import numpy as np
+from numpy.linalg import norm
 
 class Node:
 
@@ -104,6 +105,14 @@ class StochProblemMS_Tree:
         assert(num_nodes == counter)
         assert(num_nodes == len(self.get_nodes()))
 
+    def check_branch(self,branch):
+
+        if len(branch) > 0:
+            assert(not branch[0].get_parent())
+            assert(not branch[-1].get_children())
+            assert(all([branch[i+1] in branch[i].get_children() for i in range(t)]))
+            assert(all([branch[i] is branch[i+1].get_parent() for i in range(t)]))
+
     def get_nodes(self):
         
         return [self.root]+self.root.get_descendants()
@@ -124,12 +133,22 @@ class StochProblemMS_Tree:
         for tau in range(t):
             node = node.get_child(np.random.randint(0,node.get_num_children()))            
         branch = node.get_ancestors()+[node]
-
         assert(len(branch) == t+1)
-        assert(not branch[0].get_parent())
-        assert(not branch[-1].get_children())
-        assert(all([branch[i+1] in branch[i].get_children() for i in range(t)]))
-        assert(all([branch[i] is branch[i+1].get_parent() for i in range(t)]))
+        self.check_branch(branch)
+
+        return branch
+
+    def get_closest_branch(self,sample):
+
+        assert(len(sample) <= self.problem.get_num_stages())
+
+        nodes = [self.roof]
+        branch = []
+        for t in range(len(sample)):
+            branch.append(nodes[np.argmin(np.map(lambda n: norm(n.get_w()-sample[t]),nodes))])
+            nodes = branch[-1].get_children()
+        assert(len(branch) == len(sample))
+        self.check_branch(branch)
 
         return branch
  

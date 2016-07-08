@@ -33,7 +33,7 @@ class StochHybridMS(StochSolver):
 
     def __init__(self):
         """
-        Multi-Stage Stochastic Hybrid Approximation Algorithm.
+        Multi-Stage stochastic hybrid approximation algorithm.
         """
         
         # Init
