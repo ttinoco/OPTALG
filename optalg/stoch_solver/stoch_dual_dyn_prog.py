@@ -71,8 +71,9 @@ class StochDualDynProg(StochSolver):
 
         # Init
         t0 = time.time()
-        cuts = dict([(node.get_id(),(np.zeros((0,self.n)),np.zeros(0))) # (A,b) 
-                     for node in tree.get_nodes()])
+        x_prev = np.zeros(self.n)
+        self.cuts = dict([(node.get_id(),(np.zeros((0,self.n)),np.zeros(0))) # (A,b) 
+                          for node in tree.get_nodes()])
 
         # Loop
         for k in range(maxiters+1):
@@ -88,11 +89,14 @@ class StochDualDynProg(StochSolver):
                 x,Q,gQ = problem.solve_stage_with_cuts(t,
                                                        node.get_w(),
                                                        solutions[t-1],
-                                                       cuts[node.get_id()][0], # A
-                                                       cuts[node.get_id()][1], # b
+                                                       self.cuts[node.get_id()][0], # A
+                                                       self.cuts[node.get_id()][1], # b
                                                        quiet=not debug,
                                                        tol=tol)
                 solutions[t] = x
+
+            # Save sol
+            self.x = solutions[0]
 
             # Backward pass
             for t in range(self.T-1,-1,-1):
@@ -104,8 +108,8 @@ class StochDualDynProg(StochSolver):
                     n = node.get_child(i)
                     xn,Qn,gQn = problem.solve_stage_with_cuts(t,
                                                               n.get_w(),
-                                                              cuts[n.get_id()][0], # A
-                                                              cuts[n.get_id()][1], # b
+                                                              self.cuts[n.get_id()][0], # A
+                                                              self.cuts[n.get_id()][1], # b
                                                               quiet=not debug,
                                                               tol=tol)
                     Q *= float(i)/float(i+1)
@@ -114,8 +118,17 @@ class StochDualDynProg(StochSolver):
                     gQ += gQn/float(i+1)
                 a = -gQ
                 b = -Q + np.dot(gQ,x)
-                cuts[node.get_id()][0] = np.vstack((cuts[node.get_id()][0],a)) # A
-                cuts[node.get_id()][1] = np.hstack((cuts[node.get_id()][1],b)) # b
+                self.cuts[node.get_id()][0] = np.vstack((self.cuts[node.get_id()][0],a)) # A
+                self.cuts[node.get_id()][1] = np.hstack((self.cuts[node.get_id()][1],b)) # b
+
+            # Output
+            if not quiet:
+                print '{0:^8d}'.format(k),
+                print '{0:^10.2f}'.format(time.time()-t0),
+                print '{0:^12.5e}'.format(norm(self.x-x_prev)),
+
+            # Update
+            x_prev = self.x.copy()
 
     def get_policy(self):
         """
@@ -126,4 +139,33 @@ class StochDualDynProg(StochSolver):
         policy : 
         """
 
-        pass
+        # Construct policy
+        def apply(cls,t,x_prev,Wt):
+            
+            assert(0 <= t < cls.problem.T)
+            assert(len(Wt) == t+1)
+            
+            branch = cls.tree.get_closest_branch(Wt)
+            assert(len(branch) == len(Wt))
+           
+            node = branch[-1]
+ 
+            x,Q,gQ = problem.solve_stage_with_cuts(t,
+                                                   Wt[-1],                     # actual realization, not node
+                                                   cls.cuts[node.get_id()][0], # A
+                                                   cls.cuts[node.get_id()][1], # b
+                                                   quiet=not debug,
+                                                   tol=tol)
+            
+            # Check feasibility
+            if not cls.problem.is_point_feasible(t,x,x_prev,Wt[-1]):
+                raise ValueError('point not feasible')
+            
+            # Return
+            return x
+            
+        policy = StochProblemMS_Policy(self.problem,data=self,name='Stochastic Dual Dynamic Programming')
+        policy.apply = MethodType(apply,policy)
+        
+        # Return
+        return policy

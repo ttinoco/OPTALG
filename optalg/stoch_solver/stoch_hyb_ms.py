@@ -203,6 +203,7 @@ class StochHybridMS(StochSolver):
 
         # Init
         t0 = time.time()
+        x_prev = np.zeros(self.n)
         self.sol_data = None
         self.samples = deque(maxlen=msize)                            # sampled realizations of uncertainty
         self.dslopes = [deque(maxlen=msize) for i in range(self.T-1)] # slope corrections (no steplengths)
@@ -242,12 +243,8 @@ class StochHybridMS(StochSolver):
             self.x = results[0][0][0]
             for i in range(num_procs):
                 assert(norm(results[i][0][0]-self.x) < (1e-8/norm(self.x)))
-           
-            # Reference
-            if k == 0:
-                x0_ce = self.x.copy()
-                
-            # Update
+                           
+            # Update approximations
             for i in range(num_procs):
                 
                 sol,xi_vecs,et_vecs,sol_data = results[i]
@@ -267,13 +264,16 @@ class StochHybridMS(StochSolver):
             if not quiet:
                 print '{0:^8d}'.format(k),
                 print '{0:^10.2f}'.format(time.time()-t0),
-                print '{0:^12.5e}'.format(norm(self.x-x0_ce)),
+                print '{0:^12.5e}'.format(norm(self.x-x_prev)),
                 print '{0:^12.5e}'.format(norm(g_corr[0][0])),
                 print '{0:^10d}'.format(len(self.samples))
 
             # Checks
             for t in range(self.T-1):
                 assert(len(self.dslopes[t]) == len(self.samples))
+
+            # Update
+            x_prev = self.x.copy()
  
     def get_policy(self):
         """
@@ -310,7 +310,7 @@ class StochHybridMS(StochSolver):
             # Return
             return x
             
-        policy = StochProblemMS_Policy(self.problem,data=self,name='Multi-Stage Stochastic Hybrid')
+        policy = StochProblemMS_Policy(self.problem,data=self,name='Stochastic Hybrid')
         policy.apply = MethodType(apply,policy)
         
         # Return
