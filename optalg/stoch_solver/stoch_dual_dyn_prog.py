@@ -142,23 +142,26 @@ class StochDualDynProg(StochSolver):
         # Construct policy
         def apply(cls,t,x_prev,Wt):
             
-            assert(0 <= t < cls.problem.T)
+            solver = cls.solver
+            problem = cls.problem
+
+            assert(0 <= t < problem.T)
             assert(len(Wt) == t+1)
             
-            branch = cls.tree.get_closest_branch(Wt)
+            branch = solver.tree.get_closest_branch(Wt)
             assert(len(branch) == len(Wt))
            
             node = branch[-1]
  
             x,Q,gQ = problem.solve_stage_with_cuts(t,
-                                                   Wt[-1],                     # actual realization, not node
-                                                   cls.cuts[node.get_id()][0], # A
-                                                   cls.cuts[node.get_id()][1], # b
+                                                   Wt[-1],                        # actual realization, not node
+                                                   solver.cuts[node.get_id()][0], # A
+                                                   solver.cuts[node.get_id()][1], # b
                                                    quiet=not debug,
                                                    tol=tol)
             
             # Check feasibility
-            if not cls.problem.is_point_feasible(t,x,x_prev,Wt[-1]):
+            if not problem.is_point_feasible(t,x,x_prev,Wt[-1]):
                 raise ValueError('point not feasible')
             
             # Return

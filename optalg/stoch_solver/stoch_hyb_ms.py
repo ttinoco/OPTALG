@@ -95,6 +95,22 @@ class StochHybridMS(StochSolver):
         return corr
 
     def solve_subproblems(self,sample,g_corr,save_sol_data=False):
+        """ 
+        Solves subproblems.
+
+        Parameters
+        ----------
+        sampled : list of uncertainy relizations for each stage
+        g_corr : list of slope corrections for each stage
+        save_sol_data : flag for saving solution data
+
+        Results
+        -------
+        solutions : dict (stage solutions)
+        xi_vects : dict (noisy subgradients)
+        et_vects : dict (model subgradients)
+        sol_data : list (solution data)
+        """ 
         
         # Local variables
         problem = self.problem
@@ -249,7 +265,7 @@ class StochHybridMS(StochSolver):
                 
                 sol,xi_vecs,et_vecs,sol_data = results[i]
 
-                # Sol data
+                # Sol data (CE solution)
                 if k == 0 and i == 0:
                     self.sol_data = sol_data
 
@@ -286,25 +302,26 @@ class StochHybridMS(StochSolver):
 
         # Construct policy
         def apply(cls,t,x_prev,Wt):
-            
-            assert(0 <= t < cls.problem.T)
-            assert(len(Wt) == t+1)
 
             solver = cls.data
+            problem = cls.problem
             
+            assert(0 <= t < problem.T)
+            assert(len(Wt) == t+1)
+
             w_list = list(Wt)
             g_corr_pr = [solver.g(t,Wt)]
-            for tau in range(t+1,self.T):
-                w_list.append(cls.problem.predict_w(tau,w_list))
-                g_corr_pr.append(self.g(tau,w_list))
-            x,Q,gQ,results = cls.problem.solve_stages(t,
-                                                      w_list[t:],
-                                                      x_prev,
-                                                      g_corr=g_corr_pr,
-                                                      quiet=True)
+            for tau in range(t+1,problem.T):
+                w_list.append(problem.predict_w(tau,w_list))
+                g_corr_pr.append(solver.g(tau,w_list))
+            x,Q,gQ,results = problem.solve_stages(t,
+                                                  w_list[t:],
+                                                  x_prev,
+                                                  g_corr=g_corr_pr,
+                                                  quiet=True)
             
             # Check feasibility
-            if not cls.problem.is_point_feasible(t,x,x_prev,Wt[-1]):
+            if not problem.is_point_feasible(t,x,x_prev,Wt[-1]):
                 raise ValueError('point not feasible')
             
             # Return
