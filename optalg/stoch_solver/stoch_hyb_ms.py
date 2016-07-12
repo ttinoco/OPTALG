@@ -212,7 +212,7 @@ class StochHybridMS(StochSolver):
             print '\nMulti-Stage Stochastic Hybrid'
             print '-----------------------------'
             print '{0:^8s}'.format('iter'),
-            print '{0:^10s}'.format('time'),
+            print '{0:^12s}'.format('time (min)'),
             print '{0:^12s}'.format('dx'),            
             print '{0:^12s}'.format('gc'),
             print '{0:^10s}'.format('samples')
@@ -279,7 +279,7 @@ class StochHybridMS(StochSolver):
             # Output
             if not quiet:
                 print '{0:^8d}'.format(k),
-                print '{0:^10.2f}'.format(time.time()-t0),
+                print '{0:^12.2f}'.format((time.time()-t0)/60.),
                 print '{0:^12.5e}'.format(norm(self.x-x_prev)),
                 print '{0:^12.5e}'.format(norm(g_corr[0][0])),
                 print '{0:^10d}'.format(len(self.samples))
@@ -327,7 +327,7 @@ class StochHybridMS(StochSolver):
             # Return
             return x
             
-        policy = StochProblemMS_Policy(self.problem,data=self,name='Stochastic Hybrid')
+        policy = StochProblemMS_Policy(self.problem,data=self,name='Stochastic Hybrid Approximation')
         policy.apply = MethodType(apply,policy)
         
         # Return

@@ -110,12 +110,25 @@ class StochProblemMS_Tree:
         if len(branch) > 0:
             assert(not branch[0].get_parent())
             assert(not branch[-1].get_children())
-            assert(all([branch[i+1] in branch[i].get_children() for i in range(t)]))
-            assert(all([branch[i] is branch[i+1].get_parent() for i in range(t)]))
+            assert(all([branch[i+1] in branch[i].get_children() for i in range(len(branch)-1)]))
+            assert(all([branch[i] is branch[i+1].get_parent() for i in range(len(branch)-1)]))
 
     def get_nodes(self):
         
         return [self.root]+self.root.get_descendants()
+
+    def get_stage_nodes(self,t):
+
+        T = self.problem.get_num_stages()
+        
+        assert(0 <= t < T)
+        nodes = [self.root]
+        for i in range(t):
+            new_nodes = []
+            for n in nodes:
+                new_nodes += n.get_children()
+            nodes = new_nodes
+        return nodes
 
     def get_root_node(self):
         
@@ -142,15 +155,16 @@ class StochProblemMS_Tree:
 
         assert(len(sample) <= self.problem.get_num_stages())
 
-        nodes = [self.roof]
-        branch = []
-        for t in range(len(sample)):
-            branch.append(nodes[np.argmin(np.map(lambda n: norm(n.get_w()-sample[t]),nodes))])
-            nodes = branch[-1].get_children()
-        assert(len(branch) == len(sample))
-        self.check_branch(branch)
-
-        return branch
+        t = len(sample)-1
+        nodes = self.get_stage_nodes(t)
+        branches = []
+        for n in nodes:
+            branch = n.get_ancestors()+[n]
+            assert(len(branch) == len(sample))
+            branches.append(branch)
+        sample_vec = np.hstack(sample)
+        branches_vec = map(lambda b: np.hstack(map(lambda n: n.get_w(),b)),branches)
+        return branches[np.argmin(map(lambda b: norm(b-sample_vec),branches_vec))]
  
     def show(self):
         
@@ -160,3 +174,16 @@ class StochProblemMS_Tree:
         print '\nScenarios:'
         for node in self.get_leaf_nodes():
             print map(lambda n: n.get_id(),node.get_ancestors()+[node])
+
+    def draw(self):
+
+        import matplotlib.pyplot as plt
+        import networkx as nx
+
+        G = nx.DiGraph()
+        for node in self.get_nodes():
+            for child in node.get_children():
+                G.add_edge(node.get_id(),child.get_id())
+        plt.figure()
+        pos = nx.graphviz_layout(G,prog='dot')
+        nx.draw(G,pos,with_labels=False,arrows=False,node_size=10.)

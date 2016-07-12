@@ -66,7 +66,7 @@ class StochDualDynProg(StochSolver):
             print '\nMulti-Stage Stochastic Dual Dynamic Programming'
             print '-------------------------------------------------'
             print '{0:^8s}'.format('iter'),
-            print '{0:^10s}'.format('time'),
+            print '{0:^12s}'.format('time (min)'),
             print '{0:^12s}'.format('dx')
 
         # Init
@@ -124,7 +124,7 @@ class StochDualDynProg(StochSolver):
             # Output
             if not quiet:
                 print '{0:^8d}'.format(k),
-                print '{0:^10.2f}'.format(time.time()-t0),
+                print '{0:^12.2f}'.format((time.time()-t0)/60.),
                 print '{0:^12.5e}'.format(norm(self.x-x_prev)),
 
             # Update
