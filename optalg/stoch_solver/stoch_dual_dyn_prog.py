@@ -60,6 +60,7 @@ class StochDualDynProg(StochSolver):
         callback = params['callback']
         num_procs = params['num_procs']
         debug = params['debug']
+        tol = params['tol']
  
         # Header
         if not quiet:
@@ -79,13 +80,13 @@ class StochDualDynProg(StochSolver):
         for k in range(maxiters+1):
  
             # Sample tree branch
-            sample = problem.sample_branch(self.T-1)
-            assert(len(sample) == self.T)
+            branch = tree.sample_branch(self.T-1)
+            assert(len(branch) == self.T)
 
             # Forward pass
             solutions = {-1 : problem.get_x_prev()}
             for t in range(self.T):
-                node = sample[t]
+                node = branch[t]
                 x,Q,gQ = problem.solve_stage_with_cuts(t,
                                                        node.get_w(),
                                                        solutions[t-1],
@@ -100,7 +101,7 @@ class StochDualDynProg(StochSolver):
 
             # Backward pass
             for t in range(self.T-1,-1,-1):
-                node = sample[t]
+                node = branch[t]
                 x = solutions[t]
                 Q = 0
                 gQ = np.zeros(self.n)
@@ -108,6 +109,7 @@ class StochDualDynProg(StochSolver):
                     n = node.get_child(i)
                     xn,Qn,gQn = problem.solve_stage_with_cuts(t,
                                                               n.get_w(),
+                                                              x,
                                                               self.cuts[n.get_id()][0], # A
                                                               self.cuts[n.get_id()][1], # b
                                                               quiet=not debug,
