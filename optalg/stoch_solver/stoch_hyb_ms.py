@@ -139,7 +139,7 @@ class StochHybridMS(StochSolver):
                                                               w_list_xi[t:],
                                                               solutions[t-1],
                                                               g_corr=g_corr_xi,
-                                                              quiet=not debug,
+                                                              quiet=True,
                                                               tol=tol,
                                                               init_data=sol_data[t] if warm_start else None,
                                                               next_stage=True)
@@ -209,8 +209,8 @@ class StochHybridMS(StochSolver):
  
         # Header
         if not quiet:
-            print '\nMulti-Stage Stochastic Hybrid'
-            print '-----------------------------'
+            print '\nMulti-Stage Stochastic Hybrid Approximation'
+            print '---------------------------------------------'
             print '{0:^8s}'.format('iter'),
             print '{0:^12s}'.format('time (min)'),
             print '{0:^12s}'.format('dx'),            
@@ -226,7 +226,7 @@ class StochHybridMS(StochSolver):
         self.gammas = [gamma for t in range(self.T-1)]                # scaling factors
 
         # Loop
-        for k in range(maxiters+1):
+        for k in range(maxiters):
             
             # Subroblems data
             sample = {}
@@ -300,6 +300,9 @@ class StochHybridMS(StochSolver):
         policy : 
         """
 
+        # Local vars
+        maxiters = self.parameters['maxiters']
+
         # Construct policy
         def apply(cls,t,x_prev,Wt):
 
@@ -327,7 +330,9 @@ class StochHybridMS(StochSolver):
             # Return
             return x
             
-        policy = StochProblemMS_Policy(self.problem,data=self,name='Stochastic Hybrid Approximation')
+        policy = StochProblemMS_Policy(self.problem,
+                                       data=self,
+                                       name='Stochastic Hybrid Approximation (%d)' %maxiters)
         policy.apply = MethodType(apply,policy)
         
         # Return
