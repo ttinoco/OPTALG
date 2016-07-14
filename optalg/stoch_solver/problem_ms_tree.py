@@ -69,7 +69,7 @@ class Node:
 
 class StochProblemMS_Tree:
 
-    def __init__(self,problem,branching_factor,seed=None):
+    def __init__(self,problem,branching_factor,branching_type,seed=None):
         """
         Creates scenario tree for multistage
         stochastic optimization problem.
@@ -78,30 +78,45 @@ class StochProblemMS_Tree:
         ----------
         problem : StochProblemMS
         branching_factor : int
+        branching_type : {'uniform','decreasing'}
         seed : int
         """
 
         self.problem = problem
         self.branching_factor = branching_factor
+        self.branching_type = branching_type
 
         if seed is not None:
             np.random.seed(seed)
       
         T = problem.get_num_stages()
-        
+       
+        if branching_type == 'uniform':
+            factor_list = [branching_factor for i in range(T-1)] 
+        elif branching_type == 'decreasing':
+            factor_list = [max([branching_factor-i,1]) for i in range(T-1)]
+        else:
+            raise ValueError('invalid branching type')
+        assert(len(factor_list) == T-1)
+        assert(all([factor_list[i] > 0 for i in range(len(factor_list))]))
+ 
         self.root = Node(problem.sample_w(0,[]),id=0)
         counter = 1
         nodes = [self.root]
         for t in range(1,T):
             new_nodes = []
             for node in nodes:
-                for i in range(branching_factor):
+                for i in range(factor_list[t-1]):
                     w = problem.sample_w(t,map(lambda n: n.get_w(),node.get_ancestors()+[node]))
                     node.add_child(Node(w,node,id=counter))
                     counter += 1
                 new_nodes += node.get_children()
             nodes = new_nodes
-        num_nodes = sum([branching_factor**tau for tau in range(T)])
+        num_nodes = 1
+        num_curr = 1
+        for t in range(1,T):
+            num_curr = factor_list[t-1]*num_curr
+            num_nodes += num_curr
         assert(num_nodes == counter)
         assert(num_nodes == len(self.get_nodes()))
 
@@ -109,9 +124,10 @@ class StochProblemMS_Tree:
 
         if len(branch) > 0:
             assert(not branch[0].get_parent())
-            assert(not branch[-1].get_children())
             assert(all([branch[i+1] in branch[i].get_children() for i in range(len(branch)-1)]))
             assert(all([branch[i] is branch[i+1].get_parent() for i in range(len(branch)-1)]))
+            if len(branch) == self.problem.get_num_stages():
+                assert(not branch[-1].get_children())
 
     def get_nodes(self):
         
@@ -154,7 +170,8 @@ class StochProblemMS_Tree:
     def get_closest_branch(self,sample):
 
         assert(len(sample) <= self.problem.get_num_stages())
-
+        
+        """
         t = len(sample)-1
         nodes = self.get_stage_nodes(t)
         branches = []
@@ -165,6 +182,17 @@ class StochProblemMS_Tree:
         sample_vec = np.hstack(sample)
         branches_vec = map(lambda b: np.hstack(map(lambda n: n.get_w(),b)),branches)
         return branches[np.argmin(map(lambda b: norm(b-sample_vec),branches_vec))]
+        """
+
+        nodes = [self.root]
+        branch = []
+        for t in range(len(sample)):
+            branch.append(nodes[np.argmin(map(lambda n: norm(sample[t]-n.get_w(),np.inf),nodes))])
+            nodes = branch[-1].get_children()
+        assert(len(branch) == len(sample))
+        self.check_branch(branch)
+            
+        return branch
  
     def show(self):
         
@@ -176,6 +204,9 @@ class StochProblemMS_Tree:
             print map(lambda n: n.get_id(),node.get_ancestors()+[node])
 
     def draw(self):
+
+        if len(self.get_nodes()) > 1000:
+            return
 
         import matplotlib.pyplot as plt
         import networkx as nx
