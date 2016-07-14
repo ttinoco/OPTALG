@@ -20,6 +20,7 @@ class StochDualDynProg(StochSolver):
     parameters = {'maxiters': 1000,
                   'num_procs': 1,
                   'quiet' : True,
+                  'warm_start': False,
                   'callback': None,
                   'debug': False,
                   'tol': 1e-4}
@@ -57,6 +58,7 @@ class StochDualDynProg(StochSolver):
         # Parameters
         maxiters = params['maxiters']
         quiet = params['quiet']
+        warm_start = params['warm_start']
         callback = params['callback']
         num_procs = params['num_procs']
         debug = params['debug']
@@ -93,6 +95,7 @@ class StochDualDynProg(StochSolver):
                                                        self.cuts[node.get_id()][0], # A
                                                        self.cuts[node.get_id()][1], # b
                                                        quiet=True,
+                                                       init_data=node.get_data() if warm_start else None,
                                                        tol=tol)
                 solutions[t] = x
 
@@ -129,6 +132,7 @@ class StochDualDynProg(StochSolver):
                                                               self.cuts[n.get_id()][0], # A
                                                               self.cuts[n.get_id()][1], # b
                                                               quiet=True,
+                                                              init_data=n.get_data() if warm_start else None,
                                                               tol=tol)
                     Q *= float(i)/float(i+1)
                     Q += Qn/float(i+1)

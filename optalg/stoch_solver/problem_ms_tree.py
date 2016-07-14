@@ -16,12 +16,16 @@ class Node:
         self.children = []
         self.parent = parent
         self.id = id
+        self.data = None
 
     def add_child(self,child):
         self.children.append(child)
 
     def get_id(self):
         return self.id
+
+    def get_data(self):
+        return self.data
 
     def get_ancestors(self):
         if self.is_root():
@@ -59,6 +63,9 @@ class Node:
 
     def is_root(self):
         return self.parent is None
+
+    def set_data(self,data):
+        self.data = data
 
     def show(self):
 
