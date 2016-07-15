@@ -89,15 +89,16 @@ class StochDualDynProg(StochSolver):
             solutions = {-1 : problem.get_x_prev()}
             for t in range(self.T):
                 node = branch[t]
-                x,Q,gQ = problem.solve_stage_with_cuts(t,
-                                                       node.get_w(),
-                                                       solutions[t-1],
-                                                       self.cuts[node.get_id()][0], # A
-                                                       self.cuts[node.get_id()][1], # b
-                                                       quiet=True,
-                                                       init_data=node.get_data() if warm_start else None,
-                                                       tol=tol)
+                x,Q,gQ,results = problem.solve_stage_with_cuts(t,
+                                                               node.get_w(),
+                                                               solutions[t-1],
+                                                               self.cuts[node.get_id()][0], # A
+                                                               self.cuts[node.get_id()][1], # b
+                                                               quiet=True,
+                                                               init_data=node.get_data() if warm_start else None,
+                                                               tol=tol)
                 solutions[t] = x
+                node.set_data(results)
 
                 # DEBUG: Check gQ
                 #****************
@@ -105,13 +106,13 @@ class StochDualDynProg(StochSolver):
                     for i in range(10):
                         d = np.random.randn(self.n)*1e-2
                         xper = solutions[t-1]+d
-                        x1,Q1,gQ1 = problem.solve_stage_with_cuts(t,
-                                                                  node.get_w(),
-                                                                  xper,
-                                                                  self.cuts[node.get_id()][0], # A
-                                                                  self.cuts[node.get_id()][1], # b
-                                                                  quiet=True,
-                                                                  tol=tol)
+                        x1,Q1,gQ1,results = problem.solve_stage_with_cuts(t,
+                                                                          node.get_w(),
+                                                                          xper,
+                                                                          self.cuts[node.get_id()][0], # A
+                                                                          self.cuts[node.get_id()][1], # b
+                                                                          quiet=True,
+                                                                          tol=tol)
                         assert(Q1+1e-8 >= Q+np.dot(gQ,d))
                         print 'gQ ok'
 
@@ -126,18 +127,19 @@ class StochDualDynProg(StochSolver):
                 gQ = np.zeros(self.n)
                 for i in range(len(node.get_children())):
                     n = node.get_child(i)
-                    xn,Qn,gQn = problem.solve_stage_with_cuts(t,
-                                                              n.get_w(),
-                                                              x,
-                                                              self.cuts[n.get_id()][0], # A
-                                                              self.cuts[n.get_id()][1], # b
-                                                              quiet=True,
-                                                              init_data=n.get_data() if warm_start else None,
-                                                              tol=tol)
+                    xn,Qn,gQn,results = problem.solve_stage_with_cuts(t,
+                                                                      n.get_w(),
+                                                                      x,
+                                                                      self.cuts[n.get_id()][0], # A
+                                                                      self.cuts[n.get_id()][1], # b
+                                                                      quiet=True,
+                                                                      init_data=n.get_data() if warm_start else None,
+                                                                      tol=tol)
                     Q *= float(i)/float(i+1)
                     Q += Qn/float(i+1)
                     gQ *= float(i)/float(i+1)
                     gQ += gQn/float(i+1)
+                    n.set_data(results)
                 a = -gQ
                 b = -Q + np.dot(gQ,x)
                 self.cuts[node.get_id()][0] = np.vstack((self.cuts[node.get_id()][0],a)) # A
