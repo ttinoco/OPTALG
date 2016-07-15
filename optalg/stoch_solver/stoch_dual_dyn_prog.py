@@ -138,6 +138,7 @@ class StochDualDynProg(StochSolver):
 
         # Init
         t0 = time.time()
+        self.time = 0.
         x_prev = np.zeros(self.n)
         lbound = {tree.root.get_id() : -np.inf}
         ubound = {tree.root.get_id() : np.inf}
@@ -211,12 +212,15 @@ class StochDualDynProg(StochSolver):
                 self.cuts[node.get_id()][0] = np.vstack((self.cuts[node.get_id()][0],a)) # A
                 self.cuts[node.get_id()][1] = np.hstack((self.cuts[node.get_id()][1],b)) # b
 
+            # Update time
+            self.time = (time.time()-t0)/60.
+
             # Output
             if not quiet and k % period == 0:
                 if bounds:
                     lbound,ubound = self.compute_bounds()
                 print '{0:^8d}'.format(k),
-                print '{0:^12.2f}'.format((time.time()-t0)/60.),
+                print '{0:^12.2f}'.format(self.time),
                 print '{0:^12.5e}'.format(norm(self.x-x_prev)),
                 print '{0:^12.5e}'.format(lbound[tree.root.get_id()]),
                 print '{0:^12.5e}'.format(ubound[tree.root.get_id()])
@@ -266,7 +270,8 @@ class StochDualDynProg(StochSolver):
             
         policy = StochProblemMS_Policy(self.problem,
                                        data=self,
-                                       name='Stochastic Dual Dynamic Programming (%d)' %maxiters)
+                                       name='Stochastic Dual Dynamic Programming (%d)' %maxiters,
+                                       construction_time=self.time)
         policy.apply = MethodType(apply,policy)
         
         # Return

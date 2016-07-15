@@ -12,7 +12,7 @@ class StochProblemMS_Policy:
     optimization problem.
     """
 
-    def __init__(self,problem,name='',data=None):
+    def __init__(self,problem,name='',data=None,construction_time=0.):
         """
         Operation policy for multistage stochastic
         optimization problem.
@@ -22,11 +22,13 @@ class StochProblemMS_Policy:
         problem : StochProblemMS
         name : string
         data : Object
+        construction_time : float (minutes)
         """
 
         self.name = name
         self.data = data
         self.problem = problem
+        self.construction_time = construction_time
 
     def get_name(self):
         """
@@ -49,6 +51,17 @@ class StochProblemMS_Policy:
         """
         
         return self.problem
+
+    def get_construction_time(self):
+        """
+        Gets construction time.
+
+        Return
+        ------
+        time : float
+        """
+
+        return self.construction_time
 
     def apply(self,t,x_prev,Wt):
         """

@@ -221,6 +221,7 @@ class StochHybridMS(StochSolver):
         t0 = time.time()
         x_prev = np.zeros(self.n)
         self.sol_data = None
+        self.time = 0.                                                # construction time (min)
         self.samples = deque(maxlen=msize)                            # sampled realizations of uncertainty
         self.dslopes = [deque(maxlen=msize) for i in range(self.T-1)] # slope corrections (no steplengths)
         self.gammas = [gamma for t in range(self.T-1)]                # scaling factors
@@ -275,11 +276,14 @@ class StochHybridMS(StochSolver):
                 # Update slopes
                 for t in range(self.T-1):
                     self.dslopes[t].append(xi_vecs[t]-et_vecs[t]-g_corr[i][t])
+
+            # Update time
+            self.time = (time.time()-t0)/60.
  
             # Output
             if not quiet:
                 print '{0:^8d}'.format(k),
-                print '{0:^12.2f}'.format((time.time()-t0)/60.),
+                print '{0:^12.2f}'.format(self.time),
                 print '{0:^12.5e}'.format(norm(self.x-x_prev)),
                 print '{0:^12.5e}'.format(norm(g_corr[0][0])),
                 print '{0:^10d}'.format(len(self.samples))
@@ -332,7 +336,8 @@ class StochHybridMS(StochSolver):
             
         policy = StochProblemMS_Policy(self.problem,
                                        data=self,
-                                       name='Stochastic Hybrid Approximation (%d)' %maxiters)
+                                       name='Stochastic Hybrid Approximation (%d)' %maxiters,
+                                       construction_time=self.time)
         policy.apply = MethodType(apply,policy)
         
         # Return
