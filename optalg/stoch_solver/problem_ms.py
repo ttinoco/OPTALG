@@ -18,6 +18,23 @@ class StochProblemMS:
     the next stage for a particular realization of the uncertainty.
     """
 
+    def eval_F(self,t,x,w):
+        """
+        Evaluates F_t(x_t,w_t).
+
+        Parameters
+        ----------
+        t : int
+        x : vector
+        w : vector
+        
+        Returns
+        -------
+        F : float
+        """
+
+        return None
+
     def get_num_stages(self):
         """
         Gets number of stages.
