@@ -6,22 +6,10 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-import numpy as np
-
-class StochasticSolver:
-    """"
-    Parent class for stochastic optimnization solvers.
+class StochProblemTS:
+    """
+    Represents a two-stage stochastic
+    optimization problem.
     """
 
-    def __init__(self,problem):
-        
-        self.problem = problem
-
-    def solve(self,x=None,maxiters=100,callback=None):
-
-        pass
-        
-    
-        
-
-    
+    pass

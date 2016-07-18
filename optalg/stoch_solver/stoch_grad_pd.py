@@ -8,14 +8,44 @@
 
 import time
 import numpy as np
-from solver import StochasticSolver
+from stoch_solver import StochSolver
 
-class PrimalDual_StochasticGradient(StochasticSolver):
+class StochGradientPD(StochSolver):
 
-    def solve(self,x=None,maxiters=1001,period=50,quiet=True,theta=1.,samples=500,k0=0,tol=1e-4,no_G=False,callback=None):
+    parameters = {'maxiters': 1000,
+                  'period': 50,
+                  'quiet' : True,
+                  'theta': 1.,
+                  'num_samples': 500,
+                  'k0': 0,
+                  'tol': 1e-4,
+                  'no_G': False,
+                  'callback': None}
+
+    def __init__(self):
+        """
+        Primal-Dual Stochastic Gradient Algorithm.
+        """
+        
+        # Init
+        StochSolver.__init__(self)
+        self.parameters = StochGradientPD.parameters.copy()
+
+    def solve(self,problem):
 
         # Local vars
-        prob = self.problem
+        params = self.parameters
+
+        # Parameters
+        maxiters = params['maxiters']
+        period = params['period']
+        quiet = params['quiet']
+        theta = params['theta']
+        num_samples = params['num_samples']
+        k0 = params['k0']
+        tol = params['tol']
+        no_G = params['no_G']
+        callback = params['callback']
 
         # Header
         if not quiet:
@@ -33,16 +63,17 @@ class PrimalDual_StochasticGradient(StochasticSolver):
 
         # Init
         t0 = time.time()
-        lam = np.zeros(prob.get_size_lam())
+        self.x = problem.x
+        lam = np.zeros(problem.get_size_lam())
         
         # Loop
-        for k in range(maxiters):
+        for k in range(maxiters+1):
             
             # Sample
-            w = prob.sample_w()
+            w = problem.sample_w()
             
             # Eval
-            F,gF,G,JG = prob.eval_FG(x,w,tol=tol)
+            F,gF,G,JG = problem.eval_FG(self.x,w,tol=tol)
             
             # Lagrangian subgradient
             gL = gF + JG.T*lam
@@ -59,15 +90,15 @@ class PrimalDual_StochasticGradient(StochasticSolver):
             if k % period == 0:
                 t1 = time.time()
                 if callback:
-                    callback(x)
+                    callback(self.x)
                 if not quiet:
                     print '{0:^8d}'.format(k),
                     print '{0:^10.2f}'.format(t1-t0),
-                    print '{0:^12.5e}'.format(prob.get_prop_x(x)),
+                    print '{0:^12.5e}'.format(problem.get_prop_x(self.x)),
                     print '{0:^12.5e}'.format(np.max(lam)),
                     print '{0:^12.5e}'.format(EF_run),
                     print '{0:^12.5e}'.format(np.max(EG_run)),
-                    EF,EgF,EG,EJG,info = prob.eval_EFG(x,samples=samples,tol=tol,info=True)
+                    EF,EgF,EG,EJG,info = problem.eval_EFG(self.x,samples=num_samples,tol=tol,info=True)
                     print '{0:^12.5e}'.format(EF),
                     print '{0:^12.5e}'.format(np.max(EG)),
                     print '{0:^12.5e}'.format(info)
@@ -76,12 +107,9 @@ class PrimalDual_StochasticGradient(StochasticSolver):
             # Update
             alpha_x = theta/(k0+k+1.)
             alpha_lam = theta/(k0+k+1.)
-            x = prob.project_x(x - alpha_x*gL)
+            self.x = problem.project_x(self.x - alpha_x*gL)
             if not no_G:
-                lam = prob.project_lam(lam + alpha_lam*G)
-
-        return x
-
+                lam = problem.project_lam(lam + alpha_lam*G)
 
         
     

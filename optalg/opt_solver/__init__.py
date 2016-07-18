@@ -6,8 +6,8 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-from opt_problem import OptProblem
-from quad_problem import QuadProblem
+from problem import OptProblem
+from problem_quad import QuadProblem
 from iqp import OptSolverIQP
 from augl import OptSolverAugL
 from nr import OptSolverNR
