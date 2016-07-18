@@ -6,7 +6,7 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-from lin_solver import LinSolver
+from .lin_solver import LinSolver
 from scipy.sparse.linalg import splu
 from scipy.sparse import csc_matrix,triu
 

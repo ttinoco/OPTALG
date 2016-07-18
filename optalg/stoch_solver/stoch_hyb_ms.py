@@ -6,16 +6,16 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
+from __future__ import print_function
 import time
 import numpy as np
-from utils import ApplyFunc
+from .utils import ApplyFunc
 from types import MethodType
 from numpy.linalg import norm
 from collections import deque
-from multiprocess import Pool
 from scipy.sparse import coo_matrix
-from stoch_solver import StochSolver
-from problem_ms_policy import StochProblemMS_Policy
+from .stoch_solver import StochSolver
+from .problem_ms_policy import StochProblemMS_Policy
 
 class StochHybridMS(StochSolver):
 
@@ -164,7 +164,7 @@ class StochHybridMS(StochSolver):
                                                               tol=tol,
                                                               init_data=sol_data[t] if warm_start else None)
                     assert(Q1+1e-8 >= Q_xi+np.dot(xi_vecs[t-1],d))
-                    print 'xi vec ok'
+                    print('xi vec ok')
 
             # DEBUG: Check eta
             #*****************
@@ -180,7 +180,7 @@ class StochHybridMS(StochSolver):
                                                               tol=tol,
                                                               init_data=sol_data[t+1] if warm_start else None)
                     assert(Q1+1e-8 >= Q_et+np.dot(et_vecs[t],d))
-                    print 'et vec ok'
+                    print('et vec ok')
 
         # Return
         if save_sol_data:
@@ -205,17 +205,18 @@ class StochHybridMS(StochSolver):
         gamma = params['gamma']
 
         # Pool
+        from multiprocess import Pool
         pool = Pool(num_procs)
  
         # Header
         if not quiet:
-            print '\nMulti-Stage Stochastic Hybrid Approximation'
-            print '---------------------------------------------'
-            print '{0:^8s}'.format('iter'),
-            print '{0:^12s}'.format('time (min)'),
-            print '{0:^12s}'.format('dx'),            
-            print '{0:^12s}'.format('gc'),
-            print '{0:^10s}'.format('samples')
+            print('\nMulti-Stage Stochastic Hybrid Approximation')
+            print('---------------------------------------------')
+            print('{0:^8s}'.format('iter'), end=' ')
+            print('{0:^12s}'.format('time (min)'), end=' ')
+            print('{0:^12s}'.format('dx'), end=' ')            
+            print('{0:^12s}'.format('gc'), end=' ')
+            print('{0:^10s}'.format('samples'))
 
         # Init
         t0 = time.time()
@@ -253,7 +254,7 @@ class StochHybridMS(StochSolver):
             if num_procs > 1:
                 results = pool.map(ApplyFunc,tasks)
             else:
-                results = map(ApplyFunc,tasks)
+                results = list(map(ApplyFunc,tasks))
             assert(len(results) == num_procs)
 
             # Save sol
@@ -282,11 +283,11 @@ class StochHybridMS(StochSolver):
  
             # Output
             if not quiet:
-                print '{0:^8d}'.format(k),
-                print '{0:^12.2f}'.format(self.time),
-                print '{0:^12.5e}'.format(norm(self.x-x_prev)),
-                print '{0:^12.5e}'.format(norm(g_corr[0][0])),
-                print '{0:^10d}'.format(len(self.samples))
+                print('{0:^8d}'.format(k), end=' ')
+                print('{0:^12.2f}'.format(self.time), end=' ')
+                print('{0:^12.5e}'.format(norm(self.x-x_prev)), end=' ')
+                print('{0:^12.5e}'.format(norm(g_corr[0][0])), end=' ')
+                print('{0:^10d}'.format(len(self.samples)))
 
             # Checks
             for t in range(self.T-1):

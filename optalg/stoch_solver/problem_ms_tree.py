@@ -53,10 +53,10 @@ class Node:
         if self.is_leaf():
             return [self]
         else:
-            return sum(map(lambda c: c.get_leafs(),self.children),[])
+            return sum([c.get_leafs() for c in self.children],[])
 
     def get_descendants(self):
-        return self.children+sum(map(lambda c: c.get_descendants(),self.children),[])
+        return self.children+sum([c.get_descendants() for c in self.children],[])
 
     def is_leaf(self):
         return not self.children
@@ -69,10 +69,11 @@ class Node:
 
     def show(self):
 
-        print '\nNode    :',self.id
-        print 'Children:',map(lambda c: c.get_id(),self.children)
+        print('\nNode    :',self.id)
+        print('Children:',[c.get_id() for c in self.children])
 
-        map(lambda c: c.show(),self.children)
+        for c in self.children:
+            c.show()
 
 class StochProblemMS_Tree:
 
@@ -114,7 +115,7 @@ class StochProblemMS_Tree:
             new_nodes = []
             for node in nodes:
                 for i in range(factor_list[t-1]):
-                    w = problem.sample_w(t,map(lambda n: n.get_w(),node.get_ancestors()+[node]))
+                    w = problem.sample_w(t,[n.get_w() for n in node.get_ancestors()+[node]])
                     node.add_child(Node(w,node,id=counter))
                     counter += 1
                 new_nodes += node.get_children()
@@ -194,7 +195,7 @@ class StochProblemMS_Tree:
         nodes = [self.root]
         branch = []
         for t in range(len(sample)):
-            branch.append(nodes[np.argmin(map(lambda n: norm(sample[t]-n.get_w(),np.inf),nodes))])
+            branch.append(nodes[np.argmin([norm(sample[t]-n.get_w(),np.inf) for n in nodes])])
             nodes = branch[-1].get_children()
         assert(len(branch) == len(sample))
         self.check_branch(branch)
@@ -205,10 +206,10 @@ class StochProblemMS_Tree:
         
         self.root.show()
         
-        print '\nLeafs:',map(lambda n: n.get_id(),self.get_leaf_nodes())
-        print '\nScenarios:'
+        print('\nLeafs:',[n.get_id() for n in self.get_leaf_nodes()])
+        print('\nScenarios:')
         for node in self.get_leaf_nodes():
-            print map(lambda n: n.get_id(),node.get_ancestors()+[node])
+            print([n.get_id() for n in node.get_ancestors()+[node]])
 
     def draw(self):
 

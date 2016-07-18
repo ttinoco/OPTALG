@@ -6,9 +6,10 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
+from __future__ import print_function
 import time
 import numpy as np
-from stoch_solver import StochSolver
+from .stoch_solver import StochSolver
 
 class StochGradientPD(StochSolver):
 
@@ -49,17 +50,17 @@ class StochGradientPD(StochSolver):
 
         # Header
         if not quiet:
-            print '\nPrimal-Dual Stochastic Gradient'
-            print '-------------------------------'
-            print '{0:^8s}'.format('iter'),
-            print '{0:^10s}'.format('time(s)'),
-            print '{0:^12s}'.format('prop'),
-            print '{0:^12s}'.format('lmax'),
-            print '{0:^12s}'.format('EF_run'),
-            print '{0:^12s}'.format('EGmax_run'),
-            print '{0:^12s}'.format('EF'),
-            print '{0:^12s}'.format('EGmax'),
-            print '{0:^12s}'.format('info')
+            print('\nPrimal-Dual Stochastic Gradient')
+            print('-------------------------------')
+            print('{0:^8s}'.format('iter'), end=' ')
+            print('{0:^10s}'.format('time(s)'), end=' ')
+            print('{0:^12s}'.format('prop'), end=' ')
+            print('{0:^12s}'.format('lmax'), end=' ')
+            print('{0:^12s}'.format('EF_run'), end=' ')
+            print('{0:^12s}'.format('EGmax_run'), end=' ')
+            print('{0:^12s}'.format('EF'), end=' ')
+            print('{0:^12s}'.format('EGmax'), end=' ')
+            print('{0:^12s}'.format('info'))
 
         # Init
         t0 = time.time()
@@ -92,16 +93,16 @@ class StochGradientPD(StochSolver):
                 if callback:
                     callback(self.x)
                 if not quiet:
-                    print '{0:^8d}'.format(k),
-                    print '{0:^10.2f}'.format(t1-t0),
-                    print '{0:^12.5e}'.format(problem.get_prop_x(self.x)),
-                    print '{0:^12.5e}'.format(np.max(lam)),
-                    print '{0:^12.5e}'.format(EF_run),
-                    print '{0:^12.5e}'.format(np.max(EG_run)),
+                    print('{0:^8d}'.format(k), end=' ')
+                    print('{0:^10.2f}'.format(t1-t0), end=' ')
+                    print('{0:^12.5e}'.format(problem.get_prop_x(self.x)), end=' ')
+                    print('{0:^12.5e}'.format(np.max(lam)), end=' ')
+                    print('{0:^12.5e}'.format(EF_run), end=' ')
+                    print('{0:^12.5e}'.format(np.max(EG_run)), end=' ')
                     EF,EgF,EG,EJG,info = problem.eval_EFG(self.x,samples=num_samples,tol=tol,info=True)
-                    print '{0:^12.5e}'.format(EF),
-                    print '{0:^12.5e}'.format(np.max(EG)),
-                    print '{0:^12.5e}'.format(info)
+                    print('{0:^12.5e}'.format(EF), end=' ')
+                    print('{0:^12.5e}'.format(np.max(EG)), end=' ')
+                    print('{0:^12.5e}'.format(info))
                 t0 += time.time()-t1
             
             # Update

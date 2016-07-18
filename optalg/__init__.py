@@ -6,6 +6,6 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-import lin_solver
-import opt_solver
-import stoch_solver
+from . import lin_solver
+from . import opt_solver
+from . import stoch_solver

@@ -6,14 +6,15 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
+from __future__ import print_function
 import time
 import numpy as np
-from utils import ApplyFunc
+from .utils import ApplyFunc
 from types import MethodType
 from numpy.linalg import norm
 from scipy.sparse import coo_matrix
-from stoch_solver import StochSolver
-from problem_ms_policy import StochProblemMS_Policy
+from .stoch_solver import StochSolver
+from .problem_ms_policy import StochProblemMS_Policy
 
 class StochDualDynProg(StochSolver):
 
@@ -85,7 +86,7 @@ class StochDualDynProg(StochSolver):
             nodes = tree.get_stage_nodes(t)
             for node in nodes:
                 if node.get_children():
-                    cost_to_go = np.average(map(lambda n: id2Q[n.get_id()],node.get_children()))
+                    cost_to_go = np.average([id2Q[n.get_id()] for n in node.get_children()])
                 else:
                     cost_to_go = 0.
                     assert(t == T-1)
@@ -113,7 +114,7 @@ class StochDualDynProg(StochSolver):
 
         # Check tree
         nodes = tree.get_nodes()
-        assert(len(set(map(lambda n: n.get_id(),nodes))) == len(nodes))
+        assert(len(set([n.get_id() for n in nodes])) == len(nodes))
         
         # Parameters
         maxiters = params['maxiters']
@@ -128,13 +129,13 @@ class StochDualDynProg(StochSolver):
  
         # Header
         if not quiet:
-            print '\nMulti-stage Stochastic Dual Dynamic Programming'
-            print '-----------------------------------------------'
-            print '{0:^8s}'.format('iter'),
-            print '{0:^12s}'.format('time (min)'),
-            print '{0:^12s}'.format('dx'),
-            print '{0:^12s}'.format('lbound'),
-            print '{0:^12s}'.format('ubound')
+            print('\nMulti-stage Stochastic Dual Dynamic Programming')
+            print('-----------------------------------------------')
+            print('{0:^8s}'.format('iter'), end=' ')
+            print('{0:^12s}'.format('time (min)'), end=' ')
+            print('{0:^12s}'.format('dx'), end=' ')
+            print('{0:^12s}'.format('lbound'), end=' ')
+            print('{0:^12s}'.format('ubound'))
 
         # Init
         t0 = time.time()
@@ -181,7 +182,7 @@ class StochDualDynProg(StochSolver):
                                                                           quiet=True,
                                                                           tol=tol)
                         assert(Q1+1e-8 >= Q+np.dot(gQ,d))
-                        print 'gQ ok'
+                        print('gQ ok')
 
             # Save sol
             self.x = solutions[0]
@@ -219,11 +220,11 @@ class StochDualDynProg(StochSolver):
             if not quiet and k % period == 0:
                 if bounds:
                     lbound,ubound = self.compute_bounds()
-                print '{0:^8d}'.format(k),
-                print '{0:^12.2f}'.format(self.time),
-                print '{0:^12.5e}'.format(norm(self.x-x_prev)),
-                print '{0:^12.5e}'.format(lbound[tree.root.get_id()]),
-                print '{0:^12.5e}'.format(ubound[tree.root.get_id()])
+                print('{0:^8d}'.format(k), end=' ')
+                print('{0:^12.2f}'.format(self.time), end=' ')
+                print('{0:^12.5e}'.format(norm(self.x-x_prev)), end=' ')
+                print('{0:^12.5e}'.format(lbound[tree.root.get_id()]), end=' ')
+                print('{0:^12.5e}'.format(ubound[tree.root.get_id()]))
 
             # Update
             x_prev = self.x.copy()
