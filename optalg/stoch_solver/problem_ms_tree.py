@@ -69,15 +69,11 @@ class Node:
 
     def show(self):
 
-        print('\nNode    :',self.id)
-        print('Children:',[c.get_id() for c in self.children])
-
-        for c in self.children:
-            c.show()
+        pass
 
 class StochProblemMS_Tree:
 
-    def __init__(self,problem,branching_factor,branching_type,seed=None):
+    def __init__(self,problem,branching_factor,branching_type,cluster=False,num_samples=1000,seed=None):
         """
         Creates scenario tree for multistage
         stochastic optimization problem.
@@ -87,15 +83,22 @@ class StochProblemMS_Tree:
         problem : StochProblemMS
         branching_factor : int
         branching_type : {'uniform','decreasing'}
+        cluster : {True,False}
+        num_samples : int
         seed : int
         """
 
         self.problem = problem
         self.branching_factor = branching_factor
         self.branching_type = branching_type
+        self.cluster = cluster
+        self.num_samples = num_samples
 
         if seed is not None:
             np.random.seed(seed)
+            
+        if cluster:
+            from sklearn.cluster import k_means
       
         T = problem.get_num_stages()
        
@@ -114,8 +117,16 @@ class StochProblemMS_Tree:
         for t in range(1,T):
             new_nodes = []
             for node in nodes:
+                observations = [n.get_w() for n in node.get_ancestors()+[node]]
+                if cluster:
+                    w_array = np.array([problem.sample_w(t,observations) for i in range(num_samples)])
+                    assert(w_array.shape[0] == num_samples)
+                    clusters = k_means(w_array,factor_list[t-1])
                 for i in range(factor_list[t-1]):
-                    w = problem.sample_w(t,[n.get_w() for n in node.get_ancestors()+[node]])
+                    if cluster:
+                        w = clusters[0][i,:]
+                    else:
+                        w = problem.sample_w(t,observations)
                     node.add_child(Node(w,node,id=counter))
                     counter += 1
                 new_nodes += node.get_children()
@@ -204,12 +215,14 @@ class StochProblemMS_Tree:
  
     def show(self):
         
-        self.root.show()
-        
-        print('\nLeafs:',[n.get_id() for n in self.get_leaf_nodes()])
-        print('\nScenarios:')
-        for node in self.get_leaf_nodes():
-            print([n.get_id() for n in node.get_ancestors()+[node]])
+        print('\nScenario Tree')
+        print('-------------')
+        print('branching factor : %d' %self.branching_factor)
+        print('branching type   : %s' %self.branching_type)
+        print('cluster          : %r' %self.cluster)
+        print('num samples      : %d' %self.num_samples)
+        print('num scenarios    : %d' %len(self.get_leaf_nodes()))
+        print('num nodes        : %d' %len(self.get_nodes()))
 
     def draw(self):
 

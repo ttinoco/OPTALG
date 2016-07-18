@@ -10,6 +10,7 @@ Unreleased
 * Basic IQP untitests.
 * Multistage stochastic solvers (SH, SDDP).
 * Scenario tree class.
+* Python 2 and 3 compatibility.
 
 Version 1.0
 -----------
