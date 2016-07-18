@@ -8,7 +8,8 @@ Unreleased
 * Correct handling of missing Ax=b in IQP.
 * Auto objective function scaling in IQP.
 * Basic IQP untitests.
-* Multistage stochastic solvers.
+* Multistage stochastic solvers (SH, SDDP).
+* Scenario tree class.
 
 Version 1.0
 -----------
