@@ -8,6 +8,7 @@
 
 from __future__ import print_function
 import time
+import dill
 import numpy as np
 from .utils import ApplyFunc
 from types import MethodType
@@ -29,6 +30,8 @@ class StochHybridMS(StochSolver):
                   'debug': False,
                   'k0': 0,
                   'gamma': 1e0,
+                  'key_iters': None,
+                  'outdir': '',
                   'tol': 1e-4}
 
     def __init__(self):
@@ -203,6 +206,8 @@ class StochHybridMS(StochSolver):
         callback = params['callback']
         num_procs = params['num_procs']
         gamma = params['gamma']
+        key_iters = params['key_iters']
+        outdir = params['outdir']
 
         # Pool
         from multiprocess import Pool
@@ -219,6 +224,7 @@ class StochHybridMS(StochSolver):
             print('{0:^10s}'.format('samples'))
 
         # Init
+        self.k = 0
         t0 = time.time()
         x_prev = np.zeros(self.n)
         self.sol_data = None
@@ -228,7 +234,7 @@ class StochHybridMS(StochSolver):
         self.gammas = [gamma for t in range(self.T-1)]                # scaling factors
 
         # Loop
-        for k in range(maxiters):
+        while True:
             
             # Subroblems data
             sample = {}
@@ -250,7 +256,7 @@ class StochHybridMS(StochSolver):
                       'solve_subproblems',
                       sample[i],
                       g_corr[i],
-                      k == 0 and i == 0) for i in range(num_procs)]
+                      self.k == 0 and i == 0) for i in range(num_procs)]
             if num_procs > 1:
                 results = pool.map(ApplyFunc,tasks)
             else:
@@ -268,7 +274,7 @@ class StochHybridMS(StochSolver):
                 sol,xi_vecs,et_vecs,sol_data = results[i]
 
                 # Sol data (CE solution)
-                if k == 0 and i == 0:
+                if self.k == 0 and i == 0:
                     self.sol_data = sol_data
 
                 # Update samples
@@ -283,7 +289,7 @@ class StochHybridMS(StochSolver):
  
             # Output
             if not quiet:
-                print('{0:^8d}'.format(k), end=' ')
+                print('{0:^8d}'.format(self.k), end=' ')
                 print('{0:^12.2f}'.format(self.time), end=' ')
                 print('{0:^12.5e}'.format(norm(self.x-x_prev)), end=' ')
                 print('{0:^12.5e}'.format(norm(g_corr[0][0])), end=' ')
@@ -295,6 +301,20 @@ class StochHybridMS(StochSolver):
 
             # Update
             x_prev = self.x.copy()
+
+            # Update
+            self.k += 1
+
+            # Key iter
+            if key_iters is not None and self.k in key_iters:
+                policy = self.get_policy()
+                f = open(outdir+'/'+'sh'+str(self.k)+'.policy','w')
+                dill.dump(policy,f)
+                f.close()
+            
+            # Maxiter
+            if self.k >= maxiters:
+                break
  
     def get_policy(self):
         """
@@ -304,9 +324,6 @@ class StochHybridMS(StochSolver):
         -------
         policy : 
         """
-
-        # Local vars
-        maxiters = self.parameters['maxiters']
 
         # Construct policy
         def apply(cls,t,x_prev,Wt):
@@ -337,7 +354,7 @@ class StochHybridMS(StochSolver):
             
         policy = StochProblemMS_Policy(self.problem,
                                        data=self,
-                                       name='Stochastic Hybrid Approximation (%d)' %maxiters,
+                                       name='Stochastic Hybrid Approximation (%d)' %self.k,
                                        construction_time=self.time)
         policy.apply = MethodType(apply,policy)
         

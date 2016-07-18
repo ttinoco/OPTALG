@@ -11,6 +11,7 @@ Unreleased
 * Multistage stochastic solvers (SH, SDDP).
 * Scenario tree class.
 * Python 2 and 3 compatibility.
+* Made dill a requirement.
 
 Version 1.0
 -----------

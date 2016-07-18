@@ -8,6 +8,7 @@
 
 from __future__ import print_function
 import time
+import dill
 import numpy as np
 from .utils import ApplyFunc
 from types import MethodType
@@ -26,6 +27,8 @@ class StochDualDynProg(StochSolver):
                   'bounds': False,
                   'period': 10,
                   'debug': False,
+                  'key_iters': None,
+                  'outdir': '',
                   'tol': 1e-4}
 
     def __init__(self):
@@ -126,6 +129,8 @@ class StochDualDynProg(StochSolver):
         period = params['period']
         debug = params['debug']
         tol = params['tol']
+        key_iters = params['key_iters']
+        outdir = params['outdir']
  
         # Header
         if not quiet:
@@ -138,6 +143,7 @@ class StochDualDynProg(StochSolver):
             print('{0:^12s}'.format('ubound'))
 
         # Init
+        self.k = 0
         t0 = time.time()
         self.time = 0.
         x_prev = np.zeros(self.n)
@@ -147,7 +153,7 @@ class StochDualDynProg(StochSolver):
                           for node in tree.get_nodes()])
 
         # Loop
-        for k in range(maxiters):
+        while True:
  
             # Sample tree branch
             branch = tree.sample_branch(self.T-1)
@@ -217,10 +223,10 @@ class StochDualDynProg(StochSolver):
             self.time = (time.time()-t0)/60.
 
             # Output
-            if not quiet and k % period == 0:
+            if not quiet and self.k % period == 0:
                 if bounds:
                     lbound,ubound = self.compute_bounds()
-                print('{0:^8d}'.format(k), end=' ')
+                print('{0:^8d}'.format(self.k), end=' ')
                 print('{0:^12.2f}'.format(self.time), end=' ')
                 print('{0:^12.5e}'.format(norm(self.x-x_prev)), end=' ')
                 print('{0:^12.5e}'.format(lbound[tree.root.get_id()]), end=' ')
@@ -228,6 +234,20 @@ class StochDualDynProg(StochSolver):
 
             # Update
             x_prev = self.x.copy()
+
+            # Update
+            self.k += 1
+
+            # Key iter
+            if key_iters is not None and self.k in key_iters:
+                policy = self.get_policy()
+                f = open(outdir+'/'+'sddp'+str(self.k)+'.policy','w')
+                dill.dump(policy,f)
+                f.close()
+            
+            # Maxiter
+            if self.k >= maxiters:
+                break
 
     def get_policy(self):
         """
@@ -271,7 +291,7 @@ class StochDualDynProg(StochSolver):
             
         policy = StochProblemMS_Policy(self.problem,
                                        data=self,
-                                       name='Stochastic Dual Dynamic Programming (%d)' %maxiters,
+                                       name='Stochastic Dual Dynamic Programming (%d)' %self.k,
                                        construction_time=self.time)
         policy.apply = MethodType(apply,policy)
         
