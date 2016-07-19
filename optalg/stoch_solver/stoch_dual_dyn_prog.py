@@ -154,6 +154,17 @@ class StochDualDynProg(StochSolver):
 
         # Loop
         while True:
+
+            # Key iter
+            if key_iters is not None and self.k in key_iters:
+                policy = self.get_policy()
+                f = open(outdir+'/'+'sddp'+str(self.k)+'.policy','w')
+                dill.dump(policy,f)
+                f.close()
+            
+            # Maxiter
+            if self.k >= maxiters:
+                break
  
             # Sample tree branch
             branch = tree.sample_branch(self.T-1)
@@ -238,17 +249,6 @@ class StochDualDynProg(StochSolver):
             # Update
             self.k += 1
 
-            # Key iter
-            if key_iters is not None and self.k in key_iters:
-                policy = self.get_policy()
-                f = open(outdir+'/'+'sddp'+str(self.k)+'.policy','w')
-                dill.dump(policy,f)
-                f.close()
-            
-            # Maxiter
-            if self.k >= maxiters:
-                break
-
     def get_policy(self):
         """
         Gets operation policy.
@@ -291,7 +291,7 @@ class StochDualDynProg(StochSolver):
             
         policy = StochProblemMS_Policy(self.problem,
                                        data=self,
-                                       name='Stochastic Dual Dynamic Programming (%d)' %self.k,
+                                       name='Stochastic Dual Dynamic Programming %d' %self.k,
                                        construction_time=self.time)
         policy.apply = MethodType(apply,policy)
         
