@@ -11,15 +11,24 @@ from numpy.linalg import norm
 
 class Node:
 
-    def __init__(self,w,parent=None,id=0):
+    def __init__(self,w,p,parent=None,id=0):
+        
+        # Save
         self.w = w
+        self.p = p
         self.children = []
         self.parent = parent
         self.id = id
         self.data = None
 
+        # Check
+        assert(0 <= p <= 1)
+
     def add_child(self,child):
         self.children.append(child)
+
+    def get_p(self):
+        return self.p
 
     def get_id(self):
         return self.id
@@ -111,7 +120,7 @@ class StochProblemMS_Tree:
         assert(len(factor_list) == T-1)
         assert(all([factor_list[i] > 0 for i in range(len(factor_list))]))
  
-        self.root = Node(problem.sample_w(0,[]),id=0)
+        self.root = Node(problem.sample_w(0,[]),1.,id=0)
         counter = 1
         nodes = [self.root]
         for t in range(1,T):
@@ -122,13 +131,18 @@ class StochProblemMS_Tree:
                     w_array = np.array([problem.sample_w(t,observations) for i in range(num_samples)])
                     assert(w_array.shape[0] == num_samples)
                     clusters = k_means(w_array,factor_list[t-1])
+                    assert(clusters[0].shape[0] == factor_list[t-1])
+                    assert(clusters[1].size == num_samples)
                 for i in range(factor_list[t-1]):
                     if cluster:
                         w = clusters[0][i,:]
+                        p = float(np.sum(clusters[1] == i))/float(clusters[1].size)
                     else:
                         w = problem.sample_w(t,observations)
-                    node.add_child(Node(w,node,id=counter))
+                        p = 1./float(factor_list[t-1])
+                    node.add_child(Node(w,p,node,id=counter))
                     counter += 1
+                assert(sum(map(lambda n: n.get_p(),node.get_children())) == 1.)
                 new_nodes += node.get_children()
             nodes = new_nodes
         num_nodes = 1

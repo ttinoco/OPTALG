@@ -89,7 +89,7 @@ class StochDualDynProg(StochSolver):
             nodes = tree.get_stage_nodes(t)
             for node in nodes:
                 if node.get_children():
-                    cost_to_go = np.average([id2Q[n.get_id()] for n in node.get_children()])
+                    cost_to_go = sum([id2Q[n.get_id()]*n.get_p() for n in node.get_children()])
                 else:
                     cost_to_go = 0.
                     assert(t == T-1)
@@ -210,8 +210,7 @@ class StochDualDynProg(StochSolver):
                 x = solutions[t]
                 Q = 0
                 gQ = np.zeros(self.n)
-                for i in range(node.get_num_children()):
-                    n = node.get_child(i)
+                for n in node.get_children():
                     xn,Qn,gQn,results = problem.solve_stage_with_cuts(t+1,
                                                                       n.get_w(),
                                                                       x,
@@ -220,10 +219,8 @@ class StochDualDynProg(StochSolver):
                                                                       quiet=True,
                                                                       init_data=n.get_data() if warm_start else None,
                                                                       tol=tol)
-                    Q *= float(i)/float(i+1)
-                    Q += Qn/float(i+1)
-                    gQ *= float(i)/float(i+1)
-                    gQ += gQn/float(i+1)
+                    Q += Qn*n.get_p()
+                    gQ += gQn*n.get_p()
                     n.set_data(results)
                 a = -gQ
                 b = -Q + np.dot(gQ,x)
