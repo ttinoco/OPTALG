@@ -142,7 +142,7 @@ class StochProblemMS_Tree:
                         p = 1./float(factor_list[t-1])
                     node.add_child(Node(w,p,node,id=counter))
                     counter += 1
-                assert(sum(map(lambda n: n.get_p(),node.get_children())) == 1.)
+                assert(np.abs(sum(map(lambda n: n.get_p(),node.get_children()))-1.) < 1e-12)
                 new_nodes += node.get_children()
             nodes = new_nodes
         num_nodes = 1
