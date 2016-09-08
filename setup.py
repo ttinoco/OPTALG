@@ -7,7 +7,7 @@
 #****************************************************#
 
 import sys
-from distutils.core import setup,Extension
+from setuptools import setup,Extension
 
 ext_modules = []
 
@@ -33,4 +33,5 @@ setup(name='OPTALG',
                 'optalg.opt_solver',
                 'optalg.stoch_solver'],
       requires=['scipy',
-                'numpy'])
+                'numpy',
+                'multiprocess'])
