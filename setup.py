@@ -32,6 +32,6 @@ setup(name='OPTALG',
                 'optalg.lin_solver._mumps',
                 'optalg.opt_solver',
                 'optalg.stoch_solver'],
-      requires=['scipy',
-                'numpy',
-                'multiprocess'])
+      install_requires=['scipy',
+                        'numpy',
+                        'multiprocess'])
