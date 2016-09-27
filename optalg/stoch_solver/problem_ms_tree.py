@@ -6,6 +6,7 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
+import time
 import numpy as np
 from numpy.linalg import norm
 
@@ -102,6 +103,9 @@ class StochProblemMS_Tree:
         self.branching_type = branching_type
         self.cluster = cluster
         self.num_samples = num_samples
+        self.construction_time = 0.
+
+        t0 = time.time()
 
         if seed is not None:
             np.random.seed(seed)
@@ -152,6 +156,8 @@ class StochProblemMS_Tree:
             num_nodes += num_curr
         assert(num_nodes == counter)
         assert(num_nodes == len(self.get_nodes()))
+
+        self.construction_time = time.time()-t0
 
     def check_branch(self,branch):
 
@@ -231,12 +237,13 @@ class StochProblemMS_Tree:
         
         print('\nScenario Tree')
         print('-------------')
-        print('branching factor : %d' %self.branching_factor)
-        print('branching type   : %s' %self.branching_type)
-        print('cluster          : %r' %self.cluster)
-        print('num samples      : %d' %self.num_samples)
-        print('num scenarios    : %d' %len(self.get_leaf_nodes()))
-        print('num nodes        : %d' %len(self.get_nodes()))
+        print('branching factor  : %d' %self.branching_factor)
+        print('branching type    : %s' %self.branching_type)
+        print('cluster           : %r' %self.cluster)
+        print('num samples       : %d' %self.num_samples)
+        print('num scenarios     : %d' %len(self.get_leaf_nodes()))
+        print('num nodes         : %d' %len(self.get_nodes()))
+        print('construction time : %.2f min' %(self.construction_time/60.)) 
 
     def draw(self):
 
