@@ -6,6 +6,9 @@ Unreleased
 ----------
 * Correct handling of l = u in IQP.
 * Correct handling of missing Ax=b in IQP.
+
+Version 1.1
+-----------
 * Auto objective function scaling in IQP.
 * Basic IQP untitests.
 * Multistage stochastic solvers (SH, SDDP).

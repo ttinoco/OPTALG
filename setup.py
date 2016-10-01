@@ -33,4 +33,5 @@ setup(name='OPTALG',
                 'optalg.opt_solver',
                 'optalg.stoch_solver'],
       requires=['scipy',
-                'numpy'])
+                'numpy',
+                'dill'])
