@@ -245,7 +245,7 @@ class StochProblemMS_Tree:
         print('num nodes         : %d' %len(self.get_nodes()))
         print('construction time : %.2f min' %(self.construction_time/60.)) 
 
-    def draw(self):
+    def draw(self,node_size=40):
 
         if len(self.get_nodes()) > 1000:
             return
@@ -259,4 +259,4 @@ class StochProblemMS_Tree:
                 G.add_edge(node.get_id(),child.get_id())
         plt.figure()
         pos = nx.graphviz_layout(G,prog='dot')
-        nx.draw(G,pos,with_labels=False,arrows=False,node_size=10.)
+        nx.draw(G,pos,with_labels=False,arrows=False,node_size=node_size)
