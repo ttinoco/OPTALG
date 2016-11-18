@@ -83,7 +83,7 @@ class Node:
 
 class StochProblemMS_Tree:
 
-    def __init__(self,problem,branching_factor,branching_type,cluster=False,num_samples=1000,seed=None):
+    def __init__(self,problem,branching_factors,cluster=False,num_samples=1000,seed=None):
         """
         Creates scenario tree for multistage
         stochastic optimization problem.
@@ -91,16 +91,14 @@ class StochProblemMS_Tree:
         Parameters
         ----------
         problem : StochProblemMS
-        branching_factor : int
-        branching_type : {'uniform','decreasing'}
+        branching_factors : list
         cluster : {True,False}
         num_samples : int
         seed : int
         """
 
         self.problem = problem
-        self.branching_factor = branching_factor
-        self.branching_type = branching_type
+        self.branching_factors = branching_factors
         self.cluster = cluster
         self.num_samples = num_samples
         self.construction_time = 0.
@@ -114,15 +112,11 @@ class StochProblemMS_Tree:
             from sklearn.cluster import k_means
       
         T = problem.get_num_stages()
-       
-        if branching_type == 'uniform':
-            factor_list = [branching_factor for i in range(T-1)] 
-        elif branching_type == 'decreasing':
-            factor_list = [max([branching_factor-i,1]) for i in range(T-1)]
-        else:
-            raise ValueError('invalid branching type')
-        assert(len(factor_list) == T-1)
-        assert(all([factor_list[i] > 0 for i in range(len(factor_list))]))
+
+        if branching_factors is None:
+            self.branching_factors = (T-1)*[1]        
+        assert(len(branching_factors) == T-1)
+        assert(all([branching_factors[i] > 0 for i in range(len(branching_factors))]))
  
         self.root = Node(problem.sample_w(0,[]),1.,id=0)
         counter = 1
@@ -134,16 +128,16 @@ class StochProblemMS_Tree:
                 if cluster:
                     w_array = np.array([problem.sample_w(t,observations) for i in range(num_samples)])
                     assert(w_array.shape[0] == num_samples)
-                    clusters = k_means(w_array,factor_list[t-1])
-                    assert(clusters[0].shape[0] == factor_list[t-1])
+                    clusters = k_means(w_array,branching_factors[t-1])
+                    assert(clusters[0].shape[0] == branching_factors[t-1])
                     assert(clusters[1].size == num_samples)
-                for i in range(factor_list[t-1]):
+                for i in range(branching_factors[t-1]):
                     if cluster:
                         w = clusters[0][i,:]
                         p = float(np.sum(clusters[1] == i))/float(clusters[1].size)
                     else:
                         w = problem.sample_w(t,observations)
-                        p = 1./float(factor_list[t-1])
+                        p = 1./float(branching_factors[t-1])
                     node.add_child(Node(w,p,node,id=counter))
                     counter += 1
                 assert(np.abs(sum(map(lambda n: n.get_p(),node.get_children()))-1.) < 1e-12)
@@ -152,7 +146,7 @@ class StochProblemMS_Tree:
         num_nodes = 1
         num_curr = 1
         for t in range(1,T):
-            num_curr = factor_list[t-1]*num_curr
+            num_curr = branching_factors[t-1]*num_curr
             num_nodes += num_curr
         assert(num_nodes == counter)
         assert(num_nodes == len(self.get_nodes()))
@@ -237,8 +231,7 @@ class StochProblemMS_Tree:
         
         print('\nScenario Tree')
         print('-------------')
-        print('branching factor  : %d' %self.branching_factor)
-        print('branching type    : %s' %self.branching_type)
+        print('branching factors : %s' %self.branching_factors)
         print('cluster           : %r' %self.cluster)
         print('num samples       : %d' %self.num_samples)
         print('num scenarios     : %d' %len(self.get_leaf_nodes()))
@@ -247,7 +240,7 @@ class StochProblemMS_Tree:
 
     def draw(self,node_size=40):
 
-        if len(self.get_nodes()) > 1000:
+        if len(self.get_nodes()) > 10000:
             return
 
         import matplotlib.pyplot as plt
