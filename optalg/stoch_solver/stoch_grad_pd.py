@@ -14,7 +14,8 @@ from .stoch_solver import StochSolver
 class StochGradientPD(StochSolver):
 
     parameters = {'maxiters': 1000,
-                  'period': 50,
+                  'maxtime': 600,
+                  'period': 60,
                   'quiet' : True,
                   'theta': 1.,
                   'k0': 0,
@@ -32,6 +33,8 @@ class StochGradientPD(StochSolver):
         StochSolver.__init__(self)
         self.parameters = StochGradientPD.parameters.copy()
 
+        self.results = []
+
     def solve(self,problem):
 
         # Local vars
@@ -39,6 +42,7 @@ class StochGradientPD(StochSolver):
 
         # Parameters
         maxiters = params['maxiters']
+        maxtime = params['maxtime']
         period = params['period']
         quiet = params['quiet']
         theta = params['theta']
@@ -56,17 +60,34 @@ class StochGradientPD(StochSolver):
             print('{0:^12s}'.format('lmax'), end=' ')
             print('{0:^12s}'.format('EF_run'), end=' ')
             print('{0:^12s}'.format('EGmax_run'), end=' ')
-            print('{0:^12s}'.format('EF'), end=' ')
-            print('{0:^12s}'.format('EGmax'), end=' ')
-            print('{0:^12s}'.format('info'))
+            print('{0:^12s}'.format('saved'))
 
         # Init
+        k = 0
         t0 = time.time()
+        t1 = 0
         self.x = problem.get_init_x()
         lam = np.zeros(problem.get_size_lam())
+        self.results = []
         
         # Loop
-        for k in range(maxiters+1):
+        while True:
+
+            # Steplength
+            alpha = theta/(k0+k+1.)
+             
+            # Save
+            if time.time()-t0 > t1:
+                self.results.append((k,time.time()-t0,self.x))
+                t1 += period
+
+            # Iters
+            if k >= maxiters:
+                break
+                
+            # Maxtime
+            if time.time()-t0 >= maxtime:
+                break
             
             # Sample
             w = problem.sample_w()
@@ -82,34 +103,29 @@ class StochGradientPD(StochSolver):
                 EF_run = F
                 EG_run = G.copy()
             else:
-                EF_run += 0.05*(F-EF_run)
-                EG_run += 0.05*(G-EG_run)
+                EF_run += alpha*(F-EF_run)
+                EG_run += alpha*(G-EG_run)
             
             # Show progress
-            if k % period == 0:
-                t1 = time.time()
-                if callback:
-                    callback(self.x)
-                if not quiet:
-                    print('{0:^8d}'.format(k), end=' ')
-                    print('{0:^10.2f}'.format(t1-t0), end=' ')
-                    print('{0:^12.5e}'.format(problem.get_prop_x(self.x)), end=' ')
-                    print('{0:^12.5e}'.format(np.max(lam)), end=' ')
-                    print('{0:^12.5e}'.format(EF_run), end=' ')
-                    print('{0:^12.5e}'.format(np.max(EG_run)), end=' ')
-                    EF,EgF,EG,EJG,info = problem.eval_EFG(self.x,info=True)
-                    print('{0:^12.5e}'.format(EF), end=' ')
-                    print('{0:^12.5e}'.format(np.max(EG)), end=' ')
-                    print('{0:^12.5e}'.format(info))
-                t0 += time.time()-t1
+            if not quiet:
+                print('{0:^8d}'.format(k), end=' ')
+                print('{0:^10.2f}'.format(time.time()-t0), end=' ')
+                print('{0:^12.5e}'.format(problem.get_prop_x(self.x)), end=' ')
+                print('{0:^12.5e}'.format(np.max(lam)), end=' ')
+                print('{0:^12.5e}'.format(EF_run), end=' ')
+                print('{0:^12.5e}'.format(np.max(EG_run)), end=' ')
+                print('{0:^12d}'.format(len(self.results)))
             
             # Update
-            alpha_x = theta/(k0+k+1.)
-            alpha_lam = theta/(k0+k+1.)
-            self.x = problem.project_x(self.x - alpha_x*gL)
+            alpha = theta/(k0+k+1.)
+            self.x = problem.project_x(self.x - alpha*gL)
             if not no_G:
-                lam = problem.project_lam(lam + alpha_lam*G)
+                lam = problem.project_lam(lam + alpha*G)
+            k += 1
 
+    def get_results(self):
+
+        return self.results
         
     
             

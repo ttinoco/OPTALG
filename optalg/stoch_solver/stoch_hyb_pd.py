@@ -16,13 +16,13 @@ from .stoch_solver import StochSolver
 class StochHybridPD(StochSolver):
 
     parameters = {'maxiters': 1000,
-                  'period': 50,
+                  'maxtime': 600,
+                  'period': 60,
                   'quiet' : True,
                   'theta': 1.,
                   'k0': 0,
                   'no_G': False,
-                  'warm_start': False,
-                  'callback': None}
+                  'warm_start': False}
 
     name = 'Primal-Dual Stochastic Hybrid Approximation'
 
@@ -34,19 +34,21 @@ class StochHybridPD(StochSolver):
         # Init
         StochSolver.__init__(self)
         self.parameters = StochHybridPD.parameters.copy()
+        
+        self.results = []
 
     def solve(self,problem):
         
         # Local vars
         params = self.parameters
-
+        
         # Parameters
         maxiters = params['maxiters']
+        maxtime = params['maxtime']
         period = params['period']
         quiet = params['quiet']
         theta = params['theta']
         warm_start = params['warm_start']
-        callback = params['callback']
         k0 = params['k0']
         no_G = params['no_G']
         
@@ -59,20 +61,24 @@ class StochHybridPD(StochSolver):
             print('{0:^12s}'.format('prop'), end=' ')
             print('{0:^12s}'.format('lmax'), end=' ')
             print('{0:^12s}'.format('EF_run'), end=' ')
-            print('{0:^12s}'.format('EGmax_run'), end=' ')
-            print('{0:^12s}'.format('EF'), end=' ')
-            print('{0:^12s}'.format('EGmax'), end=' ')
-            print('{0:^12s}'.format('info'))
+            print('{0:^12s}'.format('EGmax_run'), end= ' ')
+            print('{0:^12s}'.format('saved'))
 
         # Init
+        k = 0
         sol_data = None
         t0 = time.time()
+        t1 = 0
         g = np.zeros(problem.get_size_x())
         lam = np.zeros(problem.get_size_lam())
         J = coo_matrix((problem.get_size_lam(),problem.get_size_x()))
-        
+        self.results = []
+
         # Loop
-        for k in range(maxiters+1):
+        while True:
+
+            # Steplength
+            alpha = theta/(k0+k+1.)
 
             # Solve approx
             if warm_start:
@@ -91,36 +97,42 @@ class StochHybridPD(StochSolver):
                 EF_run = F
                 EG_run = G.copy()
             else:
-                EF_run += 0.05*(F-EF_run)
-                EG_run += 0.05*(G-EG_run)
+                EF_run += alpha*(F-EF_run)
+                EG_run += alpha*(G-EG_run)
 
             # Eval approx (should be able to extract this from solve_Lrelaxed_approx)
             F_approx,gF_approx,G_approx,JG_approx = problem.eval_FG_approx(self.x)
             
+            # Save
+            if time.time()-t0 > t1:
+                self.results.append((k,time.time()-t0,self.x))
+                t1 += period
+
+            # Iters
+            if k >= maxiters:
+                break
+                
+            # Maxtime
+            if time.time()-t0 >= maxtime:
+                break
+
             # Output
-            if k % period == 0:
-                t1 = time.time()
-                if callback:
-                    callback(self.x)
-                if not quiet:
-                    print('{0:^8d}'.format(k), end=' ')
-                    print('{0:^10.2f}'.format(t1-t0), end=' ')
-                    print('{0:^12.5e}'.format(problem.get_prop_x(self.x)), end=' ')
-                    print('{0:^12.5e}'.format(np.max(lam)), end=' ')
-                    print('{0:^12.5e}'.format(EF_run), end=' ')
-                    print('{0:^12.5e}'.format(np.max(EG_run)), end=' ')
-                    EF,EgF,EG,EJG,info = problem.eval_EFG(self.x,info=True)
-                    print('{0:^12.5e}'.format(EF), end=' ')
-                    print('{0:^12.5e}'.format(np.max(EG)), end=' ')
-                    print('{0:^12.5e}'.format(info))
-                t0 += time.time()-t1
-                    
+            if not quiet:
+                print('{0:^8d}'.format(k), end=' ')
+                print('{0:^10.2f}'.format(time.time()-t0), end=' ')
+                print('{0:^12.5e}'.format(problem.get_prop_x(self.x)), end=' ')
+                print('{0:^12.5e}'.format(np.max(lam)), end=' ')
+                print('{0:^12.5e}'.format(EF_run), end=' ')
+                print('{0:^12.5e}'.format(np.max(EG_run)), end=' ')
+                print('{0:^12d}'.format(len(self.results)))
+                               
             # Update
-            alpha_slope = theta/(k0+k+1.)
-            alpha_lam = theta/(k0+k+1.)
             if not no_G:
-                lam = problem.project_lam(lam + alpha_lam*G)
-            g += alpha_slope*(gF-gF_approx-g)
-            J = J + alpha_slope*(JG-JG_approx-J)        
-    
+                lam = problem.project_lam(lam + alpha*G)
+            g += alpha*(gF-gF_approx-g)
+            J = J + alpha*(JG-JG_approx-J)
+            k += 1
             
+    def get_results(self):
+
+        return self.results
