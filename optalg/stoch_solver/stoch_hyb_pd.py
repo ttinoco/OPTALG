@@ -19,12 +19,12 @@ class StochHybridPD(StochSolver):
                   'period': 50,
                   'quiet' : True,
                   'theta': 1.,
-                  'num_samples': 500,
                   'warm_start': False,
                   'callback': None,
                   'k0': 0,
-                  'tol': 1e-4,
                   'no_G': False}
+
+    name = 'Primal-Dual Stochastic Hybrid Approximation'
 
     def __init__(self):
         """
@@ -45,11 +45,9 @@ class StochHybridPD(StochSolver):
         period = params['period']
         quiet = params['quiet']
         theta = params['theta']
-        num_samples = params['num_samples']
         warm_start = params['warm_start']
         callback = params['callback']
         k0 = params['k0']
-        tol = params['tol']
         no_G = params['no_G']
         
         # Header
@@ -78,15 +76,15 @@ class StochHybridPD(StochSolver):
 
             # Solve approx
             if warm_start:
-                self.x,sol_data = problem.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True,init_data=sol_data,tol=tol)
+                self.x,sol_data = problem.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True,init_data=sol_data)
             else:
-                self.x,sol_data = problem.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True,tol=tol)
-            
+                self.x,sol_data = problem.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True)
+                
             # Sample
             w = problem.sample_w()
             
             # Eval
-            F,gF,G,JG = problem.eval_FG(self.x,w,tol=tol)
+            F,gF,G,JG = problem.eval_FG(self.x,w)
             
             # Running
             if k == 0:
@@ -97,7 +95,7 @@ class StochHybridPD(StochSolver):
                 EG_run += 0.05*(G-EG_run)
 
             # Eval approx (should be able to extract this from solve_Lrelaxed_approx)
-            F_approx,gF_approx,G_approx,JG_approx = problem.eval_FG_approx(self.x,tol=tol)
+            F_approx,gF_approx,G_approx,JG_approx = problem.eval_FG_approx(self.x)
             
             # Output
             if k % period == 0:
@@ -111,7 +109,7 @@ class StochHybridPD(StochSolver):
                     print('{0:^12.5e}'.format(np.max(lam)), end=' ')
                     print('{0:^12.5e}'.format(EF_run), end=' ')
                     print('{0:^12.5e}'.format(np.max(EG_run)), end=' ')
-                    EF,EgF,EG,EJG,info = problem.eval_EFG(self.x,samples=num_samples,tol=tol,info=True)
+                    EF,EgF,EG,EJG,info = problem.eval_EFG(self.x,info=True)
                     print('{0:^12.5e}'.format(EF), end=' ')
                     print('{0:^12.5e}'.format(np.max(EG)), end=' ')
                     print('{0:^12.5e}'.format(info))

@@ -33,7 +33,7 @@ class OptSolverLCCP(OptSolver):
         
         # Init
         OptSolver.__init__(self)
-        self.parameters = OptSolverLCCP.parameters.copy()                
+        self.parameters = OptSolverLCCP.parameters.copy()
         self.linsolver = None
         self.problem = None
 
