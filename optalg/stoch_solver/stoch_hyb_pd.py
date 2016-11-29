@@ -19,10 +19,10 @@ class StochHybridPD(StochSolver):
                   'period': 50,
                   'quiet' : True,
                   'theta': 1.,
-                  'warm_start': False,
-                  'callback': None,
                   'k0': 0,
-                  'no_G': False}
+                  'no_G': False,
+                  'warm_start': False,
+                  'callback': None}
 
     name = 'Primal-Dual Stochastic Hybrid Approximation'
 

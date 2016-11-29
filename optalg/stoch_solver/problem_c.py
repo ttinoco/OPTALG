@@ -16,11 +16,11 @@ class StochProblemC:
                   x in X
     """
 
-    def eval_FG(self,x,w,tol=None):
+    def eval_FG(self,x,w):
         """
         Evaluates objective function and constraints
         for a given realization of the uncertainty.
-
+        
         Parameters
         ----------
 
@@ -30,7 +30,7 @@ class StochProblemC:
 
         pass
 
-    def eval_FG_approx(self,x,tol=None):
+    def eval_FG_approx(self,x):
         """
         Evaluates deterministic approximation of 
         objective function and constraints.
@@ -44,7 +44,7 @@ class StochProblemC:
 
         pass
 
-    def eval_EFG(self,x,tol=None):
+    def eval_EFG(self,x):
         """
         Evaluates objective function and
         constraints.
@@ -68,6 +68,17 @@ class StochProblemC:
         """
 
         return 0
+
+    def get_init_x(self):
+        """
+        Gets initial point.
+
+        Returns
+        -------
+        x : vector
+        """
+
+        return None
 
     def get_size_lam(self):
         """
@@ -146,7 +157,7 @@ class StochProblemC:
 
         pass
 
-    def solve_Lrelaxed_approx(self,lam,g_corr=None,J_corr=None,tol=1e-4,quiet=False):
+    def solve_Lrelaxed_approx(self,lam,g_corr=None,J_corr=None,quiet=False):
         """
         Solves slope-corrected Lagrangian-relaxed problem
         

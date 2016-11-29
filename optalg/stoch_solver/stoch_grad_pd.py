@@ -17,11 +17,11 @@ class StochGradientPD(StochSolver):
                   'period': 50,
                   'quiet' : True,
                   'theta': 1.,
-                  'num_samples': 500,
                   'k0': 0,
-                  'tol': 1e-4,
                   'no_G': False,
                   'callback': None}
+
+    name = 'Primal-Dual Stochastic Gradient'
 
     def __init__(self):
         """
@@ -42,9 +42,7 @@ class StochGradientPD(StochSolver):
         period = params['period']
         quiet = params['quiet']
         theta = params['theta']
-        num_samples = params['num_samples']
         k0 = params['k0']
-        tol = params['tol']
         no_G = params['no_G']
         callback = params['callback']
 
@@ -64,7 +62,7 @@ class StochGradientPD(StochSolver):
 
         # Init
         t0 = time.time()
-        self.x = problem.x
+        self.x = problem.get_init_x()
         lam = np.zeros(problem.get_size_lam())
         
         # Loop
@@ -74,7 +72,7 @@ class StochGradientPD(StochSolver):
             w = problem.sample_w()
             
             # Eval
-            F,gF,G,JG = problem.eval_FG(self.x,w,tol=tol)
+            F,gF,G,JG = problem.eval_FG(self.x,w)
             
             # Lagrangian subgradient
             gL = gF + JG.T*lam
@@ -99,7 +97,7 @@ class StochGradientPD(StochSolver):
                     print('{0:^12.5e}'.format(np.max(lam)), end=' ')
                     print('{0:^12.5e}'.format(EF_run), end=' ')
                     print('{0:^12.5e}'.format(np.max(EG_run)), end=' ')
-                    EF,EgF,EG,EJG,info = problem.eval_EFG(self.x,samples=num_samples,tol=tol,info=True)
+                    EF,EgF,EG,EJG,info = problem.eval_EFG(self.x,info=True)
                     print('{0:^12.5e}'.format(EF), end=' ')
                     print('{0:^12.5e}'.format(np.max(EG)), end=' ')
                     print('{0:^12.5e}'.format(info))
