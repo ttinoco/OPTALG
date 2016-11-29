@@ -82,9 +82,9 @@ class StochHybridPD(StochSolver):
 
             # Solve approx
             if warm_start:
-                self.x,sol_data = problem.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True,init_data=sol_data)
+                self.x,gF_approx,JG_approx,sol_data = problem.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True,init_data=sol_data)
             else:
-                self.x,sol_data = problem.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True)
+                self.x,gF_approx,JG_approx,sol_data = problem.solve_Lrelaxed_approx(lam,g_corr=g,J_corr=J,quiet=True)
                 
             # Sample
             w = problem.sample_w()
@@ -99,13 +99,10 @@ class StochHybridPD(StochSolver):
             else:
                 EF_run += alpha*(F-EF_run)
                 EG_run += alpha*(G-EG_run)
-
-            # Eval approx (should be able to extract this from solve_Lrelaxed_approx)
-            F_approx,gF_approx,G_approx,JG_approx = problem.eval_FG_approx(self.x)
-            
+ 
             # Save
             if time.time()-t0 > t1:
-                self.results.append((k,time.time()-t0,self.x))
+                self.results.append((k,time.time()-t0,self.x,np.max(lam)))
                 t1 += period
 
             # Iters

@@ -78,7 +78,7 @@ class StochGradientPD(StochSolver):
              
             # Save
             if time.time()-t0 > t1:
-                self.results.append((k,time.time()-t0,self.x))
+                self.results.append((k,time.time()-t0,self.x,np.max(lam)))
                 t1 += period
 
             # Iters
