@@ -56,6 +56,7 @@ class StochGradientPD(StochSolver):
             print('-------------------------------')
             print('{0:^8s}'.format('iter'), end=' ')
             print('{0:^10s}'.format('time(s)'), end=' ')
+            print('{0:^10s}'.format('alpha'), end=' ')
             print('{0:^12s}'.format('prop'), end=' ')
             print('{0:^12s}'.format('lmax'), end=' ')
             print('{0:^12s}'.format('EF_run'), end=' ')
@@ -110,6 +111,7 @@ class StochGradientPD(StochSolver):
             if not quiet:
                 print('{0:^8d}'.format(k), end=' ')
                 print('{0:^10.2f}'.format(time.time()-t0), end=' ')
+                print('{0:^10.2e}'.format(alpha), end=' ')
                 print('{0:^12.5e}'.format(problem.get_prop_x(self.x)), end=' ')
                 print('{0:^12.5e}'.format(np.max(lam)), end=' ')
                 print('{0:^12.5e}'.format(EF_run), end=' ')
@@ -117,7 +119,6 @@ class StochGradientPD(StochSolver):
                 print('{0:^12d}'.format(len(self.results)))
             
             # Update
-            alpha = theta/(k0+k+1.)
             self.x = problem.project_x(self.x - alpha*gL)
             if not no_G:
                 lam = problem.project_lam(lam + alpha*G)

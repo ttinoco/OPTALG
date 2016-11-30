@@ -14,7 +14,7 @@ from scipy.sparse import coo_matrix
 from .stoch_solver import StochSolver
 
 class StochHybridPD(StochSolver):
-
+    
     parameters = {'maxiters': 1000,
                   'maxtime': 600,
                   'period': 60,
@@ -58,6 +58,7 @@ class StochHybridPD(StochSolver):
             print('-----------------------------')
             print('{0:^8s}'.format('iter'), end=' ')
             print('{0:^10s}'.format('time(s)'), end=' ')
+            print('{0:^10s}'.format('alpha'), end=' ')
             print('{0:^12s}'.format('prop'), end=' ')
             print('{0:^12s}'.format('lmax'), end=' ')
             print('{0:^12s}'.format('EF_run'), end=' ')
@@ -117,6 +118,7 @@ class StochHybridPD(StochSolver):
             if not quiet:
                 print('{0:^8d}'.format(k), end=' ')
                 print('{0:^10.2f}'.format(time.time()-t0), end=' ')
+                print('{0:^10.2e}'.format(alpha), end=' ')
                 print('{0:^12.5e}'.format(problem.get_prop_x(self.x)), end=' ')
                 print('{0:^12.5e}'.format(np.max(lam)), end=' ')
                 print('{0:^12.5e}'.format(EF_run), end=' ')
