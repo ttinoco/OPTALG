@@ -1,11 +1,14 @@
 Targets
 -------
 * ECOS interface?
+* SNOPT interface?
 
 Unreleased
 ----------
 * Correct handling of l = u in IQP.
 * Correct handling of missing Ax=b in IQP.
+* Two-stage stochastic optimization problem class (problem_ts/StochProblemTS)
+* SAA cutting-plane decomposition solvers for StochProblemTS
 
 Version 1.1
 -----------
