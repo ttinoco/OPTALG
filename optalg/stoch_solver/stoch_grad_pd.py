@@ -20,8 +20,7 @@ class StochGradientPD(StochSolver):
                   'theta_lam': 1.,
                   'theta_x': 1.,
                   'k0': 0,
-                  'no_G': False,
-                  'callback': None}
+                  'no_G': False}
 
     name = 'Primal-Dual Stochastic Gradient'
 
@@ -50,7 +49,6 @@ class StochGradientPD(StochSolver):
         theta_x = params['theta_x']
         k0 = params['k0']
         no_G = params['no_G']
-        callback = params['callback']
 
         # Header
         if not quiet:
@@ -67,8 +65,8 @@ class StochGradientPD(StochSolver):
 
         # Init
         k = 0
-        t0 = time.time()
         t1 = 0
+        t0 = time.time()
         self.x = problem.get_init_x()
         lam = np.zeros(problem.get_size_lam())
         self.results = []

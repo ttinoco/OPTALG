@@ -67,9 +67,9 @@ class StochHybridPD(StochSolver):
 
         # Init
         k = 0
+        t1 = 0
         sol_data = None
         t0 = time.time()
-        t1 = 0
         g = np.zeros(problem.get_size_x())
         lam = np.zeros(problem.get_size_lam())
         J = coo_matrix((problem.get_size_lam(),problem.get_size_x()))
