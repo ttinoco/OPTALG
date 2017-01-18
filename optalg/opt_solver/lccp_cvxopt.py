@@ -7,8 +7,8 @@
 #****************************************************#
 
 import numpy as np
-from opt_solver_error import *
-from opt_solver import OptSolver
+from .opt_solver_error import *
+from .opt_solver import OptSolver
 from scipy.sparse import bmat,triu,eye,coo_matrix,tril
 
 class OptSolverLCCP_CVXOPT(OptSolver):

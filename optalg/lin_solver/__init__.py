@@ -6,7 +6,7 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-from lin_solver import LinSolver
+from .lin_solver import LinSolver
 
 def new_linsolver(name,prop):
     """
@@ -23,10 +23,10 @@ def new_linsolver(name,prop):
     """
     
     if name == 'mumps':
-        from mumps import LinSolverMUMPS
+        from .mumps import LinSolverMUMPS
         return LinSolverMUMPS(prop)
     elif name == 'superlu':
-        from superlu import LinSolverSUPERLU
+        from .superlu import LinSolverSUPERLU
         return LinSolverSUPERLU(prop)
     elif name == 'default':
         try:

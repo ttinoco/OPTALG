@@ -6,9 +6,10 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
+from __future__ import print_function
 import time
 import numpy as np
-from stoch_solver import StochSolver
+from .stoch_solver import StochSolver
 
 class StochGradient(StochSolver):
 
@@ -45,12 +46,12 @@ class StochGradient(StochSolver):
 
         # Header
         if not quiet:
-            print '\nStochastic Gradient'
-            print '-------------------'
-            print '{0:^8s}'.format('iter'),
-            print '{0:^10s}'.format('time(s)'),
-            print '{0:^12s}'.format('prop'),
-            print '{0:^12s}'.format('EF')
+            print('\nStochastic Gradient')
+            print('-------------------')
+            print('{0:^8s}'.format('iter'), end=' ')
+            print('{0:^10s}'.format('time(s)'), end=' ')
+            print('{0:^12s}'.format('prop'), end=' ')
+            print('{0:^12s}'.format('EF'))
 
         # Init
         t0 = time.time()
@@ -69,11 +70,11 @@ class StochGradient(StochSolver):
             if k % period == 0:
                 t1 = time.time()
                 if not quiet:
-                    print '{0:^8d}'.format(k),
-                    print '{0:^10.2f}'.format(t1-t0),
-                    print '{0:^12.5e}'.format(problem.get_prop_x(self.x)),
+                    print('{0:^8d}'.format(k), end=' ')
+                    print('{0:^10.2f}'.format(t1-t0), end=' ')
+                    print('{0:^12.5e}'.format(problem.get_prop_x(self.x)), end=' ')
                     EF,EgF = problem.eval_EF(x,samples=num_samples,tol=tol)
-                    print '{0:^12.5e}'.format(EF)
+                    print('{0:^12.5e}'.format(EF))
                 t0 += time.time()-t1
             
             # Update

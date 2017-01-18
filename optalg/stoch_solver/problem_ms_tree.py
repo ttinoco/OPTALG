@@ -6,20 +6,30 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
+import time
 import numpy as np
 from numpy.linalg import norm
 
 class Node:
 
-    def __init__(self,w,parent=None,id=0):
+    def __init__(self,w,p,parent=None,id=0):
+        
+        # Save
         self.w = w
+        self.p = p
         self.children = []
         self.parent = parent
         self.id = id
         self.data = None
 
+        # Check
+        assert(0 <= p <= 1)
+
     def add_child(self,child):
         self.children.append(child)
+
+    def get_p(self):
+        return self.p
 
     def get_id(self):
         return self.id
@@ -53,10 +63,10 @@ class Node:
         if self.is_leaf():
             return [self]
         else:
-            return sum(map(lambda c: c.get_leafs(),self.children),[])
+            return sum([c.get_leafs() for c in self.children],[])
 
     def get_descendants(self):
-        return self.children+sum(map(lambda c: c.get_descendants(),self.children),[])
+        return self.children+sum([c.get_descendants() for c in self.children],[])
 
     def is_leaf(self):
         return not self.children
@@ -69,14 +79,11 @@ class Node:
 
     def show(self):
 
-        print '\nNode    :',self.id
-        print 'Children:',map(lambda c: c.get_id(),self.children)
-
-        map(lambda c: c.show(),self.children)
+        pass
 
 class StochProblemMS_Tree:
 
-    def __init__(self,problem,branching_factor,branching_type,seed=None):
+    def __init__(self,problem,branching_factors,cluster=False,num_samples=1000,seed=None):
         """
         Creates scenario tree for multistage
         stochastic optimization problem.
@@ -84,48 +91,67 @@ class StochProblemMS_Tree:
         Parameters
         ----------
         problem : StochProblemMS
-        branching_factor : int
-        branching_type : {'uniform','decreasing'}
+        branching_factors : list
+        cluster : {True,False}
+        num_samples : int
         seed : int
         """
 
         self.problem = problem
-        self.branching_factor = branching_factor
-        self.branching_type = branching_type
+        self.branching_factors = branching_factors
+        self.cluster = cluster
+        self.num_samples = num_samples
+        self.construction_time = 0.
+
+        t0 = time.time()
 
         if seed is not None:
             np.random.seed(seed)
+            
+        if cluster:
+            from sklearn.cluster import k_means
       
         T = problem.get_num_stages()
-       
-        if branching_type == 'uniform':
-            factor_list = [branching_factor for i in range(T-1)] 
-        elif branching_type == 'decreasing':
-            factor_list = [max([branching_factor-i,1]) for i in range(T-1)]
-        else:
-            raise ValueError('invalid branching type')
-        assert(len(factor_list) == T-1)
-        assert(all([factor_list[i] > 0 for i in range(len(factor_list))]))
+
+        if branching_factors is None:
+            self.branching_factors = (T-1)*[1]        
+        assert(len(branching_factors) == T-1)
+        assert(all([branching_factors[i] > 0 for i in range(len(branching_factors))]))
  
-        self.root = Node(problem.sample_w(0,[]),id=0)
+        self.root = Node(problem.sample_w(0,[]),1.,id=0)
         counter = 1
         nodes = [self.root]
         for t in range(1,T):
             new_nodes = []
             for node in nodes:
-                for i in range(factor_list[t-1]):
-                    w = problem.sample_w(t,map(lambda n: n.get_w(),node.get_ancestors()+[node]))
-                    node.add_child(Node(w,node,id=counter))
+                observations = [n.get_w() for n in node.get_ancestors()+[node]]
+                if cluster:
+                    w_array = np.array([problem.sample_w(t,observations) for i in range(num_samples)])
+                    assert(w_array.shape[0] == num_samples)
+                    clusters = k_means(w_array,branching_factors[t-1])
+                    assert(clusters[0].shape[0] == branching_factors[t-1])
+                    assert(clusters[1].size == num_samples)
+                for i in range(branching_factors[t-1]):
+                    if cluster:
+                        w = clusters[0][i,:]
+                        p = float(np.sum(clusters[1] == i))/float(clusters[1].size)
+                    else:
+                        w = problem.sample_w(t,observations)
+                        p = 1./float(branching_factors[t-1])
+                    node.add_child(Node(w,p,node,id=counter))
                     counter += 1
+                assert(np.abs(sum(map(lambda n: n.get_p(),node.get_children()))-1.) < 1e-12)
                 new_nodes += node.get_children()
             nodes = new_nodes
         num_nodes = 1
         num_curr = 1
         for t in range(1,T):
-            num_curr = factor_list[t-1]*num_curr
+            num_curr = branching_factors[t-1]*num_curr
             num_nodes += num_curr
         assert(num_nodes == counter)
         assert(num_nodes == len(self.get_nodes()))
+
+        self.construction_time = time.time()-t0
 
     def check_branch(self,branch):
 
@@ -194,7 +220,7 @@ class StochProblemMS_Tree:
         nodes = [self.root]
         branch = []
         for t in range(len(sample)):
-            branch.append(nodes[np.argmin(map(lambda n: norm(sample[t]-n.get_w(),np.inf),nodes))])
+            branch.append(nodes[np.argmin([norm(sample[t]-n.get_w(),np.inf) for n in nodes])])
             nodes = branch[-1].get_children()
         assert(len(branch) == len(sample))
         self.check_branch(branch)
@@ -203,16 +229,18 @@ class StochProblemMS_Tree:
  
     def show(self):
         
-        self.root.show()
-        
-        print '\nLeafs:',map(lambda n: n.get_id(),self.get_leaf_nodes())
-        print '\nScenarios:'
-        for node in self.get_leaf_nodes():
-            print map(lambda n: n.get_id(),node.get_ancestors()+[node])
+        print('\nScenario Tree')
+        print('-------------')
+        print('branching factors : %s' %self.branching_factors)
+        print('cluster           : %r' %self.cluster)
+        print('num samples       : %d' %self.num_samples)
+        print('num scenarios     : %d' %len(self.get_leaf_nodes()))
+        print('num nodes         : %d' %len(self.get_nodes()))
+        print('construction time : %.2f min' %(self.construction_time/60.)) 
 
-    def draw(self):
+    def draw(self,node_size=40):
 
-        if len(self.get_nodes()) > 1000:
+        if len(self.get_nodes()) > 10000:
             return
 
         import matplotlib.pyplot as plt
@@ -224,4 +252,4 @@ class StochProblemMS_Tree:
                 G.add_edge(node.get_id(),child.get_id())
         plt.figure()
         pos = nx.graphviz_layout(G,prog='dot')
-        nx.draw(G,pos,with_labels=False,arrows=False,node_size=10.)
+        nx.draw(G,pos,with_labels=False,arrows=False,node_size=node_size)

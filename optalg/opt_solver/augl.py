@@ -6,11 +6,13 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
+from __future__ import print_function
 import numpy as np
-from opt_solver_error import *
-from opt_solver import OptSolver
+from .opt_solver_error import *
+from .opt_solver import OptSolver
 from scipy.sparse import bmat,eye,coo_matrix,tril
 from optalg.lin_solver import new_linsolver
+from functools import reduce
 
 class OptSolverAugL(OptSolver):
     
@@ -132,23 +134,23 @@ class OptSolverAugL(OptSolver):
 
         if not quiet:
             if self.k == 0:
-                print '\nSolver: augL'
-                print '------------'
-                print '{0:^3}'.format('k'),
-                print '{0:^9}'.format('phi'),
-                print '{0:^9}'.format('fmax'),
-                print '{0:^9}'.format('gLmax'),
-                print '{0:^8}'.format('dmax'),
-                print '{0:^8}'.format('pmax'),
-                print '{0:^8}'.format('alpha'),
-                print '{0:^7}'.format('miu'),
-                print '{0:^8}'.format('code'),
+                print('\nSolver: augL')
+                print('------------')
+                print('{0:^3}'.format('k'), end=' ')
+                print('{0:^9}'.format('phi'), end=' ')
+                print('{0:^9}'.format('fmax'), end=' ')
+                print('{0:^9}'.format('gLmax'), end=' ')
+                print('{0:^8}'.format('dmax'), end=' ')
+                print('{0:^8}'.format('pmax'), end=' ')
+                print('{0:^8}'.format('alpha'), end=' ')
+                print('{0:^7}'.format('miu'), end=' ')
+                print('{0:^8}'.format('code'), end=' ')
                 if self.info_printer:
                     self.info_printer(self,True)
                 else:
-                    print ''
+                    print('')
             else:
-                print ''
+                print('')
 
     def solve(self,problem):
         
@@ -287,19 +289,19 @@ class OptSolverAugL(OptSolver):
             
             # Show info
             if not quiet:
-                print '{0:^3d}'.format(self.k),
-                print '{0:^9.2e}'.format(fdata.phi),
-                print '{0:^9.2e}'.format(fmax),
-                print '{0:^9.2e}'.format(gLmax),
-                print '{0:^8.1e}'.format(dmax),
-                print '{0:^8.1e}'.format(pmax),
-                print '{0:^8.1e}'.format(s),
-                print '{0:^7.1e}'.format(self.miu),
-                print '{0:^8s}'.format(reduce(lambda x,y: x+y,self.code)),
+                print('{0:^3d}'.format(self.k), end=' ')
+                print('{0:^9.2e}'.format(fdata.phi), end=' ')
+                print('{0:^9.2e}'.format(fmax), end=' ')
+                print('{0:^9.2e}'.format(gLmax), end=' ')
+                print('{0:^8.1e}'.format(dmax), end=' ')
+                print('{0:^8.1e}'.format(pmax), end=' ')
+                print('{0:^8.1e}'.format(s), end=' ')
+                print('{0:^7.1e}'.format(self.miu), end=' ')
+                print('{0:^8s}'.format(reduce(lambda x,y: x+y,self.code)), end=' ')
                 if self.info_printer:
                     self.info_printer(self,False)
                 else:
-                    print ''
+                    print('')
 
             # Clear code
             self.code = list('----')
@@ -323,7 +325,8 @@ class OptSolverAugL(OptSolver):
                 raise OptSolverError_SmallPenalty(self)
             
             # Check custom terminations
-            map(lambda t: t(self),self.terminations)
+            for t in self.terminations:
+                t(self)
         
             # Search direction
             p = self.compute_search_direction(self.useH)

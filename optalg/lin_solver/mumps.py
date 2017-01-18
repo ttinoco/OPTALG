@@ -6,7 +6,7 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-from lin_solver import LinSolver
+from .lin_solver import LinSolver
 from scipy.sparse import coo_matrix
 
 class LinSolverMUMPS(LinSolver):
@@ -20,7 +20,7 @@ class LinSolverMUMPS(LinSolver):
         """
 
         # Import mumps
-        from _mumps import DMumpsContext
+        from ._mumps import DMumpsContext
         
         # Parent
         LinSolver.__init__(self,prop)

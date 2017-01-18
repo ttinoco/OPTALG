@@ -6,9 +6,10 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
+from __future__ import print_function
 import numpy as np
-from opt_solver_error import *
-from opt_solver import OptSolver
+from .opt_solver_error import *
+from .opt_solver import OptSolver
 from scipy.sparse import bmat
 from optalg.lin_solver import new_linsolver
 
@@ -92,17 +93,17 @@ class OptSolverNR(OptSolver):
             
         # Print header
         if not quiet:
-            print '\nSolver: NR'
-            print '----------'
-            print '{0:^3}'.format('k'),
-            print '{0:^9}'.format('fmax'),
-            print '{0:^9}'.format('gmax'),
-            print '{0:^8}'.format('pmax'),
-            print '{0:^8}'.format('alpha'),
+            print('\nSolver: NR')
+            print('----------')
+            print('{0:^3}'.format('k'), end=' ')
+            print('{0:^9}'.format('fmax'), end=' ')
+            print('{0:^9}'.format('gmax'), end=' ')
+            print('{0:^8}'.format('pmax'), end=' ')
+            print('{0:^8}'.format('alpha'), end=' ')
             if self.info_printer:
                 self.info_printer(self,True)
             else:
-                print ''
+                print('')
 
         # Main loop
         s = 0.         
@@ -111,7 +112,8 @@ class OptSolverNR(OptSolver):
         while True:
             
             # Callbacks
-            map(lambda c: c(self), self.callbacks)
+            for c in self.callbacks:
+                c(self)
             fdata = self.func(self.x)
                         
             # Compute info quantities
@@ -120,15 +122,15 @@ class OptSolverNR(OptSolver):
 
             # Show progress
             if not quiet:
-                print '{0:^3d}'.format(self.k),
-                print '{0:^9.2e}'.format(fmax),
-                print '{0:^9.2e}'.format(gmax),
-                print '{0:^8.1e}'.format(pmax),
-                print '{0:^8.1e}'.format(s),
+                print('{0:^3d}'.format(self.k), end=' ')
+                print('{0:^9.2e}'.format(fmax), end=' ')
+                print('{0:^9.2e}'.format(gmax), end=' ')
+                print('{0:^8.1e}'.format(pmax), end=' ')
+                print('{0:^8.1e}'.format(s), end=' ')
                 if self.info_printer:
                     self.info_printer(self,False)
                 else:
-                    print ''
+                    print('')
                 
             # Check solved
             if fmax < feastol:
@@ -141,7 +143,8 @@ class OptSolverNR(OptSolver):
                 raise OptSolverError_MaxIters(self)
             
             # Check custom terminations
-            map(lambda t: t(self),self.terminations)
+            for t in self.terminations:
+                t(self)
             
             # Search direction
             p = self.linsolver.factorize_and_solve(bmat([[problem.J],[problem.A]]),
