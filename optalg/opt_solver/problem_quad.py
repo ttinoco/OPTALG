@@ -7,7 +7,7 @@
 #****************************************************#
 
 import numpy as np
-from problem import OptProblem
+from .problem import OptProblem
 from scipy.sparse import tril,coo_matrix
 
 class QuadProblem(OptProblem):
@@ -60,10 +60,10 @@ class QuadProblem(OptProblem):
         
     def show(self):
         
-        print '\nQP Problem'
-        print '----------'
-        print 'H shape : (%d,%d)' %(self.H.shape[0],self.H.shape[1])
-        print 'H nnz   : %.2f %%' %(100.*self.H.nnz/(self.H.shape[0]*self.H.shape[1]))
-        print 'A shape : (%d,%d)' %(self.A.shape[0],self.A.shape[1])
-        print 'A nnz   : %.2f %%' %(100.*self.A.nnz/(self.A.shape[0]*self.A.shape[1]))
+        print('\nQP Problem')
+        print('----------')
+        print('H shape : (%d,%d)' %(self.H.shape[0],self.H.shape[1]))
+        print('H nnz   : %.2f %%' %(100.*self.H.nnz/(self.H.shape[0]*self.H.shape[1])))
+        print('A shape : (%d,%d)' %(self.A.shape[0],self.A.shape[1]))
+        print('A nnz   : %.2f %%' %(100.*self.A.nnz/(self.A.shape[0]*self.A.shape[1])))
         

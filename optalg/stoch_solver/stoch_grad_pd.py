@@ -6,21 +6,23 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
+from __future__ import print_function
 import time
 import numpy as np
-from stoch_solver import StochSolver
+from .stoch_solver import StochSolver
 
 class StochGradientPD(StochSolver):
 
     parameters = {'maxiters': 1000,
-                  'period': 50,
+                  'maxtime': 600,
+                  'period': 60,
                   'quiet' : True,
-                  'theta': 1.,
-                  'num_samples': 500,
+                  'theta_lam': 1.,
+                  'theta_x': 1.,
                   'k0': 0,
-                  'tol': 1e-4,
-                  'no_G': False,
-                  'callback': None}
+                  'no_G': False}
+
+    name = 'Primal-Dual Stochastic Gradient'
 
     def __init__(self):
         """
@@ -31,6 +33,8 @@ class StochGradientPD(StochSolver):
         StochSolver.__init__(self)
         self.parameters = StochGradientPD.parameters.copy()
 
+        self.results = []
+
     def solve(self,problem):
 
         # Local vars
@@ -38,42 +42,60 @@ class StochGradientPD(StochSolver):
 
         # Parameters
         maxiters = params['maxiters']
+        maxtime = params['maxtime']
         period = params['period']
         quiet = params['quiet']
-        theta = params['theta']
-        num_samples = params['num_samples']
+        theta_lam = params['theta_lam']
+        theta_x = params['theta_x']
         k0 = params['k0']
-        tol = params['tol']
         no_G = params['no_G']
-        callback = params['callback']
 
         # Header
         if not quiet:
-            print '\nPrimal-Dual Stochastic Gradient'
-            print '-------------------------------'
-            print '{0:^8s}'.format('iter'),
-            print '{0:^10s}'.format('time(s)'),
-            print '{0:^12s}'.format('prop'),
-            print '{0:^12s}'.format('lmax'),
-            print '{0:^12s}'.format('EF_run'),
-            print '{0:^12s}'.format('EGmax_run'),
-            print '{0:^12s}'.format('EF'),
-            print '{0:^12s}'.format('EGmax'),
-            print '{0:^12s}'.format('info')
+            print('\nPrimal-Dual Stochastic Gradient')
+            print('-------------------------------')
+            print('{0:^8s}'.format('iter'), end=' ')
+            print('{0:^10s}'.format('time(s)'), end=' ')
+            print('{0:^10s}'.format('alpha'), end=' ')
+            print('{0:^12s}'.format('prop'), end=' ')
+            print('{0:^12s}'.format('lmax'), end=' ')
+            print('{0:^12s}'.format('EF_run'), end=' ')
+            print('{0:^12s}'.format('EGmax_run'), end=' ')
+            print('{0:^12s}'.format('saved'))
 
         # Init
+        k = 0
+        t1 = 0
         t0 = time.time()
-        self.x = problem.x
+        self.x = problem.get_init_x()
         lam = np.zeros(problem.get_size_lam())
+        self.results = []
         
         # Loop
-        for k in range(maxiters+1):
+        while True:
+
+            # Steplength
+            alpha_lam = theta_lam/(k0+k+1.)
+            alpha_x = theta_x/(k0+k+1.)
+             
+            # Save
+            if time.time()-t0 > t1:
+                self.results.append((k,time.time()-t0,self.x,np.max(lam)))
+                t1 += period
+
+            # Iters
+            if k >= maxiters:
+                break
+                
+            # Maxtime
+            if time.time()-t0 >= maxtime:
+                break
             
             # Sample
             w = problem.sample_w()
             
             # Eval
-            F,gF,G,JG = problem.eval_FG(self.x,w,tol=tol)
+            F,gF,G,JG = problem.eval_FG(self.x,w)
             
             # Lagrangian subgradient
             gL = gF + JG.T*lam
@@ -83,34 +105,29 @@ class StochGradientPD(StochSolver):
                 EF_run = F
                 EG_run = G.copy()
             else:
-                EF_run += 0.05*(F-EF_run)
-                EG_run += 0.05*(G-EG_run)
+                EF_run += alpha_x*(F-EF_run)
+                EG_run += alpha_lam*(G-EG_run)
             
             # Show progress
-            if k % period == 0:
-                t1 = time.time()
-                if callback:
-                    callback(self.x)
-                if not quiet:
-                    print '{0:^8d}'.format(k),
-                    print '{0:^10.2f}'.format(t1-t0),
-                    print '{0:^12.5e}'.format(problem.get_prop_x(self.x)),
-                    print '{0:^12.5e}'.format(np.max(lam)),
-                    print '{0:^12.5e}'.format(EF_run),
-                    print '{0:^12.5e}'.format(np.max(EG_run)),
-                    EF,EgF,EG,EJG,info = problem.eval_EFG(self.x,samples=num_samples,tol=tol,info=True)
-                    print '{0:^12.5e}'.format(EF),
-                    print '{0:^12.5e}'.format(np.max(EG)),
-                    print '{0:^12.5e}'.format(info)
-                t0 += time.time()-t1
+            if not quiet:
+                print('{0:^8d}'.format(k), end=' ')
+                print('{0:^10.2f}'.format(time.time()-t0), end=' ')
+                print('{0:^10.2e}'.format(np.maximum(alpha_x,alpha_lam)), end=' ')
+                print('{0:^12.5e}'.format(problem.get_prop_x(self.x)), end=' ')
+                print('{0:^12.5e}'.format(np.max(lam)), end=' ')
+                print('{0:^12.5e}'.format(EF_run), end=' ')
+                print('{0:^12.5e}'.format(np.max(EG_run)), end=' ')
+                print('{0:^12d}'.format(len(self.results)))
             
             # Update
-            alpha_x = theta/(k0+k+1.)
-            alpha_lam = theta/(k0+k+1.)
             self.x = problem.project_x(self.x - alpha_x*gL)
             if not no_G:
                 lam = problem.project_lam(lam + alpha_lam*G)
+            k += 1
 
+    def get_results(self):
+
+        return self.results
         
     
             

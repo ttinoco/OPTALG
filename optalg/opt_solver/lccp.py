@@ -6,9 +6,10 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
+from __future__ import print_function
 import numpy as np
-from opt_solver_error import *
-from opt_solver import OptSolver
+from .opt_solver_error import *
+from .opt_solver import OptSolver
 from optalg.lin_solver import new_linsolver
 from scipy.sparse import bmat,triu,eye,spdiags,coo_matrix,tril
 
@@ -18,12 +19,13 @@ class OptSolverLCCP(OptSolver):
     """
     
     # Solver parameters
-    parameters = {'tol': 1e-4,        # optimality tolerance
-                  'maxiter': 1000,    # max iterations
-                  'sigma': 0.1,       # factor for increasing subproblem solution accuracy
-                  'eps': 1e-5,       # boundary proximity factor 
-                  'eps_cold': 1e-2,   # boundary proximity factor (cold start)
-                  'quiet': False}     # quiet flag
+    parameters = {'tol': 1e-4,            # optimality tolerance
+                  'maxiter': 1000,        # max iterations
+                  'sigma': 0.1,           # factor for increasing subproblem solution accuracy
+                  'eps': 1e-6,            # boundary proximity factor 
+                  'eps_cold': 1e-2,       # boundary proximity factor (cold start)
+                  'linsolver': 'default', # linear solver
+                  'quiet': False}         # quiet flag
 
     def __init__(self):
         """
@@ -32,7 +34,7 @@ class OptSolverLCCP(OptSolver):
         
         # Init
         OptSolver.__init__(self)
-        self.parameters = OptSolverLCCP.parameters.copy()                
+        self.parameters = OptSolverLCCP.parameters.copy()
         self.linsolver = None
         self.problem = None
 
@@ -114,7 +116,7 @@ class OptSolverLCCP(OptSolver):
         eps_cold = parameters['eps_cold']
         
         # Linsolver
-        self.linsolver = new_linsolver('superlu','symmetric')
+        self.linsolver = new_linsolver(parameters['linsolver'],'symmetric')
         
         # Problem
         self.problem = problem
@@ -168,8 +170,8 @@ class OptSolverLCCP(OptSolver):
 
         # Header
         if not quiet:
-            print '\nSolver: LCCP'
-            print '------------'
+            print('\nSolver: LCCP')
+            print('------------')
                                    
         # Outer
         s = 0.
@@ -198,15 +200,15 @@ class OptSolverLCCP(OptSolver):
             # Header
             if not quiet:
                 if self.k > 0:
-                    print ''
-                print '{0:^3s}'.format('iter'),
-                print '{0:^9s}'.format('phi'),
-                print '{0:^9s}'.format('fmax'),
-                print '{0:^9s}'.format('gmax'),
-                print '{0:^8s}'.format('cu'),
-                print '{0:^8s}'.format('cl'),
-                print '{0:^8s}'.format('s'),
-                print '{0:^8s}'.format('pmax')
+                    print('')
+                print('{0:^3s}'.format('iter'), end=' ')
+                print('{0:^9s}'.format('phi'), end=' ')
+                print('{0:^9s}'.format('fmax'), end=' ')
+                print('{0:^9s}'.format('gmax'), end=' ')
+                print('{0:^8s}'.format('cu'), end=' ')
+                print('{0:^8s}'.format('cl'), end=' ')
+                print('{0:^8s}'.format('s'), end=' ')
+                print('{0:^8s}'.format('pmax'))
  
             # Inner
             while True:
@@ -220,14 +222,14 @@ class OptSolverLCCP(OptSolver):
                 
                 # Show progress
                 if not quiet:
-                    print '{0:^3d}'.format(self.k),
-                    print '{0:^9.2e}'.format(problem.phi),
-                    print '{0:^9.2e}'.format(fmax),
-                    print '{0:^9.2e}'.format(gmax),
-                    print '{0:^8.1e}'.format(compu),
-                    print '{0:^8.1e}'.format(compl),
-                    print '{0:^8.1e}'.format(s),
-                    print '{0:^8.1e}'.format(pmax)
+                    print('{0:^3d}'.format(self.k), end=' ')
+                    print('{0:^9.2e}'.format(problem.phi), end=' ')
+                    print('{0:^9.2e}'.format(fmax), end=' ')
+                    print('{0:^9.2e}'.format(gmax), end=' ')
+                    print('{0:^8.1e}'.format(compu), end=' ')
+                    print('{0:^8.1e}'.format(compl), end=' ')
+                    print('{0:^8.1e}'.format(s), end=' ')
+                    print('{0:^8.1e}'.format(pmax))
                 
                 # Done
                 if gmax < tau:

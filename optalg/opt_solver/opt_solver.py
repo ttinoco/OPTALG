@@ -7,7 +7,7 @@
 #****************************************************#
 
 import numpy as np
-from opt_solver_error import *
+from .opt_solver_error import *
 
 class OptSolver:
 
@@ -203,7 +203,7 @@ class OptSolver:
             raise OptSolverError_BadSearchDir(self)
 
         # Bisection
-        for i in xrange(0,maxiter):
+        for i in range(0,maxiter):
             
             xsp = x+s*p
             
@@ -275,8 +275,8 @@ class OptSolver:
         parameters : dict
         """
         
-        for key,value in parameters.items():
-            if self.parameters.has_key(key):
+        for key,value in list(parameters.items()):
+            if key in self.parameters:
                 self.parameters[key] = value
 
     def set_status(self,status):

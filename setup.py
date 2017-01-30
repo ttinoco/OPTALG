@@ -22,7 +22,7 @@ else:
                                  extra_link_args=[]))
 
 setup(name='OPTALG',
-      version='1.0',
+      version='1.1',
       description='Optimization Algorithms',
       author='Tomas Tinoco De Rubira',
       author_email='ttinoco5687@gmail.com',
@@ -34,4 +34,5 @@ setup(name='OPTALG',
                 'optalg.stoch_solver'],
       install_requires=['scipy',
                         'numpy',
+                        'dill',
                         'multiprocess'])
