@@ -82,20 +82,29 @@ class TestOptSolvers(unittest.TestCase):
             self.assertEqual(IQP.get_status(),'solved')
             xIQP = IQP.get_primal_variables()
             lamIQP,nuIQP,muIQP,piIQP = IQP.get_dual_variables()
-
+            
             AugL.solve(prob)
             self.assertEqual(AugL.get_status(),'solved')
             xAugL = AugL.get_primal_variables()
             lamAugL,nuAugL,muAugL,piAugL = AugL.get_dual_variables()
 
+            IPOPT.solve(prob)
+            self.assertEqual(IPOPT.get_status(),'solved')
+            xIPOPT = IPOPT.get_primal_variables()
+            lamIPOPT,nuIPOPT,muIPOPT,piIPOPT = IPOPT.get_dual_variables()
+
             self.assertTrue(np.all(xIQP == xIQP))
             self.assertFalse(np.all(xIQP == xAugL))
-            self.assertLess(100*norm(xAugL-xIQP)/norm(xAugL),1e-5)
+            self.assertFalse(np.all(xIQP == xIPOPT))
+            self.assertLess(100*norm(xAugL-xIQP)/norm(xIQP),1e-5)
+            self.assertLess(100*norm(xIPOPT-xIQP)/norm(xIQP),1e-5)
 
             if m > 0:
                 self.assertTrue(np.all(lamIQP == lamIQP))
-                self.assertFalse(np.all(lamIQP == lamAugL))            
-                self.assertLess(100*norm(lamAugL-lamIQP)/norm(lamAugL),1e-5)
+                self.assertFalse(np.all(lamIQP == lamAugL))
+                self.assertFalse(np.all(lamIQP == lamIPOPT))
+                self.assertLess(100*norm(lamAugL-lamIQP)/norm(lamIQP),1e-5)
+                self.assertLess(100*norm(lamIPOPT-lamIQP)/norm(lamIQP),1e-5)
 
             prob.eval(xIQP)
             objIQP = prob.phi
@@ -103,9 +112,11 @@ class TestOptSolvers(unittest.TestCase):
             prob.eval(xAugL)
             objAugL = prob.phi
 
+            prob.eval(xIPOPT)
+            objIPOPT = prob.phi
+
             self.assertNotEqual(objIQP,objAugL)
-            self.assertLess(100*np.abs(objIQP-objAugL)/np.abs(objAugL),1e-5)
+            self.assertNotEqual(objIQP,objIPOPT)
+            self.assertLess(100*np.abs(objIQP-objAugL)/np.abs(objIQP),1e-5)
+            self.assertLess(100*np.abs(objIQP-objIPOPT)/np.abs(objIQP),1e-5)
             
-            # IPOPT
-            IPOPT.solve(prob)
-            break

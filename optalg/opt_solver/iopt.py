@@ -26,12 +26,14 @@ class OptSolverIPOPT(OptSolver):
         self.parameters = OptSolverIPOPT.parameters.copy()
         self.problem = None
 
-    def create_problem_obj(self,problem):
+    def create_ipopt_problem(self,problem):
+
+        # Imports
+        import ipopt
 
         class P:
 
-            def __init__(self,prob):
-                
+            def __init__(self,prob):                
                 self.prob = prob
                 self.x_last = np.NaN*np.ones(prob.get_num_primal_variables())
 
@@ -75,18 +77,20 @@ class OptSolverIPOPT(OptSolver):
             def hessianstructure(self):
                 self.prob.combine_H(np.zeros(self.prob.get_num_linear_equality_constraints()))
                 return (np.concatenate((self.prob.Hphi.row,self.prob.H_combined.row)),
-                           np.concatenate((self.prob.Hphi.col,self.prob.H_combined.col)))
+                        np.concatenate((self.prob.Hphi.col,self.prob.H_combined.col)))
+
+        n = problem.get_num_primal_variables()
+        m = problem.get_num_linear_equality_constraints()+problem.get_num_nonlinear_equality_constraints()
+
+        return ipopt.problem(n=n,
+                             m=m,
+                             problem_obj=P(problem),
+                             lb=problem.l,
+                             ub=problem.u,
+                             cl=np.zeros(m),
+                             cu=np.zeros(m))
                 
-            #def intermediate(self,alg_mod,iter_count,obj_value,inf_pr,inf_du,mu,d_norm,reg_size,alpha_du,alpha_pr,ls_trials):
-
-            #pass
-
-        return P(problem)
-        
     def solve(self,problem):
-
-        # Imports
-        import ipopt
         
         # Local vars
         params = self.parameters
@@ -97,34 +101,33 @@ class OptSolverIPOPT(OptSolver):
 
         # Problem
         self.problem = problem
-        n = problem.get_num_primal_variables()
-        m = problem.get_num_linear_equality_constraints()+problem.get_num_nonlinear_equality_constraints()
-        ipopt_problem = ipopt.problem(n=n,
-                                      m=m,
-                                      problem_obj=self.create_problem_obj(problem),
-                                      lb=problem.l,
-                                      ub=problem.u,
-                                      cl=np.zeros(m),
-                                      cu=np.zeros(m))
+        self.ipopt_problem = self.create_ipopt_problem(problem)
 
         # Options
-        ipopt_problem.addOption('tol',tol)
-        ipopt_problem.addOption('print_level',0 if quiet else 1)
+        self.ipopt_problem.addOption('tol',tol)
+        self.ipopt_problem.addOption('print_level',0 if quiet else 5)
 
         # Reset
         self.reset()
 
-        # Init poin
+        # Init point
         if problem.x is not None:
             x0 = problem.x
         else:
             x0 = (problem.u+problem.l)/2
                 
         # Solve
-        x,info = ipopt_problem.solve(x0)
+        x,info = self.ipopt_problem.solve(x0)
 
-        #print(info['status'])
-        #print(info['status_msg'])
-        #print(info['obj_val'])
-        
-        
+        # Save
+        self.x = x
+        self.lam = -info['mult_g'][:problem.get_num_linear_equality_constraints()]
+        self.nu = -info['mult_g'][problem.get_num_linear_equality_constraints():]
+        self.pi = info['mult_x_L']
+        self.mu = info['mult_x_U']
+        if info['status'] == 0:
+            self.set_status(self.STATUS_SOLVED)
+            self.set_error_msg('')
+        else:
+            raise OptSolverError_IPOPT(self)
+            

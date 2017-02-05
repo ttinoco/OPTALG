@@ -17,6 +17,10 @@ class OptSolverError(Exception):
     def __str__(self):
         return str(self.value)
 
+class OptSolverError_IPOPT(OptSolverError):    
+    def __init__(self,solver=None):
+        OptSolverError.__init__(self,solver,'IPOPT failed')
+
 class OptSolverError_LineSearch(OptSolverError):    
     def __init__(self,solver=None):
         OptSolverError.__init__(self,solver,'line search failed')
