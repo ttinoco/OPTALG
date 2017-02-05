@@ -184,8 +184,8 @@ class OptSolverAugL(OptSolver):
         if problem.x is not None:
             self.x = problem.x.copy()
         else:
-            raise OptSolverError_BadInitPoint(self)
-
+            self.x = np.zeros(problem.get_num_primal_variables())
+            
         # Init dual
         if problem.lam is not None:
             self.lam = problem.lam.copy()

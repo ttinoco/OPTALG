@@ -59,6 +59,9 @@ class TestOptSolvers(unittest.TestCase):
 
         AugL = opt.opt_solver.OptSolverAugL()
         AugL.set_parameters({'quiet': True})
+
+        IPOPT = opt.opt_solver.OptSolverIPOPT()
+        IPOPT.set_parameters({'quiet': True})
             
         for i in range(20):
             
@@ -73,8 +76,8 @@ class TestOptSolvers(unittest.TestCase):
             l = -1e8*np.ones(n)
             u = 1e8*np.ones(n)
             
-            prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u,x=np.zeros(n))
-
+            prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u)
+            
             IQP.solve(prob)
             self.assertEqual(IQP.get_status(),'solved')
             xIQP = IQP.get_primal_variables()
@@ -103,3 +106,6 @@ class TestOptSolvers(unittest.TestCase):
             self.assertNotEqual(objIQP,objAugL)
             self.assertLess(100*np.abs(objIQP-objAugL)/np.abs(objAugL),1e-5)
             
+            # IPOPT
+            IPOPT.solve(prob)
+            break

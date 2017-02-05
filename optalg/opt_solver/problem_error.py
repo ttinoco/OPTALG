@@ -6,13 +6,16 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-from .problem import OptProblem
-from .problem_quad import QuadProblem
-from .iqp import OptSolverIQP
-from .iopt import OptSolverIPOPT
-from .augl import OptSolverAugL
-from .nr import OptSolverNR
-from .lccp import OptSolverLCCP
-from .lccp_cvxopt import OptSolverLCCP_CVXOPT
-from .opt_solver_error import OptSolverError
-from .opt_solver import OptSolver,OptCallback,OptTermination
+class OptProblemError(Exception):
+    
+    def __init__(self,value):
+        self.value = value
+        
+    def __str__(self):
+        return str(self.value)
+
+class OptProblemError_InvalidDataDimensions(OptProblemError):    
+    def __init__(self):
+        OptProblemError.__init__(self,'invalid data dimemnesions')
+
+
