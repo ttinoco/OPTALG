@@ -1,7 +1,7 @@
 #*****************************************************#
 # This file is part of GRIDOPT.                       #
 #                                                     #
-# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.    #
+# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.    #
 #                                                     #
 # GRIDOPT is released under the BSD 2-clause license. #
 #*****************************************************#
@@ -13,14 +13,16 @@ from numpy.linalg import norm
 from scipy.sparse import coo_matrix
 
 class TestOptSolvers(unittest.TestCase):
-    
+   
+    def setUp(self):
+
+        np.random.seed(2)
+         
     def test_iqp_random(self):
         
         solver = opt.opt_solver.OptSolverIQP()
         solver.set_parameters({'tol': 1e-8,
                                'quiet': True})
-
-        np.random.seed(2)
 
         for i in range(10):
 
@@ -50,4 +52,54 @@ class TestOptSolvers(unittest.TestCase):
             self.assertTrue(norm(mu*(u-x),np.inf),eps)
             self.assertTrue(norm(pi*(x-l),np.inf),eps)
             
+    def test_solvers_in_QPs(self):
+
+        IQP = opt.opt_solver.OptSolverIQP()
+        IQP.set_parameters({'quiet': True})
+
+        AugL = opt.opt_solver.OptSolverAugL()
+        AugL.set_parameters({'quiet': True})
+            
+        for i in range(20):
+            
+            n = 50
+            m = 10 if i%2 == 0 else 0
+            p = 20
+            A = coo_matrix(np.random.randn(m,n))
+            b = np.random.randn(m)
+            g = np.random.randn(n)
+            B = np.matrix(np.random.randn(p,n))
+            H = coo_matrix(B.T*B+1e-5*np.eye(n))
+            l = -1e8*np.ones(n)
+            u = 1e8*np.ones(n)
+            
+            prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u,x=np.zeros(n))
+
+            IQP.solve(prob)
+            self.assertEqual(IQP.get_status(),'solved')
+            xIQP = IQP.get_primal_variables()
+            lamIQP,nuIQP,muIQP,piIQP = IQP.get_dual_variables()
+
+            AugL.solve(prob)
+            self.assertEqual(AugL.get_status(),'solved')
+            xAugL = AugL.get_primal_variables()
+            lamAugL,nuAugL,muAugL,piAugL = AugL.get_dual_variables()
+
+            self.assertTrue(np.all(xIQP == xIQP))
+            self.assertFalse(np.all(xIQP == xAugL))
+            self.assertLess(100*norm(xAugL-xIQP)/norm(xAugL),1e-5)
+
+            if m > 0:
+                self.assertTrue(np.all(lamIQP == lamIQP))
+                self.assertFalse(np.all(lamIQP == lamAugL))            
+                self.assertLess(100*norm(lamAugL-lamIQP)/norm(lamAugL),1e-5)
+
+            prob.eval(xIQP)
+            objIQP = prob.phi
+
+            prob.eval(xAugL)
+            objAugL = prob.phi
+
+            self.assertNotEqual(objIQP,objAugL)
+            self.assertLess(100*np.abs(objIQP-objAugL)/np.abs(objAugL),1e-5)
             

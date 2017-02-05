@@ -44,6 +44,10 @@ class QuadProblem(OptProblem):
         self.u = u
         self.l = l
 
+        self.f = np.zeros(0)
+        self.J = coo_matrix((0,H.shape[0]))
+        self.H_combined = coo_matrix(H.shape)
+
         self.x = x
         
         self.lam = lam
@@ -51,8 +55,21 @@ class QuadProblem(OptProblem):
         self.pi = pi
 
         # Check data
-        # TODO
-        
+        assert(H.shape[0] == H.shape[1])
+        assert(H.shape[0] == A.shape[1])
+        assert(b.size == A.shape[0])
+        assert(u.size == l.size)
+        if x is not None:
+            assert(x.size == H.shape[0])
+            assert(x.size == A.shape[1])
+            assert(x.size == l.size)
+        if lam is not None:
+            assert(lam.size == A.shape[0])
+        if mu is not None:
+            assert(mu.size == u.size)
+        if pi is not None:
+            assert(pi.size == u.size)
+ 
     def eval(self,x):
 
         self.phi = 0.5*np.dot(x,self.H*x) + np.dot(self.g,x)

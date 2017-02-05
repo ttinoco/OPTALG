@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -57,11 +57,27 @@ class OptProblem:
 
         #: Lagrande multipliers for lower limits 
         self.pi = None 
+
+    def combine_H(self, coeff, ensure_psd=False):
+        """
+        Forms and saves a linear combination of the individual constraint Hessians.
+
+        Parameters
+        ----------
+        coeff : vector
+        ensure_psd : {``True``,``False``}
+        """
+        
+        pass
         
     def eval(self,x):
         """
         Evaluates the objective value and constraints
         at the give point.
+
+        Parameters
+        ----------
+        x : vector
         """
 
         pass
