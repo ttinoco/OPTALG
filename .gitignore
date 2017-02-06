@@ -9,3 +9,10 @@ build/*
 *__pycache__*
 .pyc
 
+# Shared objects
+.so
+
+# Cython C
+_dmumps.c
+cipopt.c
+

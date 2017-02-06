@@ -1,0 +1,121 @@
+#****************************************************#
+# This file is part of OPTALG.                       #
+#                                                    #
+# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+#                                                    #
+# OPTALG is released under the BSD 2-clause license. #
+#****************************************************#
+
+from __future__ import print_function
+import numpy as np
+from .opt_solver_error import *
+from .opt_solver import OptSolver
+from scipy.sparse import bmat
+
+class OptSolverIPOPT(OptSolver):
+    
+    parameters = {'tol': 1e-7,
+                  'quiet':False} # flag for omitting output
+    
+    def __init__(self):
+        """
+        Interior point nonlinear optimization algorithm.
+        """
+        
+        OptSolver.__init__(self)
+        self.parameters = OptSolverIPOPT.parameters.copy()
+        self.problem = None
+
+    def create_ipopt_problem(self,problem):
+
+        # Imports
+        import _ipopt
+
+        def eval_f(x):
+            problem.eval(x)
+            return problem.phi
+
+        def eval_grad_f(x):
+            problem.eval(x)
+            return problem.gphi
+
+        def eval_g(x):
+            problem.eval(x)
+            return np.hstack((problem.A*x-problem.b,problem.f))
+
+        def eval_jac_g(x,flag):
+            if flag:
+                J = bmat([[problem.A],[problem.J]],format='coo')
+                return J.row,J.col
+            else:
+                problem.eval(x)
+                return bmat([[problem.A],[problem.J]],format='coo').data
+
+        def eval_h(x,lam,obj_factor,flag):
+            if flag:
+                problem.combine_H(np.zeros(problem.get_num_linear_equality_constraints()))
+                return (np.concatenate((problem.Hphi.row,problem.H_combined.row)),
+                        np.concatenate((problem.Hphi.col,problem.H_combined.col)))
+            else:
+                problem.eval(x)
+                lamA = lam[:problem.get_num_linear_equality_constraints()]
+                lamf = lam[problem.get_num_linear_equality_constraints():]
+                problem.combine_H(lamf)
+                return np.concatenate((obj_factor*(problem.Hphi.data),problem.H_combined.data))
+
+        n = problem.get_num_primal_variables()
+        m = problem.get_num_linear_equality_constraints()+problem.get_num_nonlinear_equality_constraints()
+
+        return _ipopt.Problem(n,
+                              m,
+                              problem.l,
+                              problem.u,
+                              np.zeros(m),
+                              np.zeros(m),
+                              eval_f,
+                              eval_g,
+                              eval_grad_f,
+                              eval_jac_g,
+                              eval_h)
+                
+    def solve(self,problem):
+        
+        # Local vars
+        params = self.parameters
+        
+        # Parameters
+        quiet = params['quiet']
+        tol = params['tol']
+
+        # Problem
+        self.problem = problem
+        self.ipopt_problem = self.create_ipopt_problem(problem)
+
+        # Options
+        #self.ipopt_problem.addOption('tol',tol)
+        #self.ipopt_problem.addOption('print_level',0 if quiet else 5)
+
+        # Reset
+        self.reset()
+
+        # Init point
+        if problem.x is not None:
+            x0 = problem.x
+        else:
+            x0 = (problem.u+problem.l)/2
+                
+        # Solve
+        results = self.ipopt_problem.solve(x0)
+
+        # Save
+        self.x = results['x']
+        self.lam = -results['lam'][:problem.get_num_linear_equality_constraints()]
+        self.nu = -results['lam'][problem.get_num_linear_equality_constraints():]
+        self.pi = results['pi']
+        self.mu = results['mu']
+        if results['status'] == 0:
+            self.set_status(self.STATUS_SOLVED)
+            self.set_error_msg('')
+        else:
+            raise OptSolverError_IPOPT(self)
+            

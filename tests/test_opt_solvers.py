@@ -119,4 +119,3 @@ class TestOptSolvers(unittest.TestCase):
             self.assertNotEqual(objIQP,objIPOPT)
             self.assertLess(100*np.abs(objIQP-objAugL)/np.abs(objIQP),1e-5)
             self.assertLess(100*np.abs(objIQP-objIPOPT)/np.abs(objIQP),1e-5)
-            
