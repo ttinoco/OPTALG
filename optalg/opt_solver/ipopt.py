@@ -7,6 +7,8 @@
 #****************************************************#
 
 from __future__ import print_function
+import os
+import sys
 import numpy as np
 from .opt_solver_error import *
 from .opt_solver import OptSolver
@@ -26,7 +28,7 @@ class OptSolverIPOPT(OptSolver):
         self.parameters = OptSolverIPOPT.parameters.copy()
         self.problem = None
 
-    def create_ipopt_problem(self,problem):
+    def create_ipopt_context(self,problem):
 
         # Imports
         import _ipopt
@@ -66,17 +68,17 @@ class OptSolverIPOPT(OptSolver):
         n = problem.get_num_primal_variables()
         m = problem.get_num_linear_equality_constraints()+problem.get_num_nonlinear_equality_constraints()
 
-        return _ipopt.Problem(n,
-                              m,
-                              problem.l,
-                              problem.u,
-                              np.zeros(m),
-                              np.zeros(m),
-                              eval_f,
-                              eval_g,
-                              eval_grad_f,
-                              eval_jac_g,
-                              eval_h)
+        return _ipopt.IpoptContext(n,
+                                   m,
+                                   problem.l,
+                                   problem.u,
+                                   np.zeros(m),
+                                   np.zeros(m),
+                                   eval_f,
+                                   eval_g,
+                                   eval_grad_f,
+                                   eval_jac_g,
+                                   eval_h)
                 
     def solve(self,problem):
         
@@ -89,11 +91,11 @@ class OptSolverIPOPT(OptSolver):
 
         # Problem
         self.problem = problem
-        self.ipopt_problem = self.create_ipopt_problem(problem)
+        self.ipopt_context = self.create_ipopt_context(problem)
 
         # Options
-        #self.ipopt_problem.addOption('tol',tol)
-        #self.ipopt_problem.addOption('print_level',0 if quiet else 5)
+        self.ipopt_context.add_option('tol',tol)
+        self.ipopt_context.add_option('print_level',0 if quiet else 5)
 
         # Reset
         self.reset()
@@ -105,7 +107,15 @@ class OptSolverIPOPT(OptSolver):
             x0 = (problem.u+problem.l)/2
                 
         # Solve
-        results = self.ipopt_problem.solve(x0)
+        if quiet:
+            stdout = os.dup(1)
+            devnull = os.open(os.devnull, os.O_WRONLY)
+            os.dup2(devnull, 1)
+            os.close(devnull)
+        results = self.ipopt_context.solve(x0)
+        if quiet: 
+            os.dup2(stdout, 1)
+            os.close(stdout)
 
         # Save
         self.x = results['x']

@@ -1,9 +1,9 @@
 #*****************************************************#
-# This file is part of GRIDOPT.                       #
+# This file is part of OPTALG.                        #
 #                                                     #
 # Copyright (c) 2015-2017, Tomas Tinoco De Rubira.    #
 #                                                     #
-# GRIDOPT is released under the BSD 2-clause license. #
+# OPTALG is released under the BSD 2-clause license.  #
 #*****************************************************#
 
 import unittest
@@ -52,7 +52,9 @@ class TestOptSolvers(unittest.TestCase):
             self.assertTrue(norm(mu*(u-x),np.inf),eps)
             self.assertTrue(norm(pi*(x-l),np.inf),eps)
             
-    def test_solvers_in_QPs(self):
+    def test_solvers_on_QPs(self):
+
+        eps = 0.5
 
         IQP = opt.opt_solver.OptSolverIQP()
         IQP.set_parameters({'quiet': True})
@@ -63,7 +65,7 @@ class TestOptSolvers(unittest.TestCase):
         IPOPT = opt.opt_solver.OptSolverIPOPT()
         IPOPT.set_parameters({'quiet': True})
             
-        for i in range(20):
+        for i in range(30):
             
             n = 50
             m = 10 if i%2 == 0 else 0
@@ -73,8 +75,12 @@ class TestOptSolvers(unittest.TestCase):
             g = np.random.randn(n)
             B = np.matrix(np.random.randn(p,n))
             H = coo_matrix(B.T*B+1e-5*np.eye(n))
-            l = -1e8*np.ones(n)
-            u = 1e8*np.ones(n)
+            if i%3 == 0:
+                l = np.random.randn(n)
+                u = l+20*np.random.rand(n)
+            else:
+                l = -1e8*np.ones(n)
+                u = 1e8*np.ones(n)
             
             prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u)
             
@@ -87,7 +93,7 @@ class TestOptSolvers(unittest.TestCase):
             self.assertEqual(AugL.get_status(),'solved')
             xAugL = AugL.get_primal_variables()
             lamAugL,nuAugL,muAugL,piAugL = AugL.get_dual_variables()
-
+            
             IPOPT.solve(prob)
             self.assertEqual(IPOPT.get_status(),'solved')
             xIPOPT = IPOPT.get_primal_variables()
@@ -96,15 +102,25 @@ class TestOptSolvers(unittest.TestCase):
             self.assertTrue(np.all(xIQP == xIQP))
             self.assertFalse(np.all(xIQP == xAugL))
             self.assertFalse(np.all(xIQP == xIPOPT))
-            self.assertLess(100*norm(xAugL-xIQP)/norm(xIQP),1e-5)
-            self.assertLess(100*norm(xIPOPT-xIQP)/norm(xIQP),1e-5)
+            if i%3 != 0:
+                self.assertLess(100*norm(xAugL-xIQP)/(norm(xIQP)+eps),eps)
+            self.assertLess(100*norm(xIPOPT-xIQP)/(norm(xIQP)+eps),eps)
 
             if m > 0:
                 self.assertTrue(np.all(lamIQP == lamIQP))
                 self.assertFalse(np.all(lamIQP == lamAugL))
                 self.assertFalse(np.all(lamIQP == lamIPOPT))
-                self.assertLess(100*norm(lamAugL-lamIQP)/norm(lamIQP),1e-5)
-                self.assertLess(100*norm(lamIPOPT-lamIQP)/norm(lamIQP),1e-5)
+                if i%3 != 0:
+                    self.assertLess(100*norm(lamAugL-lamIQP)/(norm(lamIQP)+eps),eps)
+                self.assertLess(100*norm(lamIPOPT-lamIQP)/(norm(lamIQP)+eps),eps)
+
+            self.assertTrue(np.all(muIQP == muIQP))
+            self.assertFalse(np.all(muIQP == muIPOPT))
+            self.assertLess(100*norm(muIPOPT-muIQP)/(norm(muIQP)+eps),eps)
+
+            self.assertTrue(np.all(piIQP == piIQP))
+            self.assertFalse(np.all(piIQP == piIPOPT))
+            self.assertLess(100*norm(piIPOPT-piIQP)/(norm(piIQP)+eps),eps)
 
             prob.eval(xIQP)
             objIQP = prob.phi
@@ -117,5 +133,6 @@ class TestOptSolvers(unittest.TestCase):
 
             self.assertNotEqual(objIQP,objAugL)
             self.assertNotEqual(objIQP,objIPOPT)
-            self.assertLess(100*np.abs(objIQP-objAugL)/np.abs(objIQP),1e-5)
-            self.assertLess(100*np.abs(objIQP-objIPOPT)/np.abs(objIQP),1e-5)
+            if i%3 != 0:
+                self.assertLess(100*np.abs(objIQP-objAugL)/(np.abs(objIQP)+eps),eps)
+            self.assertLess(100*np.abs(objIQP-objIPOPT)/(np.abs(objIQP)+eps),eps)
