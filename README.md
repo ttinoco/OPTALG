@@ -1,4 +1,4 @@
-# OPTALG: Optimization Algorithms Package #
+# OPTALG #
 
 ## Overview ##
 
@@ -28,7 +28,7 @@ The latest version of the package can be obtained from https://github.com/ttinoc
 * [Scipy](http://www.scipy.org) (>=0.13.3)
 * [Dill](https://pypi.python.org/pypi/dill) (>=0.2.5) 
 * [MUMPS](http://mumps-solver.org) (==4.10) (Optional)
-* [Ipopt](https://projects.coin-or.org/Ipopt) (Optional)
+* [Ipopt](https://projects.coin-or.org/Ipopt) (>=3.12.6) (Optional)
  
 ## Contributors ##
 
