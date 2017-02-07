@@ -9,10 +9,10 @@
 from .problem import OptProblem
 from .problem_quad import QuadProblem
 from .iqp import OptSolverIQP
-from .ipopt import OptSolverIPOPT
+from .ipopt import OptSolverIpopt
 from .augl import OptSolverAugL
 from .nr import OptSolverNR
 from .lccp import OptSolverLCCP
 from .lccp_cvxopt import OptSolverLCCP_CVXOPT
 from .opt_solver_error import OptSolverError
-from .opt_solver import OptSolver,OptCallback,OptTermination
+from .opt_solver import OptSolver, OptCallback, OptTermination

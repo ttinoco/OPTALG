@@ -62,8 +62,8 @@ class TestOptSolvers(unittest.TestCase):
         AugL = opt.opt_solver.OptSolverAugL()
         AugL.set_parameters({'quiet': True})
 
-        IPOPT = opt.opt_solver.OptSolverIPOPT()
-        IPOPT.set_parameters({'quiet': True})
+        Ipopt = opt.opt_solver.OptSolverIpopt()
+        Ipopt.set_parameters({'quiet': True})
             
         for i in range(30):
             
@@ -94,33 +94,33 @@ class TestOptSolvers(unittest.TestCase):
             xAugL = AugL.get_primal_variables()
             lamAugL,nuAugL,muAugL,piAugL = AugL.get_dual_variables()
             
-            IPOPT.solve(prob)
-            self.assertEqual(IPOPT.get_status(),'solved')
-            xIPOPT = IPOPT.get_primal_variables()
-            lamIPOPT,nuIPOPT,muIPOPT,piIPOPT = IPOPT.get_dual_variables()
+            Ipopt.solve(prob)
+            self.assertEqual(Ipopt.get_status(),'solved')
+            xIpopt = Ipopt.get_primal_variables()
+            lamIpopt,nuIpopt,muIpopt,piIpopt = Ipopt.get_dual_variables()
 
             self.assertTrue(np.all(xIQP == xIQP))
             self.assertFalse(np.all(xIQP == xAugL))
-            self.assertFalse(np.all(xIQP == xIPOPT))
+            self.assertFalse(np.all(xIQP == xIpopt))
             if i%3 != 0:
                 self.assertLess(100*norm(xAugL-xIQP)/(norm(xIQP)+eps),eps)
-            self.assertLess(100*norm(xIPOPT-xIQP)/(norm(xIQP)+eps),eps)
+            self.assertLess(100*norm(xIpopt-xIQP)/(norm(xIQP)+eps),eps)
 
             if m > 0:
                 self.assertTrue(np.all(lamIQP == lamIQP))
                 self.assertFalse(np.all(lamIQP == lamAugL))
-                self.assertFalse(np.all(lamIQP == lamIPOPT))
+                self.assertFalse(np.all(lamIQP == lamIpopt))
                 if i%3 != 0:
                     self.assertLess(100*norm(lamAugL-lamIQP)/(norm(lamIQP)+eps),eps)
-                self.assertLess(100*norm(lamIPOPT-lamIQP)/(norm(lamIQP)+eps),eps)
+                self.assertLess(100*norm(lamIpopt-lamIQP)/(norm(lamIQP)+eps),eps)
 
             self.assertTrue(np.all(muIQP == muIQP))
-            self.assertFalse(np.all(muIQP == muIPOPT))
-            self.assertLess(100*norm(muIPOPT-muIQP)/(norm(muIQP)+eps),eps)
+            self.assertFalse(np.all(muIQP == muIpopt))
+            self.assertLess(100*norm(muIpopt-muIQP)/(norm(muIQP)+eps),eps)
 
             self.assertTrue(np.all(piIQP == piIQP))
-            self.assertFalse(np.all(piIQP == piIPOPT))
-            self.assertLess(100*norm(piIPOPT-piIQP)/(norm(piIQP)+eps),eps)
+            self.assertFalse(np.all(piIQP == piIpopt))
+            self.assertLess(100*norm(piIpopt-piIQP)/(norm(piIQP)+eps),eps)
 
             prob.eval(xIQP)
             objIQP = prob.phi
@@ -128,11 +128,11 @@ class TestOptSolvers(unittest.TestCase):
             prob.eval(xAugL)
             objAugL = prob.phi
 
-            prob.eval(xIPOPT)
-            objIPOPT = prob.phi
+            prob.eval(xIpopt)
+            objIpopt = prob.phi
 
             self.assertNotEqual(objIQP,objAugL)
-            self.assertNotEqual(objIQP,objIPOPT)
+            self.assertNotEqual(objIQP,objIpopt)
             if i%3 != 0:
                 self.assertLess(100*np.abs(objIQP-objAugL)/(np.abs(objIQP)+eps),eps)
-            self.assertLess(100*np.abs(objIQP-objIPOPT)/(np.abs(objIQP)+eps),eps)
+            self.assertLess(100*np.abs(objIQP-objIpopt)/(np.abs(objIQP)+eps),eps)

@@ -14,7 +14,7 @@ from .opt_solver_error import *
 from .opt_solver import OptSolver
 from scipy.sparse import bmat
 
-class OptSolverIPOPT(OptSolver):
+class OptSolverIpopt(OptSolver):
     
     parameters = {'tol': 1e-7,
                   'quiet':False} # flag for omitting output
@@ -25,7 +25,7 @@ class OptSolverIPOPT(OptSolver):
         """
         
         OptSolver.__init__(self)
-        self.parameters = OptSolverIPOPT.parameters.copy()
+        self.parameters = OptSolverIpopt.parameters.copy()
         self.problem = None
 
     def create_ipopt_context(self,problem):
@@ -127,5 +127,5 @@ class OptSolverIPOPT(OptSolver):
             self.set_status(self.STATUS_SOLVED)
             self.set_error_msg('')
         else:
-            raise OptSolverError_IPOPT(self)
+            raise OptSolverError_Ipopt(self)
             
