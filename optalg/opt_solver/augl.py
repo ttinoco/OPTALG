@@ -112,7 +112,6 @@ class OptSolverAugL(OptSolver):
         ATz = AT*z
 
         fdata.fTf = fTf
-
         fdata.rTr = rTr
         
         fdata.phi = phi
@@ -213,10 +212,7 @@ class OptSolverAugL(OptSolver):
         fdata = self.func(self.x)
                     
         # Init penalty parameter
-        if fdata.phi == 0.:
-            self.miu = 1.
-        else:
-            self.miu = 0.5*kappa*(fdata.fTf+fdata.rTr)/fdata.phi
+        self.miu = 0.5*kappa*(fdata.fTf+fdata.rTr)/np.maximum(np.abs(fdata.phi),1.)
         self.miu = np.minimum(np.maximum(self.miu,miu_init_min),miu_init_max)
         fdata = self.func(self.x)
         
