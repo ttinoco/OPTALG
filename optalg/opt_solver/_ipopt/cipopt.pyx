@@ -15,10 +15,15 @@ cimport cipopt
 
 np.import_array()
 
+cdef extern from "numpy/arrayobject.h":
+     void PyArray_ENABLEFLAGS(np.ndarray arr, int flags)
+     void PyArray_CLEARFLAGS(np.ndarray arr, int flags)
+
 cdef ArrayDouble(double* a, int size):
      cdef np.npy_intp shape[1]
      shape[0] = <np.npy_intp> size
      arr = np.PyArray_SimpleNewFromData(1,shape,np.NPY_DOUBLE,a)
+     PyArray_CLEARFLAGS(arr,np.NPY_OWNDATA)
      return arr
 
 class IpoptContextError(Exception):

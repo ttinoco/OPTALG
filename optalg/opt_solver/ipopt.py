@@ -30,8 +30,8 @@ class OptSolverIpopt(OptSolver):
         self.problem = None
 
     def create_ipopt_context(self):
-
-        # Imports
+        
+        # Import
         import _ipopt
 
         # Problem
@@ -43,7 +43,7 @@ class OptSolverIpopt(OptSolver):
         def eval_f(x):
             problem.eval(x)
             return problem.phi
-
+            
         def eval_grad_f(x):
             problem.eval(x)
             return problem.gphi
@@ -75,14 +75,10 @@ class OptSolverIpopt(OptSolver):
         n = problem.get_num_primal_variables()
         m = problem.get_num_linear_equality_constraints()+problem.get_num_nonlinear_equality_constraints()
 
-        # Bounds
-        l = -inf*np.ones(n) if problem.l is None else problem.l.copy()
-        u = inf*np.ones(n) if problem.u is None else problem.u.copy()
-
         return _ipopt.IpoptContext(n,
                                    m,
-                                   l,
-                                   u,
+                                   problem.l,
+                                   problem.u,
                                    np.zeros(m),
                                    np.zeros(m),
                                    eval_f,
@@ -130,8 +126,8 @@ class OptSolverIpopt(OptSolver):
 
         # Save
         self.x = results['x'].copy()
-        self.lam = -results['lam'][:problem.get_num_linear_equality_constraints()]
-        self.nu = -results['lam'][problem.get_num_linear_equality_constraints():]
+        self.lam = -results['lam'][:problem.get_num_linear_equality_constraints()].copy()
+        self.nu = -results['lam'][problem.get_num_linear_equality_constraints():].copy()
         self.pi = results['pi'].copy()
         self.mu = results['mu'].copy()
         if results['status'] == 0:

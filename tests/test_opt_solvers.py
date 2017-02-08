@@ -55,17 +55,17 @@ class TestOptSolvers(unittest.TestCase):
     def test_solvers_on_QPs(self):
 
         eps = 0.5
-
-        IQP = opt.opt_solver.OptSolverIQP()
-        IQP.set_parameters({'quiet': True})
-
-        AugL = opt.opt_solver.OptSolverAugL()
-        AugL.set_parameters({'quiet': True})
-
-        Ipopt = opt.opt_solver.OptSolverIpopt()
-        Ipopt.set_parameters({'quiet': True})
             
         for i in range(30):
+
+            IQP = opt.opt_solver.OptSolverIQP()
+            IQP.set_parameters({'quiet': True})
+
+            AugL = opt.opt_solver.OptSolverAugL()
+            AugL.set_parameters({'quiet': True})
+
+            Ipopt = opt.opt_solver.OptSolverIpopt()
+            Ipopt.set_parameters({'quiet': True})
             
             n = 50
             m = 10 if i%2 == 0 else 0
