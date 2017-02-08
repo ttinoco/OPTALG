@@ -54,10 +54,10 @@ cdef class IpoptContext:
         
         self.n = n
         self.m = m
-        self.l = l
-        self.u = u
-        self.gl = gl
-        self.gu = gu
+        self.l = l.copy()
+        self.u = u.copy()
+        self.gl = gl.copy()
+        self.gu = gu.copy()
         self.eval_f = eval_f
         self.eval_g = eval_g
         self.eval_grad_f = eval_grad_f
@@ -85,9 +85,10 @@ cdef class IpoptContext:
         self.create_problem()
 
     def __dealloc__(self):
-    
+
         if self.problem != NULL:
             cipopt.FreeIpoptProblem(<cipopt.IpoptProblem>self.problem)
+        self.problem = NULL
 
     def add_option(self,key,val):
 
@@ -128,7 +129,7 @@ cdef class IpoptContext:
     def solve(self,x):
 
         cdef UserDataPtr cself = <UserDataPtr>self
-        cdef np.ndarray[double,mode='c'] nx = x
+        cdef np.ndarray[double,mode='c'] nx = x.copy()
         cdef np.ndarray[double,mode='c'] nlam = np.zeros(self.m)
         cdef np.ndarray[double,mode='c'] npi = np.zeros(self.n)
         cdef np.ndarray[double,mode='c'] nmu = np.zeros(self.n)

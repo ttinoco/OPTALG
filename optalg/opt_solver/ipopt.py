@@ -29,10 +29,13 @@ class OptSolverIpopt(OptSolver):
         self.parameters = OptSolverIpopt.parameters.copy()
         self.problem = None
 
-    def create_ipopt_context(self,problem):
+    def create_ipopt_context(self):
 
         # Imports
         import _ipopt
+
+        # Problem
+        problem = self.problem
 
         # Parameters
         inf = self.parameters['inf']
@@ -73,8 +76,8 @@ class OptSolverIpopt(OptSolver):
         m = problem.get_num_linear_equality_constraints()+problem.get_num_nonlinear_equality_constraints()
 
         # Bounds
-        l = -inf*np.ones(n) if problem.l is None else problem.l
-        u = inf*np.ones(n) if problem.u is None else problem.u
+        l = -inf*np.ones(n) if problem.l is None else problem.l.copy()
+        u = inf*np.ones(n) if problem.u is None else problem.u.copy()
 
         return _ipopt.IpoptContext(n,
                                    m,
@@ -99,7 +102,7 @@ class OptSolverIpopt(OptSolver):
 
         # Problem
         self.problem = problem
-        self.ipopt_context = self.create_ipopt_context(problem)
+        self.ipopt_context = self.create_ipopt_context()
 
         # Options
         self.ipopt_context.add_option('tol',tol)
@@ -110,7 +113,7 @@ class OptSolverIpopt(OptSolver):
 
         # Init point
         if problem.x is not None:
-            x0 = problem.x
+            x0 = problem.x.copy()
         else:
             x0 = (problem.u+problem.l)/2
                 
@@ -126,11 +129,11 @@ class OptSolverIpopt(OptSolver):
             os.close(stdout)
 
         # Save
-        self.x = results['x']
+        self.x = results['x'].copy()
         self.lam = -results['lam'][:problem.get_num_linear_equality_constraints()]
         self.nu = -results['lam'][problem.get_num_linear_equality_constraints():]
-        self.pi = results['pi']
-        self.mu = results['mu']
+        self.pi = results['pi'].copy()
+        self.mu = results['mu'].copy()
         if results['status'] == 0:
             self.set_status(self.STATUS_SOLVED)
             self.set_error_msg('')
