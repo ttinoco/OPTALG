@@ -17,6 +17,7 @@ from scipy.sparse import bmat
 class OptSolverIpopt(OptSolver):
     
     parameters = {'tol': 1e-7,
+                  'inf': 1e8,
                   'quiet':False} # flag for omitting output
     
     def __init__(self):
@@ -32,6 +33,9 @@ class OptSolverIpopt(OptSolver):
 
         # Imports
         import _ipopt
+
+        # Parameters
+        inf = self.parameters['inf']
 
         def eval_f(x):
             problem.eval(x)
@@ -51,7 +55,8 @@ class OptSolverIpopt(OptSolver):
                 return J.row,J.col
             else:
                 problem.eval(x)
-                return bmat([[problem.A],[problem.J]],format='coo').data
+                J = bmat([[problem.A],[problem.J]],format='coo')
+                return J.data
 
         def eval_h(x,lam,obj_factor,flag):
             if flag:
@@ -68,10 +73,20 @@ class OptSolverIpopt(OptSolver):
         n = problem.get_num_primal_variables()
         m = problem.get_num_linear_equality_constraints()+problem.get_num_nonlinear_equality_constraints()
 
+        # Check bounds
+        if problem.l is None or problem.l.size == 0:
+            l = -inf*np.ones(n)
+        else:
+            l = problem.l
+        if problem.u is None or problem.u.size == 0:
+            u = inf*np.ones(n)
+        else:
+            u = problem.u
+
         return _ipopt.IpoptContext(n,
                                    m,
-                                   problem.l,
-                                   problem.u,
+                                   l,
+                                   u,
                                    np.zeros(m),
                                    np.zeros(m),
                                    eval_f,

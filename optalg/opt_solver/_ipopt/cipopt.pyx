@@ -51,7 +51,7 @@ cdef class IpoptContext:
     cdef cipopt.IpoptProblem problem
     
     def __init__(self,n,m,l,u,gl,gu,eval_f,eval_g,eval_grad_f,eval_jac_g,eval_h):
-                
+        
         self.n = n
         self.m = m
         self.l = l
@@ -64,19 +64,30 @@ cdef class IpoptContext:
         self.eval_jac_g = eval_jac_g
         self.eval_h = eval_h
 
-        Jrow,Jcol = eval_jac_g(None,True) # x, flag
-        assert(Jrow.size == Jcol.size)
+        self.problem = NULL
+        
+        Jrow,Jcol = eval_jac_g(None,True) # x, flag        
         self.nnzj = Jrow.size
 
         Hrow,Hcol = eval_h(None,None,None,True) # x, lam, obj_factor, flag
-        assert(Hrow.size == Hcol.size)
         self.nnzh = Hrow.size
+        
+        try:
+            assert(l.size == n)
+            assert(u.size == n)
+            assert(gl.size == m)
+            assert(gu.size == m)
+            assert(Jrow.size == Jcol.size)
+            assert(Hrow.size == Hcol.size)
+        except AssertionError:
+            raise IpoptContextError('invalid data dimensions')
 
         self.create_problem()
 
     def __dealloc__(self):
-
-        cipopt.FreeIpoptProblem(self.problem)
+    
+        if self.problem != NULL:
+            cipopt.FreeIpoptProblem(<cipopt.IpoptProblem>self.problem)
 
     def add_option(self,key,val):
 
