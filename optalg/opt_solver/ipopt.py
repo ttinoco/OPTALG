@@ -60,12 +60,11 @@ class OptSolverIpopt(OptSolver):
 
         def eval_h(x,lam,obj_factor,flag):
             if flag:
-                problem.combine_H(np.zeros(problem.get_num_linear_equality_constraints()))
+                problem.combine_H(np.zeros(problem.get_num_nonlinear_equality_constraints()))
                 return (np.concatenate((problem.Hphi.row,problem.H_combined.row)),
                         np.concatenate((problem.Hphi.col,problem.H_combined.col)))
             else:
                 problem.eval(x)
-                lamA = lam[:problem.get_num_linear_equality_constraints()]
                 lamf = lam[problem.get_num_linear_equality_constraints():]
                 problem.combine_H(lamf)
                 return np.concatenate((obj_factor*(problem.Hphi.data),problem.H_combined.data))
@@ -73,15 +72,9 @@ class OptSolverIpopt(OptSolver):
         n = problem.get_num_primal_variables()
         m = problem.get_num_linear_equality_constraints()+problem.get_num_nonlinear_equality_constraints()
 
-        # Check bounds
-        if problem.l is None or problem.l.size == 0:
-            l = -inf*np.ones(n)
-        else:
-            l = problem.l
-        if problem.u is None or problem.u.size == 0:
-            u = inf*np.ones(n)
-        else:
-            u = problem.u
+        # Bounds
+        l = -inf*np.ones(n) if problem.l is None else problem.l
+        u = inf*np.ones(n) if problem.u is None else problem.u
 
         return _ipopt.IpoptContext(n,
                                    m,
