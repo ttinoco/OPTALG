@@ -114,15 +114,7 @@ class OptSolverIpopt(OptSolver):
             x0 = (problem.u+problem.l)/2
                 
         # Solve
-        if quiet:
-            stdout = os.dup(1)
-            devnull = os.open(os.devnull, os.O_WRONLY)
-            os.dup2(devnull, 1)
-            os.close(devnull)
         results = self.ipopt_context.solve(x0)
-        if quiet: 
-            os.dup2(stdout, 1)
-            os.close(stdout)
 
         # Save
         self.x = results['x'].copy()
