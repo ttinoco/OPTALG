@@ -6,6 +6,7 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
+from .lin_solver import LinSolver
 from .mumps import LinSolverMUMPS
 from .superlu import LinSolverSUPERLU
 

@@ -4,7 +4,7 @@
 Optimization Solvers
 ********************
 
-In OPTALG, optimization solvers are objects derived from the :class:`OptSolver <optalg.opt_solver.OptSolver>` class, and optimization problems are objects derived from the :class:`OptProblem <optalg.opt_solver.OptProblem>` class, which represents general problems of the form 
+In OPTALG, optimization solvers are objects of type :class:`OptSolver <optalg.opt_solver.opt_solver.OptSolver>`, and optimization problems are objects of type :class:`OptProblem <optalg.opt_solver.problem.OptProblem>`, which represents general problems of the form 
 
 .. math:: 
    :nowrap:
@@ -13,17 +13,17 @@ In OPTALG, optimization solvers are objects derived from the :class:`OptSolver <
    & \mbox{minimize}   \quad && \varphi(x)     \quad && \\
    & \mbox{subject to} \quad && Ax = b         \quad && : \lambda \\
    &                   \quad && f(x) = 0.      \quad && : \nu \\
-   &                   \quad && l \le x \le u. \quad && : \pi, \mu
+   &                   \quad && l \le x \le u. \quad && : \pi, \mu 
    \end{alignat*}
 
-Before solving a :class:`problem <optalg.opt_solver.OptProblem>` with a specific solver, the solver parameters can be configured using the method :func:`set_parameters() <optalg.opt_solver.OptSolver.set_parameters>`. Then, the :func:`solve() <optalg.opt_solver.OptSolver.method>` method can be invoked with the :class:`problem <optalg.opt_solver.OptProblem>` to be solved as its argument. The status, optimal primal and optimal dual variables can be extracted using the class methods :func:`get_status() <optalg.opt_solver.OptSolver.get_status>`, :func:`get_primal_variables() <optalg.opt_solver.OptSolver.get_primal_variables>`, and :func:`get_dual_variables() <optalg.opt_solver.OptSolver.get_dual_variables>`, respectively.
+Before solving a :class:`problem <optalg.opt_solver.problem.OptProblem>` with a specific solver, the solver parameters can be configured using the method :func:`set_parameters() <optalg.opt_solver.opt_solver.OptSolver.set_parameters>`. Then, the :func:`solve() <optalg.opt_solver.opt_solver.OptSolver.solve>` method can be invoked with the :class:`problem <optalg.opt_solver.problem.OptProblem>` to be solved as its argument. The status, optimal primal variables, and optimal dual variables can be extracted using the class methods :func:`get_status() <optalg.opt_solver.opt_solver.OptSolver.get_status>`, :func:`get_primal_variables() <optalg.opt_solver.opt_solver.OptSolver.get_primal_variables>`, and :func:`get_dual_variables() <optalg.opt_solver.opt_solver.OptSolver.get_dual_variables>`, respectively.
 
 .. _opt_solver_nr:
 
 NR
 ==
 
-This solver solves problems of the form
+This solver, which corresponds to the class :class:`OptSolverNR <optalg.opt_solver.nr.OptSolverNR>`, solves problems of the form
 
 .. math:: 
    :nowrap:
@@ -34,14 +34,14 @@ This solver solves problems of the form
    &                   \quad && f(x) = 0.
    \end{alignat*}
 
-using the Newton-Raphson algorithm.
+using the Newton-Raphson algorithm. It requires the number of variables to be equal to the number of constraints.
 
 .. _opt_solver_iqp:
 
 IQP
 ===
 
-This solver, which is represented by the class :class:`OptSolverIQP <optalg.opt_solver.OptSolverIQP>`, solves convex quadratic problems of the form
+This solver, which corresponds to the class :class:`OptSolverIQP <optalg.opt_solver.iqp.OptSolverIQP>`, solves convex quadratic problems of the form
 
 .. math:: 
    :nowrap:
@@ -52,7 +52,7 @@ This solver, which is represented by the class :class:`OptSolverIQP <optalg.opt_
    &                   \quad && l \le x \le u.          \quad && : \pi, \mu
    \end{alignat*}
 
-using an interior point method. Quadratic problems solved with this solver must be objects derived from the class :class:`QuadProblem <optalg.opt_solver.QuadProblem>`, which is a subclass of :class:`OptProblem <optalg.opt_solver.OptProblem>`. The following example shows how to solve the quadratic problem
+using an interior point method. Quadratic problems solved with this solver must be instances of the class :class:`QuadProblem <optalg.opt_solver.problem_quad.QuadProblem>`, which is a subclass of :class:`OptProblem <optalg.opt_solver.problem.OptProblem>`. The following example shows how to solve the quadratic problem
 
 .. math:: 
    :nowrap:
@@ -64,7 +64,7 @@ using an interior point method. Quadratic problems solved with this solver must 
    &                   \quad && 0.2 \le x_2 \le 0.8
    \end{alignat*}
 
-using the :class:`OptSolverIQP <optalg.opt_solver.OptSolverIQP>` solver::
+using :class:`OptSolverIQP <optalg.opt_solver.iqp.OptSolverIQP>`::
 
   >>> import numpy as np
   >>> from optalg.opt_solver import OptSolverIQP, QuadProblem
@@ -128,7 +128,7 @@ Then, the optimal primal and dual variables can be extracted, and feasibility an
 LCCP
 ====
 
-This solver solves convex linearly-constrained problems of the form
+This solver, which corresponds to the class :class:`OptSolverLCCP <optalg.opt_solver.lccp.OptSolverLCCP>`, solves convex linearly-constrained problems of the form
 
 .. math:: 
    :nowrap:
@@ -146,7 +146,7 @@ using an interior point method.
 AugL
 ====
 
-This solver solves convex or non-convex optimization problems of the form
+This solver, which corresponds to the class :class:`OptSolverAugL <optalg.opt_solver.augl.OptSolverAugL>`, solves optimization problems of the form
 
 .. math:: 
    :nowrap:
@@ -159,3 +159,17 @@ This solver solves convex or non-convex optimization problems of the form
 
 using an Augmented Lagrangian algorithm. It requires the objective function to be strongly convex.
 
+Ipopt
+=====
+
+This is a Python wrapper of the interior-point solver `IPOPT`_. It corresponds to the class :class:`OptSolverIpopt <optalg.opt_solver.ipopt.OptSolverIpopt>`, and solves optimization problems of the form 
+
+.. math:: 
+   :nowrap:
+
+   \begin{alignat*}{3}
+   & \mbox{minimize}   \quad && \varphi(x)     \quad && \\
+   & \mbox{subject to} \quad && Ax = b         \quad && : \lambda \\
+   &                   \quad && f(x) = 0.      \quad && : \nu \\
+   &                   \quad && l \le x \le u. \quad && : \pi, \mu 
+   \end{alignat*}

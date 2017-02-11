@@ -10,7 +10,7 @@ Welcome! This is the documentation for OPTALG, last updated |today|.
 
 **What is OPTALG?**
 
-OPTALG is a Python package with optimization algorithms.
+OPTALG is a Python package that provides algorithms, wrappers, and tools for solving large and sparse optimization problems.
 
 **License**
 
@@ -18,7 +18,7 @@ OPTALG is released under the BSD 2-clause license.
 
 **Contact**
 
-* `Tomas Tinoco De Rubira <http://n.ethz.ch/~tomast/>`_ (principal developer)
+* `Tomas Tinoco De Rubira <http://n.ethz.ch/~tomast/>`_
 
 **Documentation Contents**
 

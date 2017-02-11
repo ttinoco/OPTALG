@@ -2,7 +2,7 @@
 
 ## Overview ##
 
-OPTALG is a Python package that provides optimization algorithms, wrappers and tools for solving large and sparse problems. Currently, it contains the following:
+OPTALG is a Python package that provides algorithms, wrappers, and tools for solving large and sparse optimization problems. Currently, it contains the following:
 
 * Newton-Raphson algorithm for solving systems of equations.
 * Interior-point algorithm for solving convex quadratic problems.
@@ -26,9 +26,9 @@ The latest version of the package can be obtained from https://github.com/ttinoc
 
 * [Numpy](http://www.numpy.org) (>=1.8.2)
 * [Scipy](http://www.scipy.org) (>=0.13.3)
-* [Dill](https://pypi.python.org/pypi/dill) (>=0.2.5) 
-* [MUMPS](http://mumps-solver.org) (==4.10) (Optional)
-* [Ipopt](https://projects.coin-or.org/Ipopt) (>=3.12.6) (Optional)
+* [Dill](https://pypi.python.org/pypi/dill) (>=0.2.5)
+* [MUMPS](http://mumps-solver.org) (==4.10) (optional)
+* [Ipopt](https://projects.coin-or.org/Ipopt) (>=3.12.6) (optional)
  
 ## Contributors ##
 

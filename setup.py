@@ -40,7 +40,7 @@ else:
                                         extra_compile_args=[])])
     
 setup(name='OPTALG',
-      version='1.1',
+      version='1.1.1',
       description='Optimization Algorithms',
       author='Tomas Tinoco De Rubira',
       author_email='ttinoco5687@gmail.com',
