@@ -32,6 +32,14 @@ The OPTALG Python module can be installed using::
 
 from the root directory of the package. If `MUMPS`_ is not available, then the option ``--no_mumps`` should be added to the above command. If `IPOPT`_ is not available, then the option ``--no_ipopt`` should be added to the above command. Otherwise, you need to define an environment variable ``IPOPT`` such that the directories ``IPOPT/lib`` and ``IPOPT/include/coin`` contain the libraries and header files, respectively, needed by `IPOPT`_. 
 
+To test, first execute the command::
+
+  > python setup.py build_ext --inplace
+
+with ``--no_mumps`` or ``--no_ipopt`` if necessary, and then::
+
+  > nosetests -s -v
+
 Example
 =======
 
