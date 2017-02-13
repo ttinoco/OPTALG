@@ -410,3 +410,74 @@ class OptSolverAugL(OptSolver):
         
         self.lam += sol[:self.na]
         self.nu += sol[self.na:self.na+self.nf]
+
+class AugLBounds:
+    """
+    Class for handling bounds as simple nonlinear constraints.
+    """
+ 
+    def __init__(self,n,umin=None,umax=None,eps=1e-4,inf=1e8):
+ 
+        assert(eps > 0.)
+        assert(inf > 0)
+
+        if umin is None:
+            umin = -inf*np.ones(n)
+        if umax is None:
+            umax = inf*np.ones(n)
+
+        assert(umin.size == n)
+        assert(umin.size == umax.size)
+        assert(np.all(umin <= umax))
+
+        self.n = n
+        self.eps = eps
+        self.inf = inf
+        self.umin = umin
+        self.umax = umax
+        self.du = np.maximum(umax-umin,eps)
+
+        self.f = np.zeros(2*self.n)
+
+        self.Jrow = np.array(range(2*self.n))
+        self.Jcol = np.concatenate((range(self.n),range(self.n)))
+        self.Jdata = np.zeros(2*self.n)
+        self.J = coo_matrix((self.Jdata,(self.Jrow,self.Jcol)),
+                                     shape=(2*self.n,self.n))
+        
+        self.Hdata = np.zeros(2*self.n)
+        self.Hcomb_row = np.array(range(self.n))
+        self.Hcomb_col = np.array(range(self.n))
+        self.Hcomb_data = np.zeros(self.n)
+
+        self.H_combined = coo_matrix((self.Hcomb_data,(self.Hcomb_row,self.Hcomb_col)),
+                                     shape=(self.n,self.n))
+
+    def eval(self,u):
+
+        n = self.n
+        eps = self.eps
+        a1 = self.umax-u
+        a2 = u-self.umin
+        b = eps*eps/self.du
+        sqrterm1 = np.sqrt(a1*a1+b*b+eps*eps)
+        sqrterm2 = np.sqrt(a2*a2+b*b+eps*eps)
+        
+        self.f[:n] = a1 + b - sqrterm1
+        self.f[n:] = a2 + b - sqrterm2
+
+        self.Jdata[:n] = -(1-a1/sqrterm1)
+        self.Jdata[n:] = (1-a2/sqrterm2)
+        
+        self.Hdata[:n] = -(b*b+eps*eps)/(sqrterm1*sqrterm1*sqrterm1)
+        self.Hdata[n:] = -(b*b+eps*eps)/(sqrterm2*sqrterm2*sqrterm2)
+        
+    def combine_H(self,coeff,ensure_psd=False):
+
+        n = self.n
+        assert(coeff.size == 2*self.n)
+        coeff1 = coeff[:n]
+        coeff2 = coeff[n:]
+
+        self.Hcomb_data[:] = coeff1*self.Hdata[:n] + coeff2*self.Hdata[n:]
+        

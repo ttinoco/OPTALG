@@ -9,7 +9,6 @@
 import os
 import sys
 import numpy as np
-from Cython.Build import cythonize
 from distutils.core import setup,Extension
 
 ext_modules = []
@@ -18,6 +17,7 @@ ext_modules = []
 if '--no_mumps' in sys.argv:
     sys.argv.remove('--no_mumps')
 else:
+    from Cython.Build import cythonize
     ext_modules += cythonize([Extension(name='optalg.lin_solver._mumps._dmumps',
                                         sources=['./optalg/lin_solver/_mumps/_dmumps.pyx'],
                                         libraries=['dmumps_seq'],
@@ -30,6 +30,7 @@ else:
 if '--no_ipopt' in sys.argv:
     sys.argv.remove('--no_ipopt')
 else:
+    from Cython.Build import cythonize
     ext_modules += cythonize([Extension(name='optalg.opt_solver._ipopt.cipopt',
                                         sources=['./optalg/opt_solver/_ipopt/cipopt.pyx'],
                                         libraries=['ipopt','coinmumps'],
@@ -37,15 +38,6 @@ else:
                                         include_dirs=[np.get_include(),os.getenv('IPOPT')+'/include/coin'],
                                         extra_link_args=[],
                                         extra_compile_args=[])])
-
-# augl 
-ext_modules += cythonize([Extension(name='optalg.opt_solver._augl.caugl',
-                                    sources=['./optalg/opt_solver/_augl/caugl.pyx'],
-                                    libraries=[],
-                                    library_dirs=[],
-                                    include_dirs=[np.get_include()],
-                                    extra_link_args=[],
-                                    extra_compile_args=[])])
     
 setup(name='OPTALG',
       version='1.1.1',
@@ -58,9 +50,7 @@ setup(name='OPTALG',
                 'optalg.lin_solver._mumps',
                 'optalg.opt_solver',
                 'optalg.opt_solver._ipopt',
-                'optalg.opt_solver._augl',
                 'optalg.stoch_solver'],
       requires=['scipy',
                 'numpy',
-                'dill',
-                'cython'])
+                'dill'])

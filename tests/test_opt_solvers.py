@@ -149,3 +149,62 @@ class TestOptSolvers(unittest.TestCase):
                 self.assertLess(100*np.abs(objIQP-objAugL)/(np.abs(objIQP)+eps),eps)
             if has_ipopt:
                 self.assertLess(100*np.abs(objIQP-objIpopt)/(np.abs(objIQP)+eps),eps)
+    
+    def test_augl_bounds(self):
+
+        from optalg.opt_solver.augl import AugLBounds
+
+        h = 1e-7
+        tol = 1.
+
+        bounds = AugLBounds(5)
+        self.assertTrue(np.all(bounds.umin == -bounds.inf*np.ones(5)))
+        self.assertTrue(np.all(bounds.umax == bounds.inf*np.ones(5)))
+
+        for i in range(10):
+            
+            n = 10
+            umin = 10*np.random.randn(n)
+            umax = umin + 10*np.random.rand(n)
+            bounds = AugLBounds(n,umin,umax)
+            self.assertEqual(bounds.eps,1e-4)
+            self.assertEqual(bounds.inf,1e8)
+
+            self.assertEqual(bounds.f.size,2*n)
+            self.assertTupleEqual(bounds.J.shape,(2*n,n))
+            self.assertTupleEqual(bounds.H_combined.shape,(n,n))
+            self.assertTrue(np.all(bounds.f == 0.))
+            self.assertTrue(np.all(bounds.J.data == 0.))
+            self.assertTrue(np.all(bounds.H_combined.data == 0.))
+            self.assertTrue(np.all(bounds.H_combined.row == bounds.H_combined.col))
+            
+            points = [(umin+umax)/2.,
+                      umax+np.random.randn(n)*0.1,
+                      umin+np.random.randn(n)*0.1]
+
+            for x0 in points:
+                                
+                lam = 10.*np.random.randn(2*x0.size)
+                bounds.eval(x0)
+                f0 = bounds.f.copy()
+                J0 = bounds.J.copy()
+                bounds.combine_H(lam)
+                H0 = bounds.H_combined.copy()
+ 
+                for j in range(10):
+                    
+                    d = np.random.randn(n)
+                    x = x0 + h*d
+                    bounds.eval(x)
+
+                    Jd1 = (bounds.f-f0)/h
+                    Jd2 = J0*d
+                    
+                    self.assertLess(100*norm(Jd1-Jd2)/np.maximum(norm(Jd2),1e-5),tol)
+
+                    bounds.combine_H(lam)
+                    
+                    Hd1 = (bounds.J.T*lam-J0.T*lam)/h
+                    Hd2 = H0*d
+                    
+                    self.assertLess(100*norm(Hd1-Hd2)/np.maximum(norm(Hd2),1e-5),tol)
