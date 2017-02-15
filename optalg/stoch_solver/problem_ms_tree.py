@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -9,11 +9,25 @@
 import time
 import numpy as np
 from numpy.linalg import norm
+from .problem_ms import StochProblemMS
 
 class Node:
+    """
+    Scenario tree node class.
+    """
 
     def __init__(self,w,p,parent=None,id=0):
-        
+        """
+        Scenario tree node class.
+
+        Parameters
+        ----------
+        w : random vector
+        p : probability
+        parent : Node
+        id : int
+        """
+ 
         # Save
         self.w = w
         self.p = p
@@ -78,32 +92,32 @@ class Node:
         self.data = data
 
     def show(self):
-
         pass
 
 class StochProblemMS_Tree:
+    """
+    Scenario tree class.
+    """
 
     def __init__(self,problem,branching_factors,cluster=False,num_samples=1000,seed=None):
         """
-        Creates scenario tree for multistage
-        stochastic optimization problem.
+        Scenario tree class.
         
         Parameters
         ----------
         problem : StochProblemMS
-        branching_factors : list
+        branching_factors : list (length T-1)
         cluster : {True,False}
         num_samples : int
         seed : int
         """
 
+        # Init data
         self.problem = problem
         self.branching_factors = branching_factors
         self.cluster = cluster
         self.num_samples = num_samples
         self.construction_time = 0.
-
-        t0 = time.time()
 
         if seed is not None:
             np.random.seed(seed)
@@ -112,13 +126,17 @@ class StochProblemMS_Tree:
             from sklearn.cluster import k_means
       
         T = problem.get_num_stages()
-
-        if branching_factors is None:
-            self.branching_factors = (T-1)*[1]        
+        
+        # Check
+        assert(isinstance(problem,StochProblemMS))
         assert(len(branching_factors) == T-1)
-        assert(all([branching_factors[i] > 0 for i in range(len(branching_factors))]))
- 
-        self.root = Node(problem.sample_w(0,[]),1.,id=0)
+        assert(all([f > 0 for f in branching_factors]))
+
+        # Construct
+        t0 = time.time()
+        self.root = Node(problem.sample_w(0,[]), # realization
+                         1.,                     # probability
+                         id=0)                   # id
         counter = 1
         nodes = [self.root]
         for t in range(1,T):
@@ -138,19 +156,22 @@ class StochProblemMS_Tree:
                     else:
                         w = problem.sample_w(t,observations)
                         p = 1./float(branching_factors[t-1])
-                    node.add_child(Node(w,p,node,id=counter))
+                    node.add_child(Node(w,p,parent=node,id=counter))
                     counter += 1
                 assert(np.abs(sum(map(lambda n: n.get_p(),node.get_children()))-1.) < 1e-12)
                 new_nodes += node.get_children()
             nodes = new_nodes
-        num_nodes = 1
+
+        # Check
         num_curr = 1
+        num_nodes = 1
         for t in range(1,T):
             num_curr = branching_factors[t-1]*num_curr
             num_nodes += num_curr
         assert(num_nodes == counter)
         assert(num_nodes == len(self.get_nodes()))
 
+        # Time
         self.construction_time = time.time()-t0
 
     def check_branch(self,branch):
@@ -204,21 +225,8 @@ class StochProblemMS_Tree:
 
         assert(len(sample) <= self.problem.get_num_stages())
         
-        """
-        t = len(sample)-1
-        nodes = self.get_stage_nodes(t)
-        branches = []
-        for n in nodes:
-            branch = n.get_ancestors()+[n]
-            assert(len(branch) == len(sample))
-            branches.append(branch)
-        sample_vec = np.hstack(sample)
-        branches_vec = map(lambda b: np.hstack(map(lambda n: n.get_w(),b)),branches)
-        return branches[np.argmin(map(lambda b: norm(b-sample_vec),branches_vec))]
-        """
-
-        nodes = [self.root]
         branch = []
+        nodes = [self.root]
         for t in range(len(sample)):
             branch.append(nodes[np.argmin([norm(sample[t]-n.get_w(),np.inf) for n in nodes])])
             nodes = branch[-1].get_children()

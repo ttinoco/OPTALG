@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -11,10 +11,10 @@ class StochProblemMS:
     Represents a stochastic multi-stage optimization problem 
     of the form
     
-    minimize(x)   F_t(x_t,w_t) + E[ Q_{t+1}(x_t,W_{t+1}) | W_t ]
-    subject to    x_t in X(x_{t-1},w_t),
+    minimize(x_t)  F_t(x_t,w_t) + E[ H_{t+1}(x_t,W_{t+1}) | W_t ]
+    subject to     x_t in X(x_{t-1},w_t),
 
-    for t = 0,...,T-1, where Q_{t+1} captures the optimal objective value of
+    for t = 0,...,T-1, where H_{t+1} captures the optimal objective value of
     the next stage for a particular realization of the uncertainty.
     """
 
@@ -24,7 +24,7 @@ class StochProblemMS:
 
         Parameters
         ----------
-        t : int
+        t : {0,...,T-1}
         x : vector
         w : vector
         
@@ -46,9 +46,13 @@ class StochProblemMS:
         
         return 0
 
-    def get_size_x(self):
+    def get_size_x(self,t):
         """
-        Gets size of stage vector x.
+        Gets size of vector x for a given stage.
+
+        Parameters
+        ----------
+        t : {0,...,T-1}
 
         Returns
         -------
@@ -68,7 +72,7 @@ class StochProblemMS:
         
         return None
 
-    def solve_stage_with_cuts(self,t,w,x_prev,A,b,quiet=False,tol=1e-4):
+    def solve_stage_with_cuts(self,t,w,x_prev,A,b,tol=1e-4,quiet=False):
         """
         Solves approximate stage problem for given realization of
         uncertainty and cuts that approximate cost-to-go function.
@@ -80,42 +84,44 @@ class StochProblemMS:
 
         Parameters
         ----------
-        t : int (stage)
+        t : {0,...,T-1}
         w : random vector
         x_prev : vector of previous stage variables
         A : matrix for constructing cuts
         b : vector for contructing cuts
+        tol : solver tolerance
+        quiet : {True,False}        
 
         Results
         -------
         x : stage solution
-        Q : stage cost
-        gQ : stage cost subgradient wrt x_prev
+        H : stage cost
+        gH : stage cost subgradient wrt x_prev
         """
         
         return None,None,None
 
-    def solve_stages(self,t,w_list,x_prev,g_corr=[],tf=None,quiet=False,tol=1e-4):
+    def solve_stages(self,ti,w_list,x_prev,g_list=[],tf=None,tol=1e-4,quiet=False):
         """
         Solves stages using given realizations of uncertainty 
         and cost-to-go slope corrections.
 
         Parameters
         ----------
-        t : int (start stage)
-        w_list : list of random vectors for stage t,...,tf
+        ti : {0,...,T-1}
+        w_list : list of random vectors for stage ti,...,tf
         x_prev : vector of previous stage variables
-        g_corr : list of slope corrections of objective functions for stage t,...,tf
-        tf : int (end stage, last stage by default)
-        quiet : {True,False}
+        g_list : list of slope corrections of objective functions for stage ti,...,tf
+        tf : {0,...,T-1} (T-1 by default)
         tol : float
-        quiet : 
+        quiet : {True,False}
 
         Returns
         -------
         x : stage solution
-        Q : stage cost
-        gQ : stage cost subgradient wrt x_prev
+        H : stage cost
+        gH : stage ti cost subgradient wrt x_prev
+        gH_next : stage ti+1 cost subgradient wrt x
         """
 
         return None,None,None
@@ -126,7 +132,9 @@ class StochProblemMS:
 
         Parameters
         ----------
-        a lot
+        t : {0,...,T-1}
+        x_prev : vector
+        w : vector
 
         Returns
         -------
@@ -142,8 +150,8 @@ class StochProblemMS:
 
         Parameters
         ----------
-        t : int (stage)
-        observations : list
+        t : {0,...,T-1}
+        observations : list (length t)
 
         Parameters
         ----------
@@ -159,11 +167,11 @@ class StochProblemMS:
 
         Parameters
         ----------
-        t : int (stage)
+        t : {0,...,T-1}
 
         Parameters
         ----------
-        W : list
+        W : list (length t+1)
         """
 
         return None
@@ -175,8 +183,8 @@ class StochProblemMS:
 
         Parameters
         ----------
-        t : int (stage)
-        observations : list
+        t : {0,...,T-1}
+        observations : list (length t)
 
         Returns
         -------
@@ -192,11 +200,11 @@ class StochProblemMS:
 
         Parameters
         ----------
-        t : int (stage)
+        t : {0,...,T-1}
 
         Returns
         -------
-        W : list
+        W : list (length t+1)
         """
 
         return None
