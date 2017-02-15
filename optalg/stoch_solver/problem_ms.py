@@ -72,7 +72,7 @@ class StochProblemMS:
         
         return None
 
-    def solve_stage_with_cuts(self,t,w,x_prev,A,b,tol=1e-4,quiet=False):
+    def solve_stage_with_cuts(self,t,w,x_prev,A,b,tol=1e-4,init_data=None,quiet=False):
         """
         Solves approximate stage problem for given realization of
         uncertainty and cuts that approximate cost-to-go function.
@@ -90,38 +90,40 @@ class StochProblemMS:
         A : matrix for constructing cuts
         b : vector for contructing cuts
         tol : solver tolerance
+        init_data : dict (for warm start)
         quiet : {True,False}        
 
         Results
         -------
-        x : stage solution
-        H : stage cost
-        gH : stage cost subgradient wrt x_prev
+        x : stage-t solution
+        H : stage-t cost
+        gH : stage-t cost subgradient wrt x_prev
         """
         
         return None,None,None
 
-    def solve_stages(self,ti,w_list,x_prev,g_list=[],tf=None,tol=1e-4,quiet=False):
+    def solve_stages(self,t,w_list,x_prev,g_list=[],tf=None,tol=1e-4,quiet=False,next=False):
         """
         Solves stages using given realizations of uncertainty 
         and cost-to-go slope corrections.
 
         Parameters
         ----------
-        ti : {0,...,T-1}
-        w_list : list of random vectors for stage ti,...,tf
+        t : {0,...,T-1}
+        w_list : list of random vectors for stage t,...,tf
         x_prev : vector of previous stage variables
-        g_list : list of slope corrections of objective functions for stage ti,...,tf
+        g_list : list of slope corrections of objective functions for stage t,...,tf
         tf : {0,...,T-1} (T-1 by default)
         tol : float
         quiet : {True,False}
+        next : {True,False}
 
         Returns
         -------
-        x : stage solution
-        H : stage cost
-        gH : stage ti cost subgradient wrt x_prev
-        gH_next : stage ti+1 cost subgradient wrt x
+        x : stage-t solution
+        H : stage-t cost
+        gH : stage-t cost subgradient wrt x_prev
+        gHnext : stage-(t+1) cost subgradient wrt x
         """
 
         return None,None,None
@@ -133,6 +135,7 @@ class StochProblemMS:
         Parameters
         ----------
         t : {0,...,T-1}
+        x : vector
         x_prev : vector
         w : vector
 
