@@ -119,7 +119,7 @@ class StochHybridMS:
         problem = self.problem
         T = self.problem.get_num_stages()
         warm_start = self.parameters['warm_start']
-        debug = self.parameters['debug']
+        model = self.parameters['model']
         tol = self.parameters['tol']
 
         # Check
@@ -131,21 +131,40 @@ class StochHybridMS:
         et_vecs = {}
         solutions = {-1 : problem.get_x_prev()}
         for t in range(T):
-                
-            w_list = sample[:t+1]
-            g_list = [corrections[t]]
-            for tau in range(t+1,T):
-                w_list.append(problem.predict_w(tau,w_list))
-                g_list.append(self.g(tau,w_list))
 
-                x,H,gH,gHnext = problem.solve_stages(t,
-                                                     w_list[t:],
-                                                     solutions[t-1],
-                                                     g_list=g_list,
-                                                     quiet=True,
-                                                     tol=tol,
-                                                     next=True)
+            # Zeros
+            z = np.zeros(problem.get_size_x(t))
+            
+            # Dynamic
+            if model == 'dynamic':
+                w_list = sample[:t+1]
+                g_list = [corrections[t]]
+                for tau in range(t+1,T):
+                    w_list.append(problem.predict_w(tau,w_list))
+                    g_list.append(self.g(tau,w_list))
+            
+            # Static
+            elif model == 'static':
+                w_list = sample[:t+1]
+                g_list = [corrections[t]]
+                for tau in range(t+1,T):
+                    w_list.append(problem.predict_w(tau,w_list))
+                    g_list.append(z)
 
+            # Error
+            else:
+                raise ValueError('invalid model')
+
+            # Solve
+            x,H,gH,gHnext = problem.solve_stages(t,
+                                                 w_list[t:],
+                                                 solutions[t-1],
+                                                 g_list=g_list,
+                                                 quiet=True,
+                                                 tol=tol,
+                                                 next=True)
+
+            # Save results
             solutions[t] = x
             xi_vecs[t-1] = gH
             et_vecs[t] = gHnext
@@ -274,9 +293,11 @@ class StochHybridMS:
         
         Returns
         -------
-        policy : 
+        policy : StochProblemMS_Policy
         """
 
+        model = self.parameters['model']
+        
         # Construct policy
         def apply(cls,t,x_prev,W):
 
@@ -284,15 +305,31 @@ class StochHybridMS:
             problem = cls.problem
 
             T = problem.get_num_stages()
+            z = np.zeros(problem.get_size_x(t))
             
             assert(0 <= t < T)
             assert(len(W) == t+1)
+            
+            # Dynamic
+            if model == 'dynamic':
+                w_list = list(W)
+                g_list = [solver.g(t,W)]
+                for tau in range(t+1,T):
+                    w_list.append(problem.predict_w(tau,w_list))
+                    g_list.append(solver.g(tau,w_list))
 
-            w_list = list(W)
-            g_list = [solver.g(t,W)]
-            for tau in range(t+1,T):
-                w_list.append(problem.predict_w(tau,w_list))
-                g_list.append(solver.g(tau,w_list))
+            # Static
+            elif model == 'static':
+                w_list = list(W)
+                g_list = [solver.g(t,W)]
+                for tau in range(t+1,T):
+                    w_list.append(problem.predict_w(tau,w_list))
+                    g_list.append(z)
+
+            # Error
+            else:
+                raise ValueError('invalid model')
+            
             x,H,gH,gHnext = problem.solve_stages(t,
                                                  w_list[t:],
                                                  x_prev,
@@ -308,7 +345,7 @@ class StochHybridMS:
             
         policy = StochProblemMS_Policy(self.problem,
                                        data=self,
-                                       name='Stochastic Hybrid Approximation %d' %self.k,
+                                       name='Stochastic Hybrid Approximation (%s) %d' %(model,self.k),
                                        construction_time=self.time)
         policy.apply = MethodType(apply,policy)
         

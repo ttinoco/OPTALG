@@ -98,6 +98,7 @@ class StochProblemMS:
         x : stage-t solution
         H : stage-t cost
         gH : stage-t cost subgradient wrt x_prev
+        results
         """
         
         return None,None,None
