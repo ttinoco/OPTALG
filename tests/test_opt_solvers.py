@@ -161,6 +161,10 @@ class TestOptSolvers(unittest.TestCase):
         self.assertTrue(np.all(bounds.umin == -bounds.inf*np.ones(5)))
         self.assertTrue(np.all(bounds.umax == bounds.inf*np.ones(5)))
 
+        bounds = AugLBounds(0,np.zeros(0),np.zeros(0))
+        bounds.eval(np.ones(0))
+        bounds.combine_H(np.ones(0))
+
         for i in range(10):
             
             n = 10
