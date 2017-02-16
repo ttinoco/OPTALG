@@ -15,10 +15,11 @@ from types import MethodType
 from numpy.linalg import norm
 from collections import deque
 from scipy.sparse import coo_matrix
+from .stoch_solver import StochSolver
 from .problem_ms import StochProblemMS
 from .problem_ms_policy import StochProblemMS_Policy
 
-class StochHybridMS:
+class StochHybridMS(StochSolver):
     """
     Multi-Stage stochastic hybrid approximation algorithm.
     """
@@ -71,14 +72,14 @@ class StochHybridMS:
         theta = self.parameters['theta']
         k0 = self.parameters['k0']
 
+        # Last stage
+        if t == T-1:
+            return np.zeros(n)
+
         # Checks
         assert(0 <= t < T-1)
         assert(len(W) == t+1)
         assert(len(samples) == len(deltags[t]))
-
-        # Last stage
-        if t == T-1:
-            return np.zeros(n)
 
         # Correction
         corr = np.zeros(n)
@@ -118,7 +119,6 @@ class StochHybridMS:
         # Local variables
         problem = self.problem
         T = self.problem.get_num_stages()
-        warm_start = self.parameters['warm_start']
         model = self.parameters['model']
         tol = self.parameters['tol']
 
@@ -190,6 +190,15 @@ class StochHybridMS:
         gamma = params['gamma']
         key_iters = params['key_iters']
         outdir = params['outdir']
+        model = self.parameters['model']
+
+        # Name
+        if model == 'dynamic':
+            name = 'shD'
+        elif model == 'static':
+            name = 'shS'
+        else:
+            raise ValueError('invalid model')
 
         # Pool
         from multiprocess import Pool
@@ -197,8 +206,8 @@ class StochHybridMS:
  
         # Header
         if not quiet:
-            print('\nMulti-Stage Stochastic Hybrid Approximation')
-            print('---------------------------------------------')
+            print('\nMulti-Stage Stochastic Hybrid Approximation (%s)' %name)
+            print('--------------------------------------------------------')
             print('{0:^8s}'.format('iter'), end=' ')
             print('{0:^12s}'.format('time (min)'), end=' ')
             print('{0:^12s}'.format('dx'), end=' ')            
@@ -220,7 +229,7 @@ class StochHybridMS:
             # Key iter
             if key_iters is not None and self.k in key_iters:
                 policy = self.get_policy()
-                f = open(outdir+'/'+'sh'+str(self.k)+'.policy','w')
+                f = open(outdir+'/'+name+str(self.k)+'.policy','w')
                 dill.dump(policy,f)
                 f.close()
             

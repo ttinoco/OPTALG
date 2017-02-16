@@ -15,6 +15,7 @@ from types import MethodType
 from numpy.linalg import norm
 from scipy.sparse import coo_matrix
 from .stoch_solver import StochSolver
+from .problem_ms import StochProblemMS
 from .problem_ms_policy import StochProblemMS_Policy
 
 class StochDualDynProg(StochSolver):
@@ -56,7 +57,6 @@ class StochDualDynProg(StochSolver):
         problem = self.problem
         tree = self.tree
         T = self.T
-        n = self.n
         tol = self.parameters['tol']
         
         # Solve tree
@@ -108,6 +108,9 @@ class StochDualDynProg(StochSolver):
         problem : StochProblemMS
         tree : StochProbleMS_Tree
         """
+
+        # Check
+        assert(isinstance(problem,StochProblemMS))
         
         # Local vars
         self.problem = problem
@@ -147,8 +150,9 @@ class StochDualDynProg(StochSolver):
         x_prev = np.zeros(problem.get_size_x(0))
         lbound = {tree.root.get_id() : -np.inf}
         ubound = {tree.root.get_id() : np.inf}
-        self.cuts = dict([(node.get_id(),[np.zeros((0,self.n)),np.zeros(0)]) # (A,b) 
-                          for node in tree.get_nodes()])
+        self.cuts = dict([(n.get_id(),
+                           [np.zeros((0,problem.get_size_x(n.get_stage()))),np.zeros(0)]) # (A,b) 
+                          for n in tree.get_nodes()])
 
         # Loop
         while True:
@@ -189,9 +193,10 @@ class StochDualDynProg(StochSolver):
             # Backward pass
             for t in range(self.T-2,-1,-1):
                 node = branch[t]
+                assert(node.get_stage() == t)
                 x = solutions[t]
                 H = 0
-                gH = np.zeros(self.n)
+                gH = np.zeros(problem.get_size_x(t))
                 for n in node.get_children():
                     xn,Hn,gHn,results = problem.solve_stage_with_cuts(t+1,
                                                                       n.get_w(),

@@ -58,6 +58,9 @@ class Node:
             p = self.get_parent()
             return p.get_ancestors()+[p]
 
+    def get_stage(self):
+        return len(self.get_ancestors())
+
     def get_w(self):
         return self.w
 
