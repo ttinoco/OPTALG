@@ -206,8 +206,8 @@ class StochHybridMS(StochSolver):
  
         # Header
         if not quiet:
-            print('\nMulti-Stage Stochastic Hybrid Approximation (%s)' %name)
-            print('--------------------------------------------------------')
+            print('\nMulti-Stage Stochastic Hybrid Approximation')
+            print('-------------------------------------------')
             print('{0:^8s}'.format('iter'), end=' ')
             print('{0:^12s}'.format('time (min)'), end=' ')
             print('{0:^12s}'.format('dx'), end=' ')            
@@ -229,7 +229,7 @@ class StochHybridMS(StochSolver):
             # Key iter
             if key_iters is not None and self.k in key_iters:
                 policy = self.get_policy()
-                f = open(outdir+'/'+name+str(self.k)+'.policy','w')
+                f = open(outdir+'/'+name+('%dg%.1e' %(self.k,gamma))+'.policy','w')
                 dill.dump(policy,f)
                 f.close()
             
@@ -354,8 +354,10 @@ class StochHybridMS(StochSolver):
             
         policy = StochProblemMS_Policy(self.problem,
                                        data=self,
-                                       name='Stochastic Hybrid Approximation (%s) %d' %(model,self.k),
-                                       construction_time=self.time)
+                                       name='SHA',
+                                       construction_time=self.time,
+                                       param1=self.parameters['model'],
+                                       param2=self.parameters['gamma'])
         policy.apply = MethodType(apply,policy)
         
         # Return

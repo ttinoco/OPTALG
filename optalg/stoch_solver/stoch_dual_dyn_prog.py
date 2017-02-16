@@ -277,7 +277,7 @@ class StochDualDynProg(StochSolver):
             
         policy = StochProblemMS_Policy(self.problem,
                                        data=self,
-                                       name='Stochastic Dual Dynamic Programming %d' %self.k,
+                                       name='SDDP',
                                        construction_time=self.time)
         policy.apply = MethodType(apply,policy)
         

@@ -6,6 +6,7 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
+import numpy as np
 from .problem_ms import StochProblemMS
 
 class StochProblemMS_Policy:
@@ -14,7 +15,7 @@ class StochProblemMS_Policy:
     optimization problem.
     """
 
-    def __init__(self,problem,name='',data=None,construction_time=0.):
+    def __init__(self,problem,name='',data=None,construction_time=0.,param1=None,param2=None):
         """
         Operation policy for multistage stochastic
         optimization problem.
@@ -25,6 +26,8 @@ class StochProblemMS_Policy:
         name : string
         data : Object
         construction_time : float (minutes)
+        param1 : 
+        param2 :
         """
 
         assert(isinstance(problem,StochProblemMS))
@@ -33,6 +36,8 @@ class StochProblemMS_Policy:
         self.data = data
         self.problem = problem
         self.construction_time = construction_time
+        self.param1 = param1
+        self.param2 = param2
 
     def get_name(self):
         """
@@ -66,6 +71,28 @@ class StochProblemMS_Policy:
         """
 
         return self.construction_time
+
+    def get_param1(self):
+        """
+        Gets policy parameter 1.
+
+        Return
+        ------
+        param : 
+        """
+
+        return self.param1
+
+    def get_param2(self):
+        """
+        Gets policy parameter 2.
+
+        Return
+        ------
+        param : 
+        """
+
+        return self.param2
 
     def apply(self,t,x_prev,W):
         """
