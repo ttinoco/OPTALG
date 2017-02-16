@@ -8,9 +8,11 @@ This section describes how to get started with OPTALG. In particular, it covers 
 
 .. _start_requirements:
 
-* `Numpy <http://www.numpy.org>`_ (>=1.8.2)
-* `Scipy <http://www.scipy.org>`_ (>=0.13.3)
-* `MUMPS <http://mumps.enseeiht.fr/>`_ (==4.10) (optional)
+* `Numpy`_ (>=1.8.2)
+* `Scipy`_ (>=0.13.3)
+* `Dill`_ (>=0.2.5)
+* `MUMPS`_ (==4.10) (optional)
+* `IPOPT`_ (>=3.12.6) (optional)
 
 .. _start_download:
 
@@ -26,9 +28,17 @@ Installation
 
 The OPTALG Python module can be installed using::
 
-  > sudo python setup.py install
+  > sudo -E python setup.py install
 
-from the root directory of the package. If `MUMPS <http://mumps.enseeiht.fr/>`_ is not available, then the option ``--no_mumps`` should be added to the above command. 
+from the root directory of the package. If `MUMPS`_ is not available, then the option ``--no_mumps`` should be added to the above command. If `IPOPT`_ is not available, then the option ``--no_ipopt`` should be added to the above command. Otherwise, you need to define an environment variable ``IPOPT`` such that the directories ``IPOPT/lib`` and ``IPOPT/include/coin`` contain the libraries and header files, respectively, needed by `IPOPT`_. 
+
+To test, first execute the command::
+
+  > python setup.py build_ext --inplace
+
+with ``--no_mumps`` or ``--no_ipopt`` if necessary, and then::
+
+  > nosetests -s -v
 
 Example
 =======
@@ -37,4 +47,9 @@ As a quick example of how to use OPTALG, consider the task of solving a quadrati
 
   >>> coming soon
 
+.. _Numpy: http://www.numpy.org
+.. _Scipy: http://www.scipy.org
+.. _Dill: https://pypi.python.org/pypi/dill
+.. _MUMPS: http://mumps.enseeiht.fr/
+.. _IPOPT: https://projects.coin-or.org/Ipopt
 

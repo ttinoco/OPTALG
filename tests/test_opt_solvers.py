@@ -1,9 +1,9 @@
 #*****************************************************#
-# This file is part of GRIDOPT.                       #
+# This file is part of OPTALG.                        #
 #                                                     #
-# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.    #
+# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.    #
 #                                                     #
-# GRIDOPT is released under the BSD 2-clause license. #
+# OPTALG is released under the BSD 2-clause license.  #
 #*****************************************************#
 
 import unittest
@@ -13,14 +13,16 @@ from numpy.linalg import norm
 from scipy.sparse import coo_matrix
 
 class TestOptSolvers(unittest.TestCase):
-    
+   
+    def setUp(self):
+
+        np.random.seed(2)
+         
     def test_iqp_random(self):
         
         solver = opt.opt_solver.OptSolverIQP()
         solver.set_parameters({'tol': 1e-8,
                                'quiet': True})
-
-        np.random.seed(2)
 
         for i in range(10):
 
@@ -50,4 +52,100 @@ class TestOptSolvers(unittest.TestCase):
             self.assertTrue(norm(mu*(u-x),np.inf),eps)
             self.assertTrue(norm(pi*(x-l),np.inf),eps)
             
+    def test_solvers_on_QPs(self):
+
+        eps = 0.5
+        
+        IQP = opt.opt_solver.OptSolverIQP()
+        IQP.set_parameters({'quiet': True})
+        
+        AugL = opt.opt_solver.OptSolverAugL()
+        AugL.set_parameters({'quiet': True})
+        
+        Ipopt = opt.opt_solver.OptSolverIpopt()
+        Ipopt.set_parameters({'quiet': True})
             
+        for i in range(30):
+            
+            n = 50
+            m = 10 if i%2 == 0 else 0
+            p = 20
+            A = coo_matrix(np.random.randn(m,n))
+            b = np.random.randn(m)
+            g = np.random.randn(n)
+            B = np.matrix(np.random.randn(p,n))
+            H = coo_matrix(B.T*B+1e-5*np.eye(n))
+            if i%3 == 0:
+                l = np.random.randn(n)
+                u = l+20*np.random.rand(n)
+            else:
+                l = -1e8*np.ones(n)
+                u = 1e8*np.ones(n)
+            
+            prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u)
+            
+            IQP.solve(prob)
+            self.assertEqual(IQP.get_status(),'solved')
+            xIQP = IQP.get_primal_variables()
+            lamIQP,nuIQP,muIQP,piIQP = IQP.get_dual_variables()
+            
+            AugL.solve(prob)
+            self.assertEqual(AugL.get_status(),'solved')
+            xAugL = AugL.get_primal_variables()
+            lamAugL,nuAugL,muAugL,piAugL = AugL.get_dual_variables()
+            
+            try:
+                Ipopt.solve(prob)
+                self.assertEqual(Ipopt.get_status(),'solved')
+                xIpopt = Ipopt.get_primal_variables()
+                lamIpopt,nuIpopt,muIpopt,piIpopt = Ipopt.get_dual_variables()
+                has_ipopt = True
+            except ImportError:
+                has_ipopt = False
+
+            self.assertTrue(np.all(xIQP == xIQP))
+            self.assertFalse(np.all(xIQP == xAugL))
+            if has_ipopt:
+                self.assertFalse(np.all(xIQP == xIpopt))
+            if i%3 != 0:
+                self.assertLess(100*norm(xAugL-xIQP)/(norm(xIQP)+eps),eps)
+            if has_ipopt:
+                self.assertLess(100*norm(xIpopt-xIQP)/(norm(xIQP)+eps),eps)
+
+            if m > 0:
+                self.assertTrue(np.all(lamIQP == lamIQP))
+                self.assertFalse(np.all(lamIQP == lamAugL))
+                if has_ipopt:
+                    self.assertFalse(np.all(lamIQP == lamIpopt))
+                if i%3 != 0:
+                    self.assertLess(100*norm(lamAugL-lamIQP)/(norm(lamIQP)+eps),eps)
+                if has_ipopt:
+                    self.assertLess(100*norm(lamIpopt-lamIQP)/(norm(lamIQP)+eps),eps)
+
+            self.assertTrue(np.all(muIQP == muIQP))
+            if has_ipopt:
+                self.assertFalse(np.all(muIQP == muIpopt))
+                self.assertLess(100*norm(muIpopt-muIQP)/(norm(muIQP)+eps),eps)
+
+            self.assertTrue(np.all(piIQP == piIQP))
+            if has_ipopt:
+                self.assertFalse(np.all(piIQP == piIpopt))
+                self.assertLess(100*norm(piIpopt-piIQP)/(norm(piIQP)+eps),eps)
+
+            prob.eval(xIQP)
+            objIQP = prob.phi
+
+            prob.eval(xAugL)
+            objAugL = prob.phi
+
+            if has_ipopt:
+                prob.eval(xIpopt)
+                objIpopt = prob.phi
+
+            self.assertNotEqual(objIQP,objAugL)
+            if has_ipopt:
+                self.assertNotEqual(objIQP,objIpopt)
+            if i%3 != 0:
+                self.assertLess(100*np.abs(objIQP-objAugL)/(np.abs(objIQP)+eps),eps)
+            if has_ipopt:
+                self.assertLess(100*np.abs(objIQP-objIpopt)/(np.abs(objIQP)+eps),eps)

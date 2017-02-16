@@ -14,3 +14,10 @@ OPTALG.egg-info/
 
 # distribution files
 dist/
+
+# Shared objects
+.so
+
+# Cython C
+_dmumps.c
+cipopt.c

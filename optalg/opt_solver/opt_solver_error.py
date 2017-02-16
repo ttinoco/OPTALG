@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -16,6 +16,10 @@ class OptSolverError(Exception):
         
     def __str__(self):
         return str(self.value)
+
+class OptSolverError_Ipopt(OptSolverError):    
+    def __init__(self,solver=None):
+        OptSolverError.__init__(self,solver,'Ipopt failed')
 
 class OptSolverError_LineSearch(OptSolverError):    
     def __init__(self,solver=None):

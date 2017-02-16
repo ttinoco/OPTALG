@@ -1,5 +1,6 @@
 """
 - Changed "long" to "unsigned long" (Tomas Tinoco De Rubira, 01/11/2014)
+- Separated variable definitions into multipler lines (Tomas Tinoco De Rubira, 06/02/2017)
 """
 
 __all__ = ['DMUMPS_STRUC_C', 'dmumps_c', 'cast_array']
@@ -63,13 +64,29 @@ cdef extern from "dmumps_c.h":
         DMUMPS_REAL    *rowsca
 
         # RHS, solution, ouptput data and statistics
-        DMUMPS_COMPLEX *rhs, *redrhs, *rhs_sparse, *sol_loc
-        MUMPS_INT      *irhs_sparse, *irhs_ptr, *isol_loc
-        MUMPS_INT      nrhs, lrhs, lredrhs, nz_rhs, lsol_loc
-        MUMPS_INT      schur_mloc, schur_nloc, schur_lld
-        MUMPS_INT      mblock, nblock, nprow, npcol
-        MUMPS_INT      info[40],infog[40]
-        DMUMPS_REAL    rinfo[20], rinfog[20]
+        DMUMPS_COMPLEX *rhs
+        DMUMPS_COMPLEX *redrhs
+        DMUMPS_COMPLEX *rhs_sparse
+        DMUMPS_COMPLEX *sol_loc
+        MUMPS_INT      *irhs_sparse 
+        MUMPS_INT      *irhs_ptr
+        MUMPS_INT      *isol_loc
+        MUMPS_INT      nrhs
+        MUMPS_INT      lrhs 
+        MUMPS_INT      lredrhs 
+        MUMPS_INT      nz_rhs 
+        MUMPS_INT      lsol_loc
+        MUMPS_INT      schur_mloc
+        MUMPS_INT      schur_nloc
+        MUMPS_INT      schur_lld
+        MUMPS_INT      mblock
+        MUMPS_INT      nblock
+        MUMPS_INT      nprow
+        MUMPS_INT      npcol
+        MUMPS_INT      info[40]
+        MUMPS_INT      infog[40]
+        DMUMPS_REAL    rinfo[20]
+        DMUMPS_REAL    rinfog[20]
 
         # Null space
         MUMPS_INT      deficiency

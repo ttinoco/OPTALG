@@ -5,10 +5,15 @@ Targets
 
 Unreleased
 ----------
-* Correct handling of l = u in IQP.
 * Correct handling of missing Ax=b in IQP.
+* Correct handling of l = u in IQP.
 * Two-stage stochastic optimization problem class (problem_ts/StochProblemTS)
 * SAA cutting-plane decomposition solvers for StochProblemTS
+
+Version 1.1.1
+-------------
+* IPOPT interface.
+* Unittests comparing IQP, AugL and IPOPT on QPs.
 
 Version 1.1
 -----------

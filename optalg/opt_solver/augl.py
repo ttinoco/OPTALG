@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -20,6 +20,7 @@ class OptSolverAugL(OptSolver):
                   'beta_med':0.5,        # for decreasing miu
                   'beta_small':0.1,      # for decreasing miu
                   'feastol':1e-4,        # feasibility tolerance
+                  'optol':1e-4,          # optimality tolerance
                   'subtol':1e-5,         # for solving subproblem
                   'gamma':0.1,           # for determining required decrease in ||f||
                   'tau':0.1,             # for reductions in ||GradF||
@@ -97,33 +98,36 @@ class OptSolverAugL(OptSolver):
         A = p.A
         r = A*x-p.b
             
-        fTf = np.dot(f,f)
         nuTf = np.dot(nu,f)
         y = (miu*nu-f)
         JT = J.T
         JTnu = JT*nu
         JTy = JT*y
 
-        rTr = np.dot(r,r)
         lamTr = np.dot(lam,r)
         z = (miu*lam-r)
         AT = A.T
         ATlam = AT*lam
         ATz = AT*z
 
-        fdata.fTf = fTf
-
-        fdata.rTr = rTr
+        pres = np.hstack((r,f))
+        dres = gphi-ATlam-JTnu
         
         fdata.phi = phi
         fdata.gphi = gphi
-        
+       
+        fdata.ATlam = ATlam
+        fdata.JTnu = JTnu
+ 
         fdata.f = f
         fdata.r = r
         
-        fdata.F = miu*phi - miu*(nuTf+lamTr) + 0.5*(fTf+rTr)
+        fdata.F = miu*phi - miu*(nuTf+lamTr) + 0.5*np.dot(pres,pres)
         fdata.GradF = miu*gphi - JTy - ATz
-                
+        
+        fdata.pres = pres
+        fdata.dres = dres
+        
         return fdata        
 
     def print_header(self):
@@ -138,10 +142,10 @@ class OptSolverAugL(OptSolver):
                 print('------------')
                 print('{0:^3}'.format('k'), end=' ')
                 print('{0:^9}'.format('phi'), end=' ')
-                print('{0:^9}'.format('fmax'), end=' ')
+                print('{0:^9}'.format('pres'), end=' ')
+                print('{0:^9}'.format('dres'), end=' ')
                 print('{0:^9}'.format('gLmax'), end=' ')
                 print('{0:^8}'.format('dmax'), end=' ')
-                print('{0:^8}'.format('pmax'), end=' ')
                 print('{0:^8}'.format('alpha'), end=' ')
                 print('{0:^7}'.format('miu'), end=' ')
                 print('{0:^8}'.format('code'), end=' ')
@@ -184,8 +188,8 @@ class OptSolverAugL(OptSolver):
         if problem.x is not None:
             self.x = problem.x.copy()
         else:
-            raise OptSolverError_BadInitPoint(self)
-
+            self.x = np.zeros(problem.get_num_primal_variables())
+            
         # Init dual
         if problem.lam is not None:
             self.lam = problem.lam.copy()
@@ -213,10 +217,7 @@ class OptSolverAugL(OptSolver):
         fdata = self.func(self.x)
                     
         # Init penalty parameter
-        if fdata.phi == 0.:
-            self.miu = 1.
-        else:
-            self.miu = 0.5*kappa*(fdata.fTf+fdata.rTr)/fdata.phi
+        self.miu = 0.5*kappa*np.dot(fdata.pres,fdata.pres)/np.maximum(np.abs(fdata.phi),1.)
         self.miu = np.minimum(np.maximum(self.miu,miu_init_min),miu_init_max)
         fdata = self.func(self.x)
         
@@ -224,39 +225,39 @@ class OptSolverAugL(OptSolver):
         self.k = 0
         self.useH = False
         self.code = list('----')
-        fmax_prev = np.maximum(norminf(fdata.f),norminf(fdata.r))
+        pres_prev = norminf(fdata.pres)
         gLmax_prev = norminf(fdata.GradF)
         while True:
                 
             # Solve subproblem
-            sub_solved = self.solve_subproblem(np.maximum(tau*gLmax_prev,subtol))
+            self.solve_subproblem(np.maximum(tau*gLmax_prev,subtol))
 
-            # Dual update
-            self.update_multiplier_estimates()
-            
-            # Check solved
+            # Check done
             if self.is_status_solved():
                 return
+                
+            # Measure progress
+            pres = norminf(fdata.pres)
+            gLmax = norminf(fdata.GradF)
             
             # Penaly update
-            if np.maximum(norminf(fdata.f),norminf(fdata.r)) < np.maximum(gamma*fmax_prev,feastol):
+            if pres < np.maximum(gamma*pres_prev,feastol):
                 self.miu *= beta_large
                 self.code[1] = 'p'
             else:
                 self.miu *= beta_small
                 self.code[1] = 'n'
 
-            # Eval function
-            fdata = self.func(self.x)
+            # Dual update
+            self.update_multiplier_estimates()
 
             # Update refs
-            fmax_prev = np.maximum(norminf(fdata.f),norminf(fdata.r))
-            gLmax_prev = norminf(fdata.GradF)
+            pres_prev = pres
+            gLmax_prev = gLmax
             
     def solve_subproblem(self,delta):
         
         # Local vars
-        fdata = self.fdata
         norm2 = self.norm2
         norminf = self.norminf
         params = self.parameters
@@ -266,6 +267,7 @@ class OptSolverAugL(OptSolver):
         quiet = params['quiet']
         maxiter = params['maxiter']
         feastol = params['feastol']
+        optol = params['optol']
         maxiter = params['maxiter']
         miu_min = params['miu_min']
         beta_med = params['beta_med']
@@ -275,15 +277,18 @@ class OptSolverAugL(OptSolver):
         
         # Print header
         self.print_header()
+
+        # Init eval
+        fdata = self.func(self.x)
         
         # Inner iterations
         i = 0;
-        s = 0.;
-        pmax = 0.;
+        alpha = 0.;
         while True:
             
             # Compute info
-            fmax = np.maximum(norminf(fdata.f),norminf(fdata.r))
+            pres = norminf(fdata.pres)
+            dres = norm2(fdata.dres)/np.maximum(norm2(fdata.gphi)+norm2(fdata.ATlam)+norm2(fdata.JTnu),1.)
             dmax = np.maximum(norminf(self.lam),norminf(self.nu))
             gLmax = norminf(fdata.GradF)
             
@@ -291,11 +296,11 @@ class OptSolverAugL(OptSolver):
             if not quiet:
                 print('{0:^3d}'.format(self.k), end=' ')
                 print('{0:^9.2e}'.format(fdata.phi), end=' ')
-                print('{0:^9.2e}'.format(fmax), end=' ')
+                print('{0:^9.2e}'.format(pres), end=' ')
+                print('{0:^9.2e}'.format(dres), end=' ')
                 print('{0:^9.2e}'.format(gLmax), end=' ')
                 print('{0:^8.1e}'.format(dmax), end=' ')
-                print('{0:^8.1e}'.format(pmax), end=' ')
-                print('{0:^8.1e}'.format(s), end=' ')
+                print('{0:^8.1e}'.format(alpha), end=' ')
                 print('{0:^7.1e}'.format(self.miu), end=' ')
                 print('{0:^8s}'.format(reduce(lambda x,y: x+y,self.code)), end=' ')
                 if self.info_printer:
@@ -307,14 +312,18 @@ class OptSolverAugL(OptSolver):
             self.code = list('----')
 
             # Check solved
-            if fmax < feastol and i != 0:
+            if pres < feastol and dres < optol:
                 self.set_status(self.STATUS_SOLVED)
                 self.set_error_msg('')
-                return True
+                return
+
+            # Check feasibility
+            if pres < feastol and i != 0:
+                return
                 
             # Check subproblem solved
             if gLmax < delta and i != 0:
-                return True
+                return
 
             # Check total maxiters
             if self.k >= maxiter:
@@ -330,15 +339,14 @@ class OptSolverAugL(OptSolver):
         
             # Search direction
             p = self.compute_search_direction(self.useH)
-            pmax = norminf(p)
             
             try:
 
                 # Line search
-                s,fdata = self.line_search(self.x,p,fdata.F,fdata.GradF,self.func,np.inf)
+                alpha,fdata = self.line_search(self.x,p,fdata.F,fdata.GradF,self.func,np.inf)
                 
                 # Update x
-                self.x += s*p
+                self.x += alpha*p
 
             except OptSolverError_LineSearch:
 
@@ -348,7 +356,7 @@ class OptSolverAugL(OptSolver):
                 self.code[3] = 'b'
                 self.useH = False
                 i = 0
-                s = 0.
+                alpha = 0.
 
             # Update iter count
             self.k += 1
@@ -383,7 +391,7 @@ class OptSolverAugL(OptSolver):
         AT = A.T
         JT = J.T
 
-        t = fdata.gphi-AT*self.lam-JT*self.nu
+        t = fdata.gphi-fdata.ATlam-fdata.JTnu
         if problem.A.size:
             W = bmat([[eta*self.Iaa,None,None],
                       [None,eta*self.Iff,None],
