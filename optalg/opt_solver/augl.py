@@ -16,23 +16,22 @@ from functools import reduce
 
 class OptSolverAugL(OptSolver):
     
-    parameters = {'beta_large':0.9,      # for decreasing penalty when progress
-                  'beta_med':0.5,        # for decreasing sigma
-                  'beta_small':0.1,      # for decreasing sigma
-                  'feastol':1e-4,        # feasibility tolerance
-                  'optol':1e-4,          # optimality tolerance
-                  'subtol':1e-5,         # for solving subproblem
-                  'gamma':0.1,           # for determining required decrease in ||f||
-                  'tau':0.1,             # for reductions in ||GradF||
-                  'kappa':1e-4,          # for initializing sigma
-                  'maxiter':300,         # maximum iterations
-                  'sigma_min':1e-12,     # lowest sigma
-                  'sigma_init_min':1e-6, # lowest initial sigma
-                  'sigma_init_max':1e6,  # largest initial sigma
-                  'lam_reg':1e-2,        # eta/sigma ratio for regularization of first order dual update
-                  'subprob_force':10,    # for periodic sigma decrease
-                  'linsolver':'default', # linear solver
-                  'quiet':False}         # flag for omitting output
+    parameters = {'beta_large' : 0.9,      # for decreasing penalty when progress
+                  'beta_med' : 0.5,        # for decreasing sigma
+                  'beta_small' : 0.1,      # for decreasing sigma
+                  'feastol' : 1e-4,        # feasibility tolerance
+                  'optol' : 1e-4,          # optimality tolerance
+                  'gamma' : 0.1,           # for determining required decrease in ||f||
+                  'tau' : 0.1,             # for reductions in ||GradF||
+                  'kappa' : 1e-4,          # for initializing sigma
+                  'maxiter' : 300,         # maximum iterations
+                  'sigma_min' : 1e-12,     # lowest sigma
+                  'sigma_init_min' : 1e-6, # lowest initial sigma
+                  'sigma_init_max' : 1e6,  # largest initial sigma
+                  'lam_reg' : 1e-2,        # eta/sigma ratio for regularization of first order dual update
+                  'subprob_force' : 10,    # for periodic sigma decrease
+                  'linsolver' : 'default', # linear solver
+                  'quiet' : False}         # flag for omitting output
     
     def __init__(self):
         """
@@ -48,11 +47,14 @@ class OptSolverAugL(OptSolver):
 
     def compute_search_direction(self,useH):
 
-        problem = self.problem
         fdata = self.fdata
+        problem = self.problem
+        bounds = self.bounds
 
         sigma = np.maximum(self.sigma,1e-8)
         
+        mupi = np.hstack((self.mu,self.pi))
+
         if useH:
             problem.combine_H(-sigma*self.nu+problem.f,False) # exact Hessian
             self.code[0] = 'h'
@@ -85,16 +87,16 @@ class OptSolverAugL(OptSolver):
     def func(self,x):
         
         # Multipliers
-        lam = self.lam      # linear eq
-        nu = self.nu        # nonlinear eq        
-        mupi = np.hstack((self.mu,self.pi))
+        lam = self.lam                      # linear eq
+        nu = self.nu                        # nonlinear eq        
+        mupi = np.hstack((self.mu,self.pi)) # bounds
 
         # Penalty
-        sigma = self.sigma  # need to change to sigma
+        sigma = self.sigma
 
         # Objects
-        fdata = self.fdata
         p = self.problem
+        fdata = self.fdata
         bounds = self.bounds
 
         # Eval
@@ -149,12 +151,12 @@ class OptSolverAugL(OptSolver):
         fdata.fb = fb
         
         fdata.F = sigma*phi - sigma*(nuTf+lamTr+mupiTfb) + 0.5*np.dot(pres,pres)
-        fdata.GradF = sigma*gphi - JTy - ATz - JbT*w
+        fdata.GradF = sigma*gphi - JTy - ATz - JbTw
         
         fdata.pres = pres
         fdata.dres = dres
         
-        return fdata        
+        return fdata
 
     def print_header(self):
         
@@ -193,7 +195,7 @@ class OptSolverAugL(OptSolver):
         tau = params['tau']
         gamma = params['gamma']
         kappa = params['kappa']
-        subtol = params['subtol']
+        optol = params['optol']
         feastol = params['feastol']
         beta_small = params['beta_small']
         beta_large = params['beta_large']
@@ -269,7 +271,7 @@ class OptSolverAugL(OptSolver):
         while True:
                 
             # Solve subproblem
-            self.solve_subproblem(np.maximum(tau*gLmax_prev,subtol))
+            self.solve_subproblem(np.maximum(tau*gLmax_prev,optol/10.))
 
             # Check done
             if self.is_status_solved():
@@ -300,7 +302,6 @@ class OptSolverAugL(OptSolver):
         norm2 = self.norm2
         norminf = self.norminf
         params = self.parameters
-        problem = self.problem
         
         # Params
         quiet = params['quiet']
@@ -327,7 +328,8 @@ class OptSolverAugL(OptSolver):
             
             # Compute info
             pres = norminf(fdata.pres)
-            dres = norm2(fdata.dres)/np.maximum(norm2(fdata.gphi)+norm2(fdata.ATlam)+norm2(fdata.JTnu),1.)
+            dres_den = np.maximum(norm2(fdata.gphi)+norm2(fdata.ATlam)+norm2(fdata.JTnu)+norm2(fdata.JbTmupi),1.)
+            dres = norm2(fdata.dres)/dres_den
             dmax = np.maximum(norminf(self.lam),norminf(self.nu))
             gLmax = norminf(fdata.GradF)
             
