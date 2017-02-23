@@ -50,33 +50,34 @@ class OptSolverAugL(OptSolver):
         fdata = self.fdata
         problem = self.problem
         bounds = self.bounds
-
+        
         sigma = np.maximum(self.sigma,1e-8)
         
         mupi = np.hstack((self.mu,self.pi))
 
-        if useH:
-            problem.combine_H(-sigma*self.nu+problem.f,False) # exact Hessian
-            self.code[0] = 'h'
-        else:
-            problem.combine_H(-sigma*self.nu+problem.f,True) # ensure pos semidef
-            self.code[0] = 'g'
+        problem.combine_H(-sigma*self.nu+problem.f,not useH) # exact Hessian
+        bounds.combine_H(-sigma*mupi+bounds.f,not useH)      # exact Hessian
+        self.code[0] = 'h' if useH else 'g'
 
         Hfsigma = problem.H_combined/sigma
+        Hfbsigma = bounds.H_combined/sigma
         Hphi = problem.Hphi
-        G = coo_matrix((np.concatenate((Hphi.data,Hfsigma.data)),
-                        (np.concatenate((Hphi.row,Hfsigma.row)),
-                         np.concatenate((Hphi.col,Hfsigma.col)))))
+        G = coo_matrix((np.concatenate((Hphi.data,Hfsigma.data,Hfbsigma.data)),
+                        (np.concatenate((Hphi.row,Hfsigma.row,Hfbsigma.row)),
+                         np.concatenate((Hphi.col,Hfsigma.col,Hfbsigma.col)))))
 
         if problem.A.size:
+            W = bmat([[G,None,None,None],
+                      [problem.J,-sigma*self.Iff,None,None],
+                      [bounds.J,None,-sigma*self.Iffb,None],
+                      [problem.A,None,None,-sigma*self.Iaa]])
+        else:
             W = bmat([[G,None,None],
                       [problem.J,-sigma*self.Iff,None],
-                      [problem.A,None,-sigma*self.Iaa]])
-        else:
-            W = bmat([[G,None],
-                      [problem.J,-sigma*self.Iff]])
+                      [bounds.J,None,-sigma*self.Iffb]])
         b = np.hstack((-fdata.GradF/sigma,
                        self.of,
+                       self.ofb,
                        self.oa))
 
         if not self.linsolver1.is_analyzed():
@@ -250,8 +251,10 @@ class OptSolverAugL(OptSolver):
         self.ox = np.zeros(self.nx)
         self.oa = np.zeros(self.na)
         self.of = np.zeros(self.nf)
+        self.ofb = np.zeros(2*self.nx)
         self.Ixx = eye(self.nx,format='coo')
         self.Iff = eye(self.nf,format='coo')
+        self.Iffb = eye(2*self.nx,format='coo')
         self.Iaa = eye(self.na,format='coo')
         
         # Init eval
@@ -530,9 +533,12 @@ class AugLBounds:
     def combine_H(self,coeff,ensure_psd=False):
 
         n = self.n
-        assert(coeff.size == 2*self.n)
+        assert(coeff.size == 2*n)
         coeff1 = coeff[:n]
         coeff2 = coeff[n:]
 
-        self.Hcomb_data[:] = coeff1*self.Hdata[:n] + coeff2*self.Hdata[n:]
+        if ensure_psd:
+            self.Hcomb_data[:] = np.zeros(2*n)
+        else:
+            self.Hcomb_data[:] = coeff1*self.Hdata[:n] + coeff2*self.Hdata[n:]
         
