@@ -54,13 +54,13 @@ class TestOptSolvers(unittest.TestCase):
             
     def test_solvers_on_QPs(self):
 
-        eps = 0.5
+        eps = 1. # %
         
         IQP = opt.opt_solver.OptSolverIQP()
         IQP.set_parameters({'quiet': True})
         
         AugL = opt.opt_solver.OptSolverAugL()
-        AugL.set_parameters({'quiet': False})
+        AugL.set_parameters({'quiet': True})
         
         Ipopt = opt.opt_solver.OptSolverIpopt()
         Ipopt.set_parameters({'quiet': True})
@@ -74,7 +74,7 @@ class TestOptSolvers(unittest.TestCase):
             b = np.random.randn(m)
             g = np.random.randn(n)
             B = np.matrix(np.random.randn(p,n))
-            H = coo_matrix(B.T*B+1e-5*np.eye(n))
+            H = coo_matrix(B.T*B+1e-3*np.eye(n))
             if i%3 == 0:
                 l = np.random.randn(n)
                 u = l+20*np.random.rand(n)
@@ -88,12 +88,17 @@ class TestOptSolvers(unittest.TestCase):
             self.assertEqual(IQP.get_status(),'solved')
             xIQP = IQP.get_primal_variables()
             lamIQP,nuIQP,muIQP,piIQP = IQP.get_dual_variables()
-            
+
+            #prob.eval(xIQP)
+            #print 'iqp',IQP.get_iterations(),prob.phi
+
             AugL.solve(prob)
             self.assertEqual(AugL.get_status(),'solved')
             xAugL = AugL.get_primal_variables()
             lamAugL,nuAugL,muAugL,piAugL = AugL.get_dual_variables()
-            raw_input()
+            
+            #prob.eval(xAugL)
+            #print 'augl',AugL.get_iterations(),prob.phi
 
             try:
                 Ipopt.solve(prob)
@@ -106,21 +111,17 @@ class TestOptSolvers(unittest.TestCase):
 
             self.assertTrue(np.all(xIQP == xIQP))
             self.assertFalse(np.all(xIQP == xAugL))
+            self.assertLess(100*norm(xAugL-xIQP)/(norm(xIQP)+eps),eps)
             if has_ipopt:
                 self.assertFalse(np.all(xIQP == xIpopt))
-            if i%3 != 0:
-                self.assertLess(100*norm(xAugL-xIQP)/(norm(xIQP)+eps),eps)
-            if has_ipopt:
                 self.assertLess(100*norm(xIpopt-xIQP)/(norm(xIQP)+eps),eps)
 
             if m > 0:
                 self.assertTrue(np.all(lamIQP == lamIQP))
                 self.assertFalse(np.all(lamIQP == lamAugL))
+                self.assertLess(100*norm(lamAugL-lamIQP)/(norm(lamIQP)+eps),eps)
                 if has_ipopt:
                     self.assertFalse(np.all(lamIQP == lamIpopt))
-                if i%3 != 0:
-                    self.assertLess(100*norm(lamAugL-lamIQP)/(norm(lamIQP)+eps),eps)
-                if has_ipopt:
                     self.assertLess(100*norm(lamIpopt-lamIQP)/(norm(lamIQP)+eps),eps)
 
             self.assertTrue(np.all(muIQP == muIQP))
@@ -144,11 +145,9 @@ class TestOptSolvers(unittest.TestCase):
                 objIpopt = prob.phi
 
             self.assertNotEqual(objIQP,objAugL)
+            self.assertLess(100*np.abs(objIQP-objAugL)/(np.abs(objIQP)+eps),eps)
             if has_ipopt:
                 self.assertNotEqual(objIQP,objIpopt)
-            if i%3 != 0:
-                self.assertLess(100*np.abs(objIQP-objAugL)/(np.abs(objIQP)+eps),eps)
-            if has_ipopt:
                 self.assertLess(100*np.abs(objIQP-objIpopt)/(np.abs(objIQP)+eps),eps)
     
     def test_augl_bounds(self):

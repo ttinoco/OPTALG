@@ -17,17 +17,17 @@ from functools import reduce
 class OptSolverAugL(OptSolver):
     
     parameters = {'beta_large' : 0.9,      # for decreasing penalty when progress
-                  'beta_med' : 0.5,        # for decreasing sigma
+                  'beta_med' : 0.6,        # for decreasing sigma
                   'beta_small' : 0.1,      # for decreasing sigma
-                  'feastol' : 1e-4,        # feasibility tolerance
-                  'optol' : 1e-4,          # optimality tolerance
+                  'feastol' : 1e-5,        # feasibility tolerance
+                  'optol' : 1e-5,          # optimality tolerance
                   'gamma' : 0.1,           # for determining required decrease in ||f||
                   'tau' : 0.1,             # for reductions in ||GradF||
-                  'kappa' : 1e-4,          # for initializing sigma
-                  'maxiter' : 300,         # maximum iterations
+                  'kappa' : 1e2,           # for initializing sigma
+                  'maxiter' : 500,         # maximum iterations
                   'sigma_min' : 1e-14,     # lowest sigma
-                  'sigma_init_min' : 1e-6, # lowest initial sigma
-                  'sigma_init_max' : 1e6,  # largest initial sigma
+                  'sigma_init_min' : 1e-8, # lowest initial sigma
+                  'sigma_init_max' : 1e8,  # largest initial sigma
                   'lam_reg' : 1e-2,        # eta/sigma ratio for regularization of first order dual update
                   'subprob_force' : 10,    # for periodic sigma decrease
                   'linsolver' : 'default', # linear solver
@@ -55,8 +55,8 @@ class OptSolverAugL(OptSolver):
         
         mupi = np.hstack((self.mu,self.pi))
 
-        problem.combine_H(-sigma*self.nu+problem.f,not useH) # exact Hessian
-        bounds.combine_H(-sigma*mupi+bounds.f,not useH)      # exact Hessian
+        problem.combine_H(-sigma*self.nu+problem.f,not useH)
+        bounds.combine_H(-sigma*mupi+bounds.f,not useH)
         self.code[0] = 'h' if useH else 'g'
 
         Hfsigma = problem.H_combined/sigma
@@ -87,6 +87,9 @@ class OptSolverAugL(OptSolver):
         
     def func(self,x):
         
+        # Norm
+        norm = self.norminf
+
         # Multipliers
         lam = self.lam                      # linear eq
         nu = self.nu                        # nonlinear eq        
@@ -138,7 +141,8 @@ class OptSolverAugL(OptSolver):
         JbTw = JbT*w
         
         pres = np.hstack((r,f,fb))
-        dres = gphi-ATlam-JTnu-JbTmupi
+        dres = (gphi-ATlam-JTnu-JbTmupi)
+        dres_den = 1.+norm(gphi)+norm(A.data)*norm(lam)+norm(J.data)*norm(nu)+norm(Jb.data)*norm(mupi)
         
         fdata.phi = phi
         fdata.gphi = gphi
@@ -155,7 +159,7 @@ class OptSolverAugL(OptSolver):
         fdata.GradF = sigma*gphi - JTy - ATz - JbTw
         
         fdata.pres = pres
-        fdata.dres = dres
+        fdata.dres = dres/dres_den
         
         return fdata
 
@@ -212,7 +216,7 @@ class OptSolverAugL(OptSolver):
 
         # Reset
         self.reset()
-                
+        
         # Init primal
         if problem.x is not None:
             self.x = problem.x.copy()
@@ -224,26 +228,27 @@ class OptSolverAugL(OptSolver):
             self.lam = problem.lam.copy()
         else:
             self.lam = np.zeros(problem.b.size)
-        if problem.nu is not None:
-            self.nu = problem.nu.copy()
-        else:
-            self.nu = np.zeros(problem.f.size)
-        if problem.pi is not None:
-            self.pi = problem.pi.copy()
-        else:
-            self.pi = np.zeros(self.x.size)
-        if problem.mu is not None:
-            self.mu = problem.mu.copy()
-        else:
-            self.mu = np.zeros(self.x.size)
-        
+            if problem.nu is not None:
+                self.nu = problem.nu.copy()
+            else:
+                self.nu = np.zeros(problem.f.size)
+                if problem.pi is not None:
+                    self.pi = problem.pi.copy()
+                else:
+                    self.pi = np.zeros(self.x.size)
+                    if problem.mu is not None:
+                        self.mu = problem.mu.copy()
+                    else:
+                        self.mu = np.zeros(self.x.size)
+                        
         # Bounds
         self.bounds = AugLBounds(self.x.size,
                                  problem.l,
-                                 problem.u)
+                                 problem.u,
+                                 eps=feastol)
         
         # Constants
-        self.sigma = 1.
+        self.sigma = 0.
         self.code = ''
         self.nx = self.x.size
         self.na = problem.b.size
@@ -259,9 +264,9 @@ class OptSolverAugL(OptSolver):
         
         # Init eval
         fdata = self.func(self.x)
-                    
+        
         # Init penalty parameter
-        self.sigma = 0.5*kappa*np.dot(fdata.pres,fdata.pres)/np.maximum(np.abs(fdata.phi),1.)
+        self.sigma = kappa*norm2(fdata.GradF)/np.maximum(norm2(fdata.gphi),1.)
         self.sigma = np.minimum(np.maximum(self.sigma,sigma_init_min),sigma_init_max)
         fdata = self.func(self.x)
         
@@ -272,9 +277,9 @@ class OptSolverAugL(OptSolver):
         pres_prev = norminf(fdata.pres)
         gLmax_prev = norminf(fdata.GradF)
         while True:
-                
+            
             # Solve subproblem
-            self.solve_subproblem(np.maximum(tau*gLmax_prev,optol/10.))
+            self.solve_subproblem(tau*gLmax_prev)
 
             # Check done
             if self.is_status_solved():
@@ -331,9 +336,8 @@ class OptSolverAugL(OptSolver):
             
             # Compute info
             pres = norminf(fdata.pres)
-            dres_den = np.maximum(norm2(fdata.gphi)+norm2(fdata.ATlam)+norm2(fdata.JTnu)+norm2(fdata.JbTmupi),1.)
-            dres = norm2(fdata.dres)/dres_den
-            dmax = np.maximum(norminf(self.lam),norminf(self.nu))
+            dres = norminf(fdata.dres)
+            dmax = max(map(norminf,[self.lam,self.nu,self.mu,self.pi]))
             gLmax = norminf(fdata.GradF)
             
             # Show info
@@ -360,13 +364,9 @@ class OptSolverAugL(OptSolver):
                 self.set_status(self.STATUS_SOLVED)
                 self.set_error_msg('')
                 return
-
-            # Check feasibility
-            if pres < feastol and i != 0:
-                return
                 
             # Check subproblem solved
-            if gLmax < delta and i != 0:
+            if gLmax < delta:
                 return
 
             # Check total maxiters
@@ -376,11 +376,11 @@ class OptSolverAugL(OptSolver):
             # Check penalty
             if self.sigma < sigma_min:
                 raise OptSolverError_SmallPenalty(self)
-            
+                
             # Check custom terminations
             for t in self.terminations:
                 t(self)
-        
+                
             # Search direction
             p = self.compute_search_direction(self.useH)
             
@@ -406,9 +406,6 @@ class OptSolverAugL(OptSolver):
             self.k += 1
             i += 1
             
-            # Clear H flag
-            tryH = False
-            
             # Maxiter
             if i >= subprob_force:
                 self.sigma *= beta_med
@@ -417,7 +414,7 @@ class OptSolverAugL(OptSolver):
                 self.code[2] = 'f'
                 self.useH = True
                 i = 0
-    
+                
     def update_multiplier_estimates(self):
 
         # Local variables
@@ -488,8 +485,8 @@ class AugLBounds:
 
         if umin is None or not umin.size:
             umin = -inf*np.ones(n)
-        if umax is None or not umax.size:
-            umax = inf*np.ones(n)
+            if umax is None or not umax.size:
+                umax = inf*np.ones(n)
 
         assert(umin.size == n)
         assert(umin.size == umax.size)
@@ -508,7 +505,7 @@ class AugLBounds:
         self.Jcol = np.concatenate((range(self.n),range(self.n)))
         self.Jdata = np.zeros(2*self.n)
         self.J = coo_matrix((self.Jdata,(self.Jrow,self.Jcol)),
-                                     shape=(2*self.n,self.n))
+                            shape=(2*self.n,self.n))
         
         self.Hdata = np.zeros(2*self.n)
         self.Hcomb_row = np.array(range(self.n))
@@ -547,7 +544,7 @@ class AugLBounds:
         coeff2 = coeff[n:]
 
         if ensure_psd:
-            self.Hcomb_data[:] = np.zeros(n)
+            self.Hcomb_data[:] = np.maximum(coeff1,0.)*self.Hdata[:n] + np.maximum(coeff2,0.)*self.Hdata[n:]
         else:
             self.Hcomb_data[:] = coeff1*self.Hdata[:n] + coeff2*self.Hdata[n:]
         
