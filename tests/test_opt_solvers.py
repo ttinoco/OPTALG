@@ -60,7 +60,7 @@ class TestOptSolvers(unittest.TestCase):
         IQP.set_parameters({'quiet': True})
         
         AugL = opt.opt_solver.OptSolverAugL()
-        AugL.set_parameters({'quiet': True})
+        AugL.set_parameters({'quiet': False})
         
         Ipopt = opt.opt_solver.OptSolverIpopt()
         Ipopt.set_parameters({'quiet': True})
@@ -93,7 +93,8 @@ class TestOptSolvers(unittest.TestCase):
             self.assertEqual(AugL.get_status(),'solved')
             xAugL = AugL.get_primal_variables()
             lamAugL,nuAugL,muAugL,piAugL = AugL.get_dual_variables()
-            
+            raw_input()
+
             try:
                 Ipopt.solve(prob)
                 self.assertEqual(Ipopt.get_status(),'solved')

@@ -25,7 +25,7 @@ class OptSolverAugL(OptSolver):
                   'tau' : 0.1,             # for reductions in ||GradF||
                   'kappa' : 1e-4,          # for initializing sigma
                   'maxiter' : 300,         # maximum iterations
-                  'sigma_min' : 1e-12,     # lowest sigma
+                  'sigma_min' : 1e-14,     # lowest sigma
                   'sigma_init_min' : 1e-6, # lowest initial sigma
                   'sigma_init_max' : 1e6,  # largest initial sigma
                   'lam_reg' : 1e-2,        # eta/sigma ratio for regularization of first order dual update
@@ -51,7 +51,7 @@ class OptSolverAugL(OptSolver):
         problem = self.problem
         bounds = self.bounds
         
-        sigma = np.maximum(self.sigma,1e-8)
+        sigma = self.sigma
         
         mupi = np.hstack((self.mu,self.pi))
 
@@ -421,30 +421,36 @@ class OptSolverAugL(OptSolver):
     def update_multiplier_estimates(self):
 
         # Local variables
-        problem = self.problem
         params = self.parameters
+        problem = self.problem
+        bounds = self.bounds
         fdata = self.fdata
         
         # Parameters
         lam_reg = params['lam_reg']
 
-        eta = np.maximum(lam_reg*self.sigma,1e-8)
+        eta = lam_reg*self.sigma
 
         A = problem.A
         J = problem.J
+        Jb = bounds.J
         AT = A.T
         JT = J.T
+        JbT = Jb.T
 
-        t = fdata.gphi-fdata.ATlam-fdata.JTnu
+        t = fdata.gphi-fdata.ATlam-fdata.JTnu-fdata.JbTmupi
         if problem.A.size:
-            W = bmat([[eta*self.Iaa,None,None],
-                      [None,eta*self.Iff,None],
-                      [AT,JT,-self.Ixx]],format='coo')
+            W = bmat([[eta*self.Iaa,None,None,None],
+                      [None,eta*self.Iff,None,None],
+                      [None,None,eta*self.Iffb,None],
+                      [AT,JT,JbT,-self.Ixx]],format='coo')
         else:
-            W = bmat([[eta*self.Iff,None],
-                      [JT,-self.Ixx]],format='coo')
+            W = bmat([[eta*self.Iff,None,None],
+                      [None,eta*self.Iffb,None],
+                      [JT,JbT,-self.Ixx]],format='coo')
         b = np.hstack((A*t,
                        J*t,
+                       Jb*t,
                        self.ox))
 
         if not self.linsolver2.is_analyzed():
@@ -454,6 +460,9 @@ class OptSolverAugL(OptSolver):
         
         self.lam += sol[:self.na]
         self.nu += sol[self.na:self.na+self.nf]
+        dmupi = sol[self.na+self.nf:self.na+self.nf+2*self.nx]
+        self.mu += dmupi[:self.nx]
+        self.pi += dmupi[self.nx:]
 
 class AugLBounds:
     """
@@ -538,7 +547,7 @@ class AugLBounds:
         coeff2 = coeff[n:]
 
         if ensure_psd:
-            self.Hcomb_data[:] = np.zeros(2*n)
+            self.Hcomb_data[:] = np.zeros(n)
         else:
             self.Hcomb_data[:] = coeff1*self.Hdata[:n] + coeff2*self.Hdata[n:]
         
