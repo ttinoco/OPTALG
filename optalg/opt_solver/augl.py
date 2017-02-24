@@ -466,7 +466,42 @@ class AugLBarrier:
     Class for handling bounds using barrier.
     """
 
-    pass
+    def __init__(self,n,umin=None,umax=None,inf=1e8):
+
+        assert(n >= 0)
+        assert(inf > 0)
+
+        if umin is None or not umin.size:
+            umin = -inf*np.ones(n)
+        if umax is None or not umax.size:
+            umax = inf*np.ones(n)
+
+        assert(umin.size == n)
+        assert(umin.size == umax.size)
+        assert(np.all(umin <= umax))
+
+        self.n = n
+        self.inf = inf
+        self.umin = umin
+        self.umax = umax
+
+        self.phi = 0
+        self.gphi = np.zeros(n)
+        self.Hphi_row = np.array(range(n))
+        self.Hphi_col = np.array(range(n))
+        self.Hphi_data = np.zeros(n)
+        self.Hphi = coo_matrix((self.Hphi_data,(self.Hphi_row,self.Hphi_col)),shape=(n,n))
+
+    def eval(self,u):
+
+        assert(u.size == self.n)
+
+        dumax = self.umax-u
+        dumin = u-self.umin
+
+        self.phi = -np.sum(np.log(dumax)+np.log(dumin))
+        self.gphi[:] = -1./dumin+1./dumax
+        self.Hphi_data[:] = 1./np.square(dumin)+1./np.square(dumax)
 
 class AugLBounds:
     """
@@ -492,8 +527,8 @@ class AugLBounds:
 
         if umin is None or not umin.size:
             umin = -inf*np.ones(n)
-            if umax is None or not umax.size:
-                umax = inf*np.ones(n)
+        if umax is None or not umax.size:
+            umax = inf*np.ones(n)
 
         assert(umin.size == n)
         assert(umin.size == umax.size)

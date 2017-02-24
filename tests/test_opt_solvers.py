@@ -149,7 +149,70 @@ class TestOptSolvers(unittest.TestCase):
             if has_ipopt:
                 self.assertNotEqual(objIQP,objIpopt)
                 self.assertLess(100*np.abs(objIQP-objIpopt)/(np.abs(objIQP)+eps),eps)
+
+    def test_augl_barrier(self):
+
+        from optalg.opt_solver.augl import AugLBarrier
+
+        h = 1e-9
+        tol = 1.
+
+        bounds = AugLBarrier(5)
+        self.assertTrue(np.all(bounds.umin == -bounds.inf*np.ones(5)))
+        self.assertTrue(np.all(bounds.umax == bounds.inf*np.ones(5)))
     
+        bounds = AugLBarrier(0,np.zeros(0),np.zeros(0))
+        bounds.eval(np.ones(0))
+
+        for i in range(10):
+            
+            n = 10
+            umin = 10*np.random.randn(n)
+            umax = umin + 10*np.random.rand(n)
+            bounds = AugLBarrier(n,umin,umax)
+            self.assertEqual(bounds.inf,1e8)
+
+            self.assertEqual(bounds.phi,0.)
+            self.assertTrue(np.all(bounds.gphi == 0.))
+            self.assertTupleEqual(bounds.gphi.shape,(n,))
+            self.assertTupleEqual(bounds.Hphi.shape,(n,n))
+            self.assertTrue(np.all(bounds.Hphi.data == 0.))
+            self.assertTrue(np.all(bounds.Hphi.row == bounds.Hphi.col))
+            self.assertTrue(np.all(bounds.Hphi.row == range(n)))
+
+            du = umax-umin
+            points = [(umin+umax)/2.,
+                      umax-1e-2*du,
+                      umin+1e-2*du]
+
+            for x0 in points:
+
+                bounds.eval(x0)
+                phi0 = bounds.phi
+                gphi0 = bounds.gphi.copy()
+                Hphi0 = bounds.Hphi.copy()
+
+                print '\n*****'
+
+                for j in range(10):
+                    
+                    d = np.random.randn(n)
+                    x = x0 + h*d
+                    bounds.eval(x)
+                    phi1 = bounds.phi
+                    gphi1 = bounds.gphi.copy()
+                    Hphi1 = bounds.Hphi.copy()
+                    
+                    gTd = np.dot(gphi0,d)
+                    gTd_approx = (phi1-phi0)/h
+
+                    self.assertLess(100*abs(gTd-gTd_approx)/np.maximum(abs(gTd),1e-3),tol)
+
+                    Hd = Hphi0*d
+                    Hd_approx = (gphi1-gphi0)/h
+
+                    self.assertLess(100*norm(Hd-Hd_approx)/np.maximum(norm(Hd),1e-3),tol)
+
     def test_augl_bounds(self):
 
         from optalg.opt_solver.augl import AugLBounds
