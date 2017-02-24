@@ -76,6 +76,9 @@ class TestOptSolvers(unittest.TestCase):
             B = np.matrix(np.random.randn(p,n))
             H = coo_matrix(B.T*B+1e-3*np.eye(n))
             if i%3 == 0:
+
+                print '\n****'
+
                 l = np.random.randn(n)
                 u = l+20*np.random.rand(n)
             else:
@@ -88,15 +91,15 @@ class TestOptSolvers(unittest.TestCase):
             self.assertEqual(IQP.get_status(),'solved')
             xIQP = IQP.get_primal_variables()
             lamIQP,nuIQP,muIQP,piIQP = IQP.get_dual_variables()
-
-            prob.eval(xIQP)
-            print '\niqp',IQP.get_iterations(),prob.phi
             
             AugL.solve(prob)
             self.assertEqual(AugL.get_status(),'solved')
             xAugL = AugL.get_primal_variables()
             lamAugL,nuAugL,muAugL,piAugL = AugL.get_dual_variables()
-            
+
+            # Debug
+            prob.eval(xIQP)
+            print '\niqp',IQP.get_iterations(),prob.phi
             prob.eval(xAugL)
             print 'augl',AugL.get_iterations(),prob.phi
 
@@ -125,11 +128,13 @@ class TestOptSolvers(unittest.TestCase):
                     self.assertLess(100*norm(lamIpopt-lamIQP)/(norm(lamIQP)+eps),eps)
 
             self.assertTrue(np.all(muIQP == muIQP))
+            self.assertLess(100*norm(muAugL-muIQP)/(norm(muAugL)+eps),eps)
             if has_ipopt:
                 self.assertFalse(np.all(muIQP == muIpopt))
                 self.assertLess(100*norm(muIpopt-muIQP)/(norm(muIQP)+eps),eps)
 
             self.assertTrue(np.all(piIQP == piIQP))
+            self.assertLess(100*norm(piAugL-piIQP)/(norm(piIQP)+eps),eps)
             if has_ipopt:
                 self.assertFalse(np.all(piIQP == piIpopt))
                 self.assertLess(100*norm(piIpopt-piIQP)/(norm(piIQP)+eps),eps)
@@ -191,8 +196,6 @@ class TestOptSolvers(unittest.TestCase):
                 phi0 = bounds.phi
                 gphi0 = bounds.gphi.copy()
                 Hphi0 = bounds.Hphi.copy()
-
-                print '\n*****'
 
                 for j in range(10):
                     
