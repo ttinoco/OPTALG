@@ -461,6 +461,13 @@ class OptSolverAugL(OptSolver):
         self.mu += dmupi[:self.nx]
         self.pi += dmupi[self.nx:]
 
+class AugLBarrier:
+    """
+    Class for handling bounds using barrier.
+    """
+
+    pass
+
 class AugLBounds:
     """
     Class for handling bounds as simple nonlinear constraints.
@@ -544,7 +551,7 @@ class AugLBounds:
         coeff2 = coeff[n:]
 
         if ensure_psd:
-            self.Hcomb_data[:] = np.maximum(coeff1,0.)*self.Hdata[:n] + np.maximum(coeff2,0.)*self.Hdata[n:]
+            self.Hcomb_data[:] = np.zeros(n)
         else:
             self.Hcomb_data[:] = coeff1*self.Hdata[:n] + coeff2*self.Hdata[n:]
         

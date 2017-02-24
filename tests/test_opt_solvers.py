@@ -89,16 +89,16 @@ class TestOptSolvers(unittest.TestCase):
             xIQP = IQP.get_primal_variables()
             lamIQP,nuIQP,muIQP,piIQP = IQP.get_dual_variables()
 
-            #prob.eval(xIQP)
-            #print 'iqp',IQP.get_iterations(),prob.phi
-
+            prob.eval(xIQP)
+            print '\niqp',IQP.get_iterations(),prob.phi
+            
             AugL.solve(prob)
             self.assertEqual(AugL.get_status(),'solved')
             xAugL = AugL.get_primal_variables()
             lamAugL,nuAugL,muAugL,piAugL = AugL.get_dual_variables()
             
-            #prob.eval(xAugL)
-            #print 'augl',AugL.get_iterations(),prob.phi
+            prob.eval(xAugL)
+            print 'augl',AugL.get_iterations(),prob.phi
 
             try:
                 Ipopt.solve(prob)
