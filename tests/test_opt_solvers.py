@@ -75,15 +75,11 @@ class TestOptSolvers(unittest.TestCase):
             g = np.random.randn(n)
             B = np.matrix(np.random.randn(p,n))
             H = coo_matrix(B.T*B+1e-3*np.eye(n))
-            if i%3 == 0:
+            l = np.random.randn(n)
+            u = l+20*np.random.rand(n)
 
-                print '\n****'
-
-                l = np.random.randn(n)
-                u = l+20*np.random.rand(n)
-            else:
-                l = -1e8*np.ones(n)
-                u = 1e8*np.ones(n)
+            #l = -1e8*np.ones(n)
+            #u = 1e8*np.ones(n)
             
             prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u)
             
@@ -96,12 +92,6 @@ class TestOptSolvers(unittest.TestCase):
             self.assertEqual(AugL.get_status(),'solved')
             xAugL = AugL.get_primal_variables()
             lamAugL,nuAugL,muAugL,piAugL = AugL.get_dual_variables()
-
-            # Debug
-            prob.eval(xIQP)
-            print '\niqp',IQP.get_iterations(),prob.phi
-            prob.eval(xAugL)
-            print 'augl',AugL.get_iterations(),prob.phi
 
             try:
                 Ipopt.solve(prob)
@@ -163,8 +153,8 @@ class TestOptSolvers(unittest.TestCase):
         tol = 1.
 
         bounds = AugLBarrier(5)
-        self.assertTrue(np.all(bounds.umin == -bounds.inf*np.ones(5)))
-        self.assertTrue(np.all(bounds.umax == bounds.inf*np.ones(5)))
+        self.assertTrue(np.all(bounds.umin <= -bounds.inf*np.ones(5)))
+        self.assertTrue(np.all(bounds.umax >= bounds.inf*np.ones(5)))
     
         bounds = AugLBarrier(0,np.zeros(0),np.zeros(0))
         bounds.eval(np.ones(0))

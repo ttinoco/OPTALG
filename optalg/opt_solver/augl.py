@@ -16,19 +16,20 @@ from functools import reduce
 
 class OptSolverAugL(OptSolver):
     
-    parameters = {'beta_large' : 0.9,      # for decreasing penalty when progress
+    parameters = {'beta_large' : 0.9,      # for decreasing sigma when progress
+                  'beta_med' : 0.9,        # for decreasing sigma when forcing
                   'beta_small' : 0.1,      # for decreasing sigma
-                  'feastol' : 1e-4,        # feasibility tolerance
-                  'optol' : 1e-4,          # optimality tolerance
+                  'feastol' : 1e-5,        # feasibility tolerance
+                  'optol' : 1e-5,          # optimality tolerance
                   'gamma' : 0.1,           # for determining required decrease in ||f||
                   'tau' : 0.1,             # for reductions in ||GradF||
-                  'kappa' : 1e0,           # for initializing sigma
+                  'kappa' : 1e-2,          # for initializing sigma
                   'maxiter' : 1000,        # maximum iterations
                   'sigma_min' : 1e-14,     # lowest sigma
                   'sigma_init_min' : 1e-8, # lowest initial sigma
                   'sigma_init_max' : 1e8,  # largest initial sigma
-                  'theta' : 1e-4,          # barrier parameter
-                  'lam_reg' : 1e-2,        # eta/sigma ratio for regularization of first order dual update
+                  'theta' : 1e-5,          # barrier parameter
+                  'lam_reg' : 1e-4,        # eta/sigma ratio for regularization of first order dual update
                   'subprob_force' : 10,    # for periodic sigma decrease
                   'linsolver' : 'default', # linear solver
                   'quiet' : False}         # flag for omitting output
@@ -46,7 +47,7 @@ class OptSolverAugL(OptSolver):
         self.barrier = None
 
     def compute_search_direction(self,useH):
-
+        
         fdata = self.fdata
         problem = self.problem
         barrier = self.barrier
@@ -130,7 +131,7 @@ class OptSolverAugL(OptSolver):
         
         pres = np.hstack((r,f))
         dres = gphi+theta*gphiB-ATlam-JTnu
-        dres_den = 1.+norm(gphi)+norm(A.data)*norm(lam)+norm(J.data)*norm(nu)
+        dres_den = 1.+norm(gphi)+theta*norm(gphiB)+norm(A.data)*norm(lam)+norm(J.data)*norm(nu)
                
         fdata.ATlam = ATlam
         fdata.JTnu = JTnu
@@ -201,11 +202,17 @@ class OptSolverAugL(OptSolver):
         # Reset
         self.reset()
         
+        # Barrier
+        self.barrier = AugLBarrier(problem.get_num_primal_variables(),
+                                   problem.l,
+                                   problem.u,
+                                   eps=feastol)
+
         # Init primal
         if problem.x is not None:
-            self.x = problem.x.copy()
+            self.x = self.barrier.to_interior(problem.x.copy())
         else:
-            self.x = (problem.u+problem.l)/2.
+            self.x = (self.barrier.umax+self.barrier.umin)/2.
             
         # Init dual
         if problem.lam is not None:
@@ -216,19 +223,20 @@ class OptSolverAugL(OptSolver):
                 self.nu = problem.nu.copy()
         else:
             self.nu = np.zeros(problem.f.size)
-        if problem.pi is not None:
-            self.pi = problem.pi.copy()
-        else:
+        try:
+            if problem.pi is not None:
+                self.pi = problem.pi.copy()
+            else:
+                self.pi = np.zeros(self.x.size)
+        except AttributeError:
             self.pi = np.zeros(self.x.size)
-        if problem.mu is not None:
-            self.mu = problem.mu.copy()
-        else:
+        try: 
+            if problem.mu is not None:
+                self.mu = problem.mu.copy()
+            else:
+                self.mu = np.zeros(self.x.size)
+        except AttributeError:
             self.mu = np.zeros(self.x.size)
-
-        # Barrier
-        self.barrier = AugLBarrier(self.x.size,
-                                   problem.l,
-                                   problem.u)
         
         # Constants
         self.sigma = 0.
@@ -293,6 +301,7 @@ class OptSolverAugL(OptSolver):
         norminf = self.norminf
         params = self.parameters
         problem = self.problem
+        barrier = self.barrier
         
         # Params
         quiet = params['quiet']
@@ -302,6 +311,7 @@ class OptSolverAugL(OptSolver):
         maxiter = params['maxiter']
         sigma_min = params['sigma_min']
         beta_large = params['beta_large']
+        beta_med = params['beta_med']
         beta_small = params['beta_small']
         subprob_force = params['subprob_force']
         
@@ -369,7 +379,9 @@ class OptSolverAugL(OptSolver):
             # Max steplength
             ppos = p > 0
             pneg = p < 0
-            alpha_max = 0.99*min([np.min(((problem.u-self.x)[ppos])/(p[ppos])),np.min(((problem.l-self.x)[pneg])/(p[pneg]))])
+            a1 = np.min(((barrier.umax-self.x)[ppos])/(p[ppos]))
+            a2 = np.min(((barrier.umin-self.x)[pneg])/(p[pneg]))
+            alpha_max = 0.99*min([a1,a2])
             
             try:
 
@@ -395,8 +407,7 @@ class OptSolverAugL(OptSolver):
             
             # Maxiter
             if i >= subprob_force:
-                self.sigma *= beta_large
-                self.update_multiplier_estimates()
+                self.sigma *= beta_med
                 fdata = self.func(self.x)
                 self.code[2] = 'f'
                 self.useH = True
@@ -443,29 +454,37 @@ class OptSolverAugL(OptSolver):
         
         self.lam += sol[:self.na]
         self.nu += sol[self.na:self.na+self.nf]
-        self.mu = theta/(problem.u-self.x)
-        self.pi = theta/(self.x-problem.l)
+        self.mu = theta/(barrier.umax-self.x)
+        self.pi = theta/(self.x-barrier.umin)
 
 class AugLBarrier:
     """
     Class for handling bounds using barrier.
     """
 
-    def __init__(self,n,umin=None,umax=None,inf=1e8):
-
+    def __init__(self,n,umin=None,umax=None,eps=1e-4,inf=1e8):
+        
         assert(n >= 0)
         assert(inf > 0)
+        assert(eps > 0)
 
         if umin is None or not umin.size:
             umin = -inf*np.ones(n)
         if umax is None or not umax.size:
             umax = inf*np.ones(n)
 
-        assert(umin.size == n)
-        assert(umin.size == umax.size)
         assert(np.all(umin <= umax))
 
+        if n > 0:
+            umax += eps*np.linalg.norm(umax,np.inf)
+            umin -= eps*np.linalg.norm(umin,np.inf)
+
+        assert(umin.size == n)
+        assert(umin.size == umax.size)
+        assert(np.all(umin < umax))
+        
         self.n = n
+        self.eps = eps
         self.inf = inf
         self.umin = umin
         self.umax = umax
@@ -487,6 +506,11 @@ class AugLBarrier:
         self.phi = -np.sum(np.log(dumax)+np.log(dumin))
         self.gphi[:] = -1./dumin+1./dumax
         self.Hphi_data[:] = 1./np.square(dumin)+1./np.square(dumax)
+
+    def to_interior(self,x):
+        
+        du = self.umax-self.umin
+        return np.maximum(np.minimum(x,self.umax-0.01*du),self.umin+0.01*du)
 
 class AugLBounds:
     """
