@@ -32,7 +32,7 @@ class OptSolverIpopt(OptSolver):
     def create_ipopt_context(self):
         
         # Import
-        import _ipopt
+        from ._ipopt import IpoptContext
 
         # Problem
         problem = self.problem
@@ -75,17 +75,17 @@ class OptSolverIpopt(OptSolver):
         n = problem.get_num_primal_variables()
         m = problem.get_num_linear_equality_constraints()+problem.get_num_nonlinear_equality_constraints()
 
-        return _ipopt.IpoptContext(n,
-                                   m,
-                                   problem.l,
-                                   problem.u,
-                                   np.zeros(m),
-                                   np.zeros(m),
-                                   eval_f,
-                                   eval_g,
-                                   eval_grad_f,
-                                   eval_jac_g,
-                                   eval_h)
+        return IpoptContext(n,
+                            m,
+                            problem.l,
+                            problem.u,
+                            np.zeros(m),
+                            np.zeros(m),
+                            eval_f,
+                            eval_g,
+                            eval_grad_f,
+                            eval_jac_g,
+                            eval_h)
                 
     def solve(self,problem):
         
