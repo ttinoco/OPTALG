@@ -1,11 +1,15 @@
 language: python
 
-install: 
+before_install:
 - sudo apt-get update
 - sudo apt-get -y install libmumps-seq-dev
-- sudo pip install nose numpy scipy cython dill
+
+install: 
+- pip install nose numpy dill 
+- pip install scipy 
 - python -c "import scipy"
 - python -c "import scipy.sparse"
+- pip install cython 
 - python -c "import Cython"
 - python -c "import cython"
 
