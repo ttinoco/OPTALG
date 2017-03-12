@@ -8,6 +8,7 @@
 
 import os
 import sys
+import platform
 import numpy as np
 from distutils.core import setup,Extension
 
@@ -18,9 +19,13 @@ if '--no_mumps' in sys.argv:
     sys.argv.remove('--no_mumps')
 else:
     from Cython.Build import cythonize
+    if platform.system() == 'Darwin':
+        libraries=['dmumps','mumps_common']
+    else:
+        libraries=['dmumps_seq']
     ext_modules += cythonize([Extension(name='optalg.lin_solver._mumps._dmumps',
                                         sources=['./optalg/lin_solver/_mumps/_dmumps.pyx'],
-                                        libraries=['dmumps_seq'],
+                                        libraries=libraries,
                                         library_dirs=[],
                                         include_dirs=[],
                                         extra_link_args=[],

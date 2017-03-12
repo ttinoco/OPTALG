@@ -97,12 +97,21 @@ cdef class IpoptContext:
 
     def add_option(self,key,val):
 
+        try:
+            ckey = bytes(key,'utf-8')
+        except TypeError:
+            ckey = bytes(key)
+
         if isinstance(val,int):
-            valid = cipopt.AddIpoptIntOption(self.problem,key,val)
+            valid = cipopt.AddIpoptIntOption(self.problem,ckey,val)
         elif isinstance(val,str):
-            valid = cipopt.AddIpoptStrOption(self.problem,key,val)
+            try:
+                cval = bytes(val,'utf-8')
+            except TypeError:
+                cval = bytes(val)
+            valid = cipopt.AddIpoptStrOption(self.problem,ckey,cval)
         elif isinstance(val,float):
-            valid = cipopt.AddIpoptNumOption(self.problem,key,val)
+            valid = cipopt.AddIpoptNumOption(self.problem,ckey,val)
         else:
             raise ValueError('invalid value')
 
