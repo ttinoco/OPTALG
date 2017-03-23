@@ -16,23 +16,26 @@ from functools import reduce
 
 class OptSolverAugL(OptSolver):
     
-    parameters = {'beta_large' : 0.9,      # for decreasing sigma when progress
-                  'beta_med' : 0.9,        # for decreasing sigma when forcing
-                  'beta_small' : 0.1,      # for decreasing sigma
-                  'feastol' : 1e-5,        # feasibility tolerance
-                  'optol' : 1e-5,          # optimality tolerance
-                  'gamma' : 0.1,           # for determining required decrease in ||f||
-                  'tau' : 0.1,             # for reductions in ||GradF||
-                  'kappa' : 1e-2,          # for initializing sigma
-                  'maxiter' : 1000,        # maximum iterations
-                  'sigma_min' : 1e-14,     # lowest sigma
-                  'sigma_init_min' : 1e-8, # lowest initial sigma
-                  'sigma_init_max' : 1e8,  # largest initial sigma
-                  'theta' : 1e-5,          # barrier parameter
-                  'lam_reg' : 1e-4,        # eta/sigma ratio for regularization of first order dual update
-                  'subprob_force' : 10,    # for periodic sigma decrease
-                  'linsolver' : 'default', # linear solver
-                  'quiet' : False}         # flag for omitting output
+    parameters = {'beta_large' : 0.9,       # for decreasing sigma when progress
+                  'beta_med' : 0.5,         # for decreasing sigma when forcing
+                  'beta_small' : 0.1,       # for decreasing sigma
+                  'feastol' : 1e-5,         # feasibility tolerance
+                  'optol' : 1e-5,           # optimality tolerance
+                  'gamma' : 0.1,            # for determining required decrease in ||f||
+                  'tau' : 0.1,              # for reductions in ||GradF||
+                  'kappa' : 1e-2,           # for initializing sigma
+                  'maxiter' : 1000,         # maximum iterations
+                  'sigma_min' : 1e-12,      # minimum sigma
+                  'sigma_init_min' : 1e-5,  # minimum initial sigma
+                  'sigma_init_max' : 1e5,   # maximum initial sigma
+                  'theta_min'      : 1e-5,  # minimum barrier parameter
+                  'theta_init_min' : 1e-5,  # minimum initial barrier parameter
+                  'theta_init_max' : 1e0 ,  # maximum initial barrier parameter
+                  'lam_reg' : 1e-2,         # eta/sigma ratio for regularization of first order dual update
+                  'subprob_force' : 10,     # for periodic sigma decrease
+                  'subprob_maxiter' : 150,  # maximum subproblem iterations
+                  'linsolver' : 'default',  # linear solver
+                  'quiet' : False}          # flag for omitting output
     
     def __init__(self):
         """
@@ -45,6 +48,272 @@ class OptSolverAugL(OptSolver):
         self.linsolver2 = None
         self.problem = None
         self.barrier = None
+
+    def solve(self,problem):
+        
+        # Local vars
+        norm2 = self.norm2
+        norminf = self.norminf
+        params = self.parameters
+        
+        # Parameters
+        tau = params['tau']
+        gamma = params['gamma']
+        kappa = params['kappa']
+        optol = params['optol']
+        feastol = params['feastol']
+        beta_small = params['beta_small']
+        beta_large = params['beta_large']
+        sigma_init_min = params['sigma_init_min']
+        sigma_init_max = params['sigma_init_max']
+        theta_init_min = params['theta_init_min']
+        theta_init_max = params['theta_init_max']
+        theta_min = params['theta_min']
+
+        # Linear solver
+        self.linsolver1 = new_linsolver(params['linsolver'],'symmetric')
+        self.linsolver2 = new_linsolver(params['linsolver'],'symmetric')
+
+        # Problem
+        self.problem = problem
+
+        # Reset
+        self.reset()
+        
+        # Barrier
+        self.barrier = AugLBarrier(problem.get_num_primal_variables(),
+                                   problem.l,
+                                   problem.u,
+                                   eps=feastol)
+        
+        # Init primal
+        if problem.x is not None:
+            self.x = self.barrier.to_interior(problem.x.copy())
+        else:
+            self.x = (self.barrier.umax+self.barrier.umin)/2.
+            
+        # Init dual
+        if problem.lam is not None:
+            self.lam = problem.lam.copy()
+        else:
+            self.lam = np.zeros(problem.b.size)
+        if problem.nu is not None:
+                self.nu = problem.nu.copy()
+        else:
+            self.nu = np.zeros(problem.f.size)
+        try:
+            if problem.pi is not None:
+                self.pi = problem.pi.copy()
+            else:
+                self.pi = np.zeros(self.x.size)
+        except AttributeError:
+            self.pi = np.zeros(self.x.size)
+        try: 
+            if problem.mu is not None:
+                self.mu = problem.mu.copy()
+            else:
+                self.mu = np.zeros(self.x.size)
+        except AttributeError:
+            self.mu = np.zeros(self.x.size)
+        
+        # Constants
+        self.sigma = 0.
+        self.theta = 0.
+        self.code = ''
+        self.nx = self.x.size
+        self.na = problem.b.size
+        self.nf = problem.f.size
+        self.ox = np.zeros(self.nx)
+        self.oa = np.zeros(self.na)
+        self.of = np.zeros(self.nf)
+        self.Ixx = eye(self.nx,format='coo')
+        self.Iff = eye(self.nf,format='coo')
+        self.Iaa = eye(self.na,format='coo')
+        
+        # Init eval
+        fdata = self.func(self.x)
+        
+        # Init penalty and barrier parameters
+        self.sigma = kappa*norm2(fdata.GradF)/np.maximum(norm2(problem.gphi),1.)
+        self.sigma = np.minimum(np.maximum(self.sigma,sigma_init_min),sigma_init_max)
+        self.theta = kappa*norm2(fdata.GradF)/(self.sigma*np.maximum(norm2(self.barrier.gphi),1.))
+        self.theta = np.minimum(np.maximum(self.theta,theta_init_min),theta_init_max)
+        fdata = self.func(self.x)
+        
+        # Outer iterations
+        self.k = 0
+        self.useH = False
+        self.code = list('----')
+        pres_prev = norminf(fdata.pres)
+        gLmax_prev = norminf(fdata.GradF)
+        while True:
+            
+            # Solve subproblem
+            self.solve_subproblem(tau*gLmax_prev)
+
+            # Check done
+            if self.is_status_solved():
+                return
+                
+            # Measure progress
+            pres = norminf(fdata.pres)
+            dres = norminf(fdata.dres)
+            gLmax = norminf(fdata.GradF)
+            
+            # Penaly update
+            if pres <= np.maximum(gamma*pres_prev,feastol):
+                self.sigma *= beta_large
+                self.code[1] = 'p'
+            else:
+                self.sigma *= beta_small
+                self.code[1] = 'n'
+
+            # Dual update
+            self.update_multiplier_estimates()
+
+            # Barrier update
+            self.theta = np.maximum(self.theta*beta_small,theta_min)
+
+            # Update refs
+            pres_prev = pres
+            gLmax_prev = gLmax
+
+    def solve_subproblem(self,delta):
+        
+        # Local vars
+        norm2 = self.norm2
+        norminf = self.norminf
+        params = self.parameters
+        problem = self.problem
+        barrier = self.barrier
+        
+        # Params
+        quiet = params['quiet']
+        maxiter = params['maxiter']
+        feastol = params['feastol']
+        optol = params['optol']
+        maxiter = params['maxiter']
+        theta_min = params['theta_min']
+        sigma_min = params['sigma_min']
+        beta_large = params['beta_large']
+        beta_med = params['beta_med']
+        beta_small = params['beta_small']
+        subprob_force = params['subprob_force']
+        subprob_maxiter = params['subprob_maxiter']
+        
+        # Print header
+        self.print_header()
+
+        # Init eval
+        fdata = self.func(self.x)
+        
+        # Inner iterations
+        i = 0
+        j = 0
+        alpha = 0.
+        while True:
+            
+            # Compute info
+            pres = norminf(fdata.pres)
+            dres = norminf(fdata.dres)
+            dmax = max(map(norminf,[self.lam,self.nu,self.mu,self.pi]))
+            gLmax = norminf(fdata.GradF)
+            
+            # Show info
+            if not quiet:
+                print('{0:^4d}'.format(self.k), end=' ')
+                print('{0:^9.2e}'.format(problem.phi), end=' ')
+                print('{0:^9.2e}'.format(pres), end=' ')
+                print('{0:^9.2e}'.format(dres), end=' ')
+                print('{0:^9.2e}'.format(gLmax), end=' ')
+                print('{0:^8.1e}'.format(dmax), end=' ')
+                print('{0:^8.1e}'.format(alpha), end=' ')
+                print('{0:^7.1e}'.format(self.sigma), end=' ')
+                print('{0:^7.1e}'.format(self.theta), end=' ')
+                print('{0:^8s}'.format(reduce(lambda x,y: x+y,self.code)), end=' ')
+                if self.info_printer:
+                    self.info_printer(self,False)
+                else:
+                    print('')
+
+            # Clear code
+            self.code = list('----')
+
+            # Check solved
+            if pres <= feastol and dres <= optol and self.theta <= theta_min:
+                self.set_status(self.STATUS_SOLVED)
+                self.set_error_msg('')
+                return
+
+            # Check only theta missing
+            if pres <= feastol and dres <= optol:
+                return
+                
+            # Check subproblem solved
+            if gLmax <= delta:
+                return
+                
+            # Check total maxiters
+            if self.k >= maxiter:
+                raise OptSolverError_MaxIters(self)
+
+            # Check penalty
+            if self.sigma < sigma_min:
+                raise OptSolverError_SmallPenalty(self)
+                
+            # Check custom terminations
+            for t in self.terminations:
+                t(self)
+                
+            # Search direction
+            p = self.compute_search_direction(self.useH)
+
+            # Max steplength
+            ppos = p > 0
+            pneg = p < 0
+            a1 = np.min(((barrier.umax-self.x)[ppos])/(p[ppos]))
+            a2 = np.min(((barrier.umin-self.x)[pneg])/(p[pneg]))
+            alpha_max = 0.99*min([a1,a2])
+            
+            try:
+
+                # Line search
+                alpha,fdata = self.line_search(self.x,p,fdata.F,fdata.GradF,self.func,alpha_max)
+                
+                # Update x
+                self.x += alpha*p
+
+            except OptSolverError_LineSearch:
+
+                # Update 
+                self.sigma *= beta_large
+                fdata = self.func(self.x)
+                self.code[3] = 'b'
+                if self.useH:
+                    self.useH = False
+                    i = 0
+                alpha = 0.
+
+            # Update iter count
+            self.k += 1
+            i += 1
+            j += 1
+            
+            # Periodic force
+            if i >= subprob_force:
+                self.sigma *= beta_large
+                fdata = self.func(self.x)
+                self.code[2] = 'f'
+                self.useH = True
+                i = 0
+
+            # Periodic maxiter
+            if j >= subprob_maxiter:
+                self.sigma *= beta_med
+                self.update_multiplier_estimates()
+                fdata = self.func(self.x)
+                self.code[2] = 'm'
+                j = 0 
 
     def compute_search_direction(self,useH):
         
@@ -157,7 +426,7 @@ class OptSolverAugL(OptSolver):
             if self.k == 0:
                 print('\nSolver: augL')
                 print('------------')
-                print('{0:^3}'.format('k'), end=' ')
+                print('{0:^4}'.format('k'), end=' ')
                 print('{0:^9}'.format('phi'), end=' ')
                 print('{0:^9}'.format('pres'), end=' ')
                 print('{0:^9}'.format('dres'), end=' ')
@@ -165,6 +434,7 @@ class OptSolverAugL(OptSolver):
                 print('{0:^8}'.format('dmax'), end=' ')
                 print('{0:^8}'.format('alpha'), end=' ')
                 print('{0:^7}'.format('sigma'), end=' ')
+                print('{0:^7}'.format('theta'), end=' ')
                 print('{0:^8}'.format('code'), end=' ')
                 if self.info_printer:
                     self.info_printer(self,True)
@@ -172,246 +442,6 @@ class OptSolverAugL(OptSolver):
                     print('')
             else:
                 print('')
-
-    def solve(self,problem):
-        
-        # Local vars
-        norm2 = self.norm2
-        norminf = self.norminf
-        params = self.parameters
-        
-        # Parameters
-        tau = params['tau']
-        gamma = params['gamma']
-        kappa = params['kappa']
-        optol = params['optol']
-        feastol = params['feastol']
-        beta_small = params['beta_small']
-        beta_large = params['beta_large']
-        sigma_init_min = params['sigma_init_min']
-        sigma_init_max = params['sigma_init_max']
-        theta = params['theta']
-
-        # Linear solver
-        self.linsolver1 = new_linsolver(params['linsolver'],'symmetric')
-        self.linsolver2 = new_linsolver(params['linsolver'],'symmetric')
-
-        # Problem
-        self.problem = problem
-
-        # Reset
-        self.reset()
-        
-        # Barrier
-        self.barrier = AugLBarrier(problem.get_num_primal_variables(),
-                                   problem.l,
-                                   problem.u,
-                                   eps=feastol)
-
-        # Init primal
-        if problem.x is not None:
-            self.x = self.barrier.to_interior(problem.x.copy())
-        else:
-            self.x = (self.barrier.umax+self.barrier.umin)/2.
-            
-        # Init dual
-        if problem.lam is not None:
-            self.lam = problem.lam.copy()
-        else:
-            self.lam = np.zeros(problem.b.size)
-        if problem.nu is not None:
-                self.nu = problem.nu.copy()
-        else:
-            self.nu = np.zeros(problem.f.size)
-        try:
-            if problem.pi is not None:
-                self.pi = problem.pi.copy()
-            else:
-                self.pi = np.zeros(self.x.size)
-        except AttributeError:
-            self.pi = np.zeros(self.x.size)
-        try: 
-            if problem.mu is not None:
-                self.mu = problem.mu.copy()
-            else:
-                self.mu = np.zeros(self.x.size)
-        except AttributeError:
-            self.mu = np.zeros(self.x.size)
-        
-        # Constants
-        self.sigma = 0.
-        self.theta = theta
-        self.code = ''
-        self.nx = self.x.size
-        self.na = problem.b.size
-        self.nf = problem.f.size
-        self.ox = np.zeros(self.nx)
-        self.oa = np.zeros(self.na)
-        self.of = np.zeros(self.nf)
-        self.Ixx = eye(self.nx,format='coo')
-        self.Iff = eye(self.nf,format='coo')
-        self.Iaa = eye(self.na,format='coo')
-        
-        # Init eval
-        fdata = self.func(self.x)
-        
-        # Init penalty parameter
-        self.sigma = kappa*norm2(fdata.GradF)/np.maximum(norm2(problem.gphi),1.)
-        self.sigma = np.minimum(np.maximum(self.sigma,sigma_init_min),sigma_init_max)
-        fdata = self.func(self.x)
-        
-        # Outer iterations
-        self.k = 0
-        self.useH = False
-        self.code = list('----')
-        pres_prev = norminf(fdata.pres)
-        gLmax_prev = norminf(fdata.GradF)
-        while True:
-            
-            # Solve subproblem
-            self.solve_subproblem(tau*gLmax_prev)
-
-            # Check done
-            if self.is_status_solved():
-                return
-                
-            # Measure progress
-            pres = norminf(fdata.pres)
-            gLmax = norminf(fdata.GradF)
-            
-            # Penaly update
-            if pres < np.maximum(gamma*pres_prev,feastol):
-                self.sigma *= beta_large
-                self.code[1] = 'p'
-            else:
-                self.sigma *= beta_small
-                self.code[1] = 'n'
-
-            # Dual update
-            self.update_multiplier_estimates()
-
-            # Update refs
-            pres_prev = pres
-            gLmax_prev = gLmax
-            
-    def solve_subproblem(self,delta):
-        
-        # Local vars
-        norm2 = self.norm2
-        norminf = self.norminf
-        params = self.parameters
-        problem = self.problem
-        barrier = self.barrier
-        
-        # Params
-        quiet = params['quiet']
-        maxiter = params['maxiter']
-        feastol = params['feastol']
-        optol = params['optol']
-        maxiter = params['maxiter']
-        sigma_min = params['sigma_min']
-        beta_large = params['beta_large']
-        beta_med = params['beta_med']
-        beta_small = params['beta_small']
-        subprob_force = params['subprob_force']
-        
-        # Print header
-        self.print_header()
-
-        # Init eval
-        fdata = self.func(self.x)
-        
-        # Inner iterations
-        i = 0;
-        alpha = 0.;
-        while True:
-            
-            # Compute info
-            pres = norminf(fdata.pres)
-            dres = norminf(fdata.dres)
-            dmax = max(map(norminf,[self.lam,self.nu,self.mu,self.pi]))
-            gLmax = norminf(fdata.GradF)
-            
-            # Show info
-            if not quiet:
-                print('{0:^3d}'.format(self.k), end=' ')
-                print('{0:^9.2e}'.format(problem.phi), end=' ')
-                print('{0:^9.2e}'.format(pres), end=' ')
-                print('{0:^9.2e}'.format(dres), end=' ')
-                print('{0:^9.2e}'.format(gLmax), end=' ')
-                print('{0:^8.1e}'.format(dmax), end=' ')
-                print('{0:^8.1e}'.format(alpha), end=' ')
-                print('{0:^7.1e}'.format(self.sigma), end=' ')
-                print('{0:^8s}'.format(reduce(lambda x,y: x+y,self.code)), end=' ')
-                if self.info_printer:
-                    self.info_printer(self,False)
-                else:
-                    print('')
-
-            # Clear code
-            self.code = list('----')
-
-            # Check solved
-            if pres < feastol and dres < optol:
-                self.set_status(self.STATUS_SOLVED)
-                self.set_error_msg('')
-                return
-                
-            # Check subproblem solved
-            if gLmax < delta:
-                return
-
-            # Check total maxiters
-            if self.k >= maxiter:
-                raise OptSolverError_MaxIters(self)
-
-            # Check penalty
-            if self.sigma < sigma_min:
-                raise OptSolverError_SmallPenalty(self)
-                
-            # Check custom terminations
-            for t in self.terminations:
-                t(self)
-                
-            # Search direction
-            p = self.compute_search_direction(self.useH)
-
-            # Max steplength
-            ppos = p > 0
-            pneg = p < 0
-            a1 = np.min(((barrier.umax-self.x)[ppos])/(p[ppos]))
-            a2 = np.min(((barrier.umin-self.x)[pneg])/(p[pneg]))
-            alpha_max = 0.99*min([a1,a2])
-            
-            try:
-
-                # Line search
-                alpha,fdata = self.line_search(self.x,p,fdata.F,fdata.GradF,self.func,alpha_max)
-                
-                # Update x
-                self.x += alpha*p
-
-            except OptSolverError_LineSearch:
-
-                # Update 
-                self.sigma *= beta_large
-                fdata = self.func(self.x)
-                self.code[3] = 'b'
-                self.useH = False
-                i = 0
-                alpha = 0.
-
-            # Update iter count
-            self.k += 1
-            i += 1
-            
-            # Maxiter
-            if i >= subprob_force:
-                self.sigma *= beta_med
-                fdata = self.func(self.x)
-                self.code[2] = 'f'
-                self.useH = True
-                i = 0
                 
     def update_multiplier_estimates(self):
 
