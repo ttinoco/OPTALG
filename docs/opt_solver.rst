@@ -157,7 +157,7 @@ This solver, which corresponds to the class :class:`OptSolverAugL <optalg.opt_so
    &                   \quad && f(x) = 0.  \quad && : \nu
    \end{alignat*}
 
-using an Augmented Lagrangian algorithm. It requires the objective function to be strongly convex.
+using an Augmented Lagrangian algorithm. It requires the objective function to be convex.
 
 Ipopt
 =====
