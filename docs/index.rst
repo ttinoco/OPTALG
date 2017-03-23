@@ -16,10 +16,6 @@ OPTALG is a Python package that provides algorithms, wrappers, and tools for sol
 
 OPTALG is released under the BSD 2-clause license.
 
-**Contact**
-
-* `Tomas Tinoco De Rubira <http://n.ethz.ch/~tomast/>`_
-
 **Documentation Contents**
 
 .. module:: optalg
@@ -31,6 +27,10 @@ OPTALG is released under the BSD 2-clause license.
    Getting Started<start>
    Optimization Solvers<opt_solver>
    API Reference<reference>
+
+**Contributors**
+
+* `Tomas Tinoco De Rubira <http://n.ethz.ch/~tomast/>`_
 
 Indices and tables
 ==================
