@@ -54,7 +54,7 @@ class TestOptSolvers(unittest.TestCase):
             
     def test_solvers_on_QPs(self):
 
-        eps = 1. # %
+        eps = 1.5 # %
         
         IQP = opt.opt_solver.OptSolverIQP()
         IQP.set_parameters({'quiet': True})
