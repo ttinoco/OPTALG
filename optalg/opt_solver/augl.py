@@ -91,6 +91,8 @@ class OptSolverAugL(OptSolver):
             self.x = self.barrier.to_interior(problem.x.copy())
         else:
             self.x = (self.barrier.umax+self.barrier.umin)/2.
+        assert(np.all(self.x > self.barrier.umin))
+        assert(np.all(self.x < self.barrier.umax))
             
         # Init dual
         if problem.lam is not None:
@@ -271,8 +273,8 @@ class OptSolverAugL(OptSolver):
             # Max steplength
             ppos = p > 0
             pneg = p < 0
-            a1 = np.min(((barrier.umax-self.x)[ppos])/(p[ppos]))
-            a2 = np.min(((barrier.umin-self.x)[pneg])/(p[pneg]))
+            a1 = np.min(((barrier.umax-self.x)[ppos])/(p[ppos])) if ppos.sum() else np.inf
+            a2 = np.min(((barrier.umin-self.x)[pneg])/(p[pneg])) if pneg.sum() else np.inf
             alpha_max = 0.99*min([a1,a2])
             
             try:
@@ -530,8 +532,8 @@ class AugLBarrier:
 
         assert(u.size == self.n)
 
-        dumax = self.umax-u
-        dumin = u-self.umin
+        dumax = np.maximum(self.umax-u,1e-12)
+        dumin = np.maximum(u-self.umin,1e-12)
 
         self.phi = -np.sum(np.log(dumax)+np.log(dumin))
         self.gphi[:] = -1./dumin+1./dumax
