@@ -275,7 +275,7 @@ class OptSolverAugL(OptSolver):
             pneg = p < 0
             a1 = np.min(((barrier.umax-self.x)[ppos])/(p[ppos])) if ppos.sum() else np.inf
             a2 = np.min(((barrier.umin-self.x)[pneg])/(p[pneg])) if pneg.sum() else np.inf
-            alpha_max = 0.99*min([a1,a2])
+            alpha_max = 0.98*min([a1,a2])
             
             try:
 
