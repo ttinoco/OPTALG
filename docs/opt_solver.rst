@@ -152,9 +152,10 @@ This solver, which corresponds to the class :class:`OptSolverAugL <optalg.opt_so
    :nowrap:
 
    \begin{alignat*}{3}
-   & \mbox{minimize}   \quad && \varphi(x) \quad && \\
-   & \mbox{subject to} \quad && Ax = b     \quad && : \lambda \\
-   &                   \quad && f(x) = 0.  \quad && : \nu
+   & \mbox{minimize}   \quad && \varphi(x)     \quad && \\
+   & \mbox{subject to} \quad && Ax = b         \quad && : \lambda \\
+   &                   \quad && f(x) = 0       \quad && : \nu \\
+   &                   \quad && l \le x \le u. \quad && : \pi, \mu 
    \end{alignat*}
 
 using an Augmented Lagrangian algorithm. It requires the objective function to be convex.
