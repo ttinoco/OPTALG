@@ -8,26 +8,25 @@
 
 import numpy as np
 from .problem import OptProblem
-from scipy.sparse import tril,coo_matrix
+from scipy.sparse import coo_matrix
 
-class QuadProblem(OptProblem):
+class LinProblem(OptProblem):
     """
-    Quadratic problem class.
+    Linear problem class.
     It represents problem of the form
     
-    minimize    (1/2)x^THx + g^Tx
+    minimize    c^Tx
     subject to  Ax = b
                 l <= x <= u
     """
 
-    def __init__(self,H,g,A,b,l,u,x=None,lam=None,mu=None,pi=None):
+    def __init__(self,c,A,b,l,u,x=None,lam=None,mu=None,pi=None):
         """
-        Quadratic program class.
+        Linear program class.
         
         Parameters
         ----------
-        H : symmetric matrix
-        g : vector
+        c : vector
         A : matrix
         l : vector
         u : vector
@@ -36,17 +35,19 @@ class QuadProblem(OptProblem):
 
         OptProblem.__init__(self)
 
-        self.H = coo_matrix(H)
-        self.Hphi = tril(self.H) # lower triangular
-        self.g = g
+        self.c = c
         self.A = coo_matrix(A)
         self.b = b
         self.u = u
         self.l = l
 
+        self.n = self.get_num_primal_variables()
+
         self.f = np.zeros(0)
-        self.J = coo_matrix((0,H.shape[0]))
-        self.H_combined = coo_matrix(H.shape)
+        self.J = coo_matrix((0,self.n))
+        self.H_combined = coo_matrix((self.n,self.n))
+        self.Hphi = coo_matrix((self.n,self.n))
+        self.gphi = self.c
 
         self.x = x
         
@@ -55,14 +56,13 @@ class QuadProblem(OptProblem):
         self.pi = pi
 
         # Check data
-        assert(H.shape[0] == H.shape[1])
-        assert(H.shape[0] == A.shape[1])
+        assert(c.size == self.n)
+        assert(c.size == A.shape[1])
         assert(b.size == A.shape[0])
         assert(u.size == l.size)
+        assert(u.size == c.size)
         if x is not None:
-            assert(x.size == H.shape[0])
             assert(x.size == A.shape[1])
-            assert(x.size == l.size)
         if lam is not None:
             assert(lam.size == A.shape[0])
         if mu is not None:
@@ -72,15 +72,11 @@ class QuadProblem(OptProblem):
  
     def eval(self,x):
 
-        self.phi = 0.5*np.dot(x,self.H*x) + np.dot(self.g,x)
-        self.gphi = self.H*x + self.g
+        self.phi = np.dot(self.c,x)
         
     def show(self):
         
-        print('\nQP Problem')
+        print('\nLP Problem')
         print('----------')
-        print('H shape : (%d,%d)' %(self.H.shape[0],self.H.shape[1]))
-        print('H nnz   : %.2f %%' %(100.*self.H.nnz/(self.H.shape[0]*self.H.shape[1])))
         print('A shape : (%d,%d)' %(self.A.shape[0],self.A.shape[1]))
         print('A nnz   : %.2f %%' %(100.*self.A.nnz/(self.A.shape[0]*self.A.shape[1])))
-        

@@ -43,7 +43,20 @@ else:
                                         include_dirs=[np.get_include(),os.getenv('IPOPT')+'/include/coin'],
                                         extra_link_args=[],
                                         extra_compile_args=[])])
-    
+
+# clp
+if '--no_clp' in sys.argv:
+    sys.argv.remove('--no_clp')
+else:
+    from Cython.Build import cythonize 
+    ext_modules += cythonize([Extension(name='optalg.opt_solver._clp.cclp',
+                                        sources=['./optalg/opt_solver/_clp/cclp.pyx'],
+                                        libraries=['Clp'],
+                                        library_dirs=[],
+                                        include_dirs=[],
+                                        extra_link_args=[],
+                                        extra_compile_args=[])])
+ 
 setup(name='OPTALG',
       version='1.1.2',
       description='Optimization Algorithms',
@@ -55,6 +68,7 @@ setup(name='OPTALG',
                 'optalg.lin_solver._mumps',
                 'optalg.opt_solver',
                 'optalg.opt_solver._ipopt',
+                'optalg.opt_solver._clp',
                 'optalg.stoch_solver'],
       requires=['scipy',
                 'numpy',
