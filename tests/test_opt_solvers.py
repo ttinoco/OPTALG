@@ -35,7 +35,10 @@ class TestOptSolvers(unittest.TestCase):
         solver = opt.opt_solver.OptSolverClp()
         solver.set_parameters({'quiet':True})
 
-        solver.solve(problem)
+        try:
+            solver.solve(problem)
+        except ImportError:
+            return
 
         x = solver.get_primal_variables()
         lam,nu,mu,pi = solver.get_dual_variables()
