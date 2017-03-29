@@ -7,8 +7,6 @@
 #****************************************************#
 
 from __future__ import print_function
-import os
-import sys
 import numpy as np
 from .opt_solver_error import *
 from .opt_solver import OptSolver
@@ -98,6 +96,8 @@ class OptSolverIpopt(OptSolver):
 
         # Problem
         self.problem = problem
+
+        # Ipopt context
         self.ipopt_context = self.create_ipopt_context()
 
         # Options

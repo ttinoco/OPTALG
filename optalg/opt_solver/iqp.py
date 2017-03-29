@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -10,6 +10,7 @@ from __future__ import print_function
 import numpy as np
 from .opt_solver_error import *
 from .opt_solver import OptSolver
+from .problem_quad import QuadProblem
 from optalg.lin_solver import new_linsolver
 from scipy.sparse import bmat,triu,eye,spdiags,coo_matrix,tril
 
@@ -117,6 +118,8 @@ class OptSolverIQP(OptSolver):
         self.linsolver = new_linsolver(parameters['linsolver'],'symmetric')
 
         # Problem
+        if not isinstance(problem,QuadProblem):
+            raise TypeError('problem is not instance of QuadProblem')
         self.problem = problem
 
         # Reset

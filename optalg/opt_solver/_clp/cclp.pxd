@@ -17,7 +17,13 @@ cdef extern from "coin/Clp_C_Interface.h":
                          double* collb, double* collu, double* obj, double* rowlb, double* rowub)
 
     int Clp_status(Clp_Simplex* model)
-    void Clp_setlogLevel(Clp_Simplex* model, int value)
+    void Clp_setLogLevel(Clp_Simplex* model, int value)
     int Clp_initialSolve(Clp_Simplex* model)
-    
-    
+
+    int Clp_numberColumns(Clp_Simplex* model)
+    int Clp_numberRows(Clp_Simplex* model)
+
+    double* Clp_primalColumnSolution(Clp_Simplex* model)
+    double* Clp_primalRowSolution(Clp_Simplex* model)
+    double* Clp_dualColumnSolution(Clp_Simplex* model)
+    double* Clp_dualRowSolution(Clp_Simplex* model)

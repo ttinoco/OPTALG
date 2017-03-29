@@ -17,12 +17,50 @@ class TestOptSolvers(unittest.TestCase):
     def setUp(self):
 
         np.random.seed(2)
-         
+
+    def test_clp(self):
+
+        A = np.array([[6.,1.,1.,0.,0.],
+                      [3.,1.,0.,1.,0.],
+                      [4.,6.,0.,0.,1.]])
+        b = np.array([12.,8.,24.])
+        
+        l = np.array([0.,0.,-1e8,-1e8,-1e8])
+        u = np.array([5.,5.,0.,0.,0.])
+        
+        c = np.array([180.,160.,0.,0.,0.])
+        
+        problem = opt.opt_solver.LinProblem(c,A,b,l,u)
+        
+        solver = opt.opt_solver.OptSolverClp()
+        solver.set_parameters({'quiet':True})
+
+        solver.solve(problem)
+
+        x = solver.get_primal_variables()
+        lam,nu,mu,pi = solver.get_dual_variables()
+
+        self.assertLess(np.abs(x[0]-1.71428571),1e-8)
+        self.assertLess(np.abs(x[1]-2.85714286),1e-8)
+        
+        qp = opt.opt_solver.OptSolverIQP()
+        qp.set_parameters({'quiet':True})
+        qp.solve(opt.opt_solver.QuadProblem(coo_matrix((5,5)),c,A,b,l,u))
+        x1 = qp.get_primal_variables()
+        lam1,nu1,mu1,pi1 = qp.get_dual_variables()
+        
+        self.assertLess(100.*norm(x-x1,np.inf)/norm(x,np.inf),0.1)
+        self.assertLess(100.*norm(lam-lam1,np.inf)/norm(lam,np.inf),0.1)
+        self.assertLess(100.*norm(mu-mu1,np.inf)/max([norm(mu,np.inf),norm(mu,np.inf),1e-8]),0.1)
+        self.assertLess(100.*norm(pi-pi1,np.inf)/max([norm(mu,np.inf),norm(mu,np.inf),1e-8]),0.1)
+
     def test_iqp_random(self):
         
         solver = opt.opt_solver.OptSolverIQP()
         solver.set_parameters({'tol': 1e-8,
                                'quiet': True})
+
+        self.assertRaises(TypeError,solver.solve,4)
 
         for i in range(10):
 

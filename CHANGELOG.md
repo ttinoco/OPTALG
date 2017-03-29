@@ -7,11 +7,8 @@ Unreleased
 ----------
 * Correct handling of missing Ax=b in IQP.
 * Correct handling of l = u in IQP.
-
-Version 1.1.3
--------------
-* Linear program class.
-* Coin-OR Clp wrapper.
+* Linear problem class.
+* Coin-OR Clp interface.
 
 Version 1.1.2
 -------------
