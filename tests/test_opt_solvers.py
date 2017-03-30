@@ -56,6 +56,42 @@ class TestOptSolvers(unittest.TestCase):
         self.assertLess(100.*norm(lam-lam1,np.inf)/norm(lam,np.inf),0.1)
         self.assertLess(100.*norm(mu-mu1,np.inf)/max([norm(mu,np.inf),norm(mu,np.inf),1e-8]),0.1)
         self.assertLess(100.*norm(pi-pi1,np.inf)/max([norm(mu,np.inf),norm(mu,np.inf),1e-8]),0.1)
+        
+        self.assertRaises(opt.opt_solver.OptSolverError,solver.solve,4)
+        
+    def test_cbc(self):
+
+        A = np.array([[-2.,2. ,1.,0.],
+                      [-8.,10.,0.,1.]])
+        b = np.array([1.,13.])
+        
+        l = np.array([-1e8,-1e8,-1e8,0.])
+        u = np.array([1e8,1e8,0.,1e8])
+        
+        c = np.array([-1.,-1.,0.,0.])
+        
+        P = np.array([True,True,False,False])
+        
+        problem = opt.opt_solver.MixIntLinProblem(c,A,b,l,u,P)
+        
+        solver = opt.opt_solver.OptSolverCbc()
+        solver.set_parameters({'quiet':True})
+        
+        solver.solve(problem)
+
+        x = solver.get_primal_variables()
+
+        self.assertAlmostEqual(x[0],1.)
+        self.assertAlmostEqual(x[1],2.)
+
+        problem.P[:] = False
+
+        solver.solve(problem)
+
+        x = solver.get_primal_variables()
+
+        self.assertAlmostEqual(x[0],4.)
+        self.assertAlmostEqual(x[1],4.5)
 
     def test_iqp_random(self):
         
@@ -63,7 +99,7 @@ class TestOptSolvers(unittest.TestCase):
         solver.set_parameters({'tol': 1e-8,
                                'quiet': True})
 
-        self.assertRaises(TypeError,solver.solve,4)
+        self.assertRaises(opt.opt_solver.OptSolverError,solver.solve,4)
 
         for i in range(10):
 

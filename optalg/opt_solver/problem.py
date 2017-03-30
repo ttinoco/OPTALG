@@ -43,6 +43,9 @@ class OptProblem:
         #: Lower limits
         self.l = None
 
+        #: Integer flags (boolean array)
+        self.P = None
+
         #: Initial point
         self.x = None
 

@@ -10,25 +10,25 @@ from __future__ import print_function
 import numpy as np
 from .opt_solver_error import *
 from .opt_solver import OptSolver
-from .problem_lin import LinProblem
+from .problem_mixintlin import MixIntLinProblem
 
-class OptSolverClp(OptSolver):
+class OptSolverCbc(OptSolver):
 
     parameters = {'quiet' : False}
 
     def __init__(self):
         """
-        Linear programming solver from COIN-OR.
+        Mixed integer liner "branch and cut" sovler from COIN-OR.
         """
         
         OptSolver.__init__(self)
-        self.parameters = OptSolverClp.parameters.copy()
+        self.parameters = OptSolverCbc.parameters.copy()
         self.problem = None
         
     def solve(self,problem):
 
         # Import
-        from ._clp import ClpContext
+        from ._cbc import CbcContext
 
         # Local vars
         params = self.parameters
@@ -37,38 +37,35 @@ class OptSolverClp(OptSolver):
         quiet = params['quiet']
 
         # Problem
-        if not isinstance(problem,LinProblem):
+        if not isinstance(problem,MixIntLinProblem):
             raise OptSolverError_BadProblemType(self)
         self.problem = problem
 
-        # Clp context
-        self.clp_context = ClpContext()
-        self.clp_context.loadProblem(problem.get_num_primal_variables(),
+        # Cbc context
+        self.cbc_context = CbcContext()
+        self.cbc_context.loadProblem(problem.get_num_primal_variables(),
                                      problem.A,
                                      problem.l,
                                      problem.u,
                                      problem.c,
                                      problem.b,
                                      problem.b)
+        self.cbc_context.copyInIntegerInformation(problem.P)
         
         # Reset
         self.reset()
 
         # Options
         if quiet:
-            self.clp_context.setlogLevel(0)
+            self.cbc_context.setlogLevel(0)
 
         # Solve
-        self.clp_context.initialSolve()
+        self.cbc_context.branchAndBound()
 
         # Save
-        self.x = self.clp_context.primalColumnSolution()
-        self.lam = self.clp_context.dualRowSolution()
-        self.pi = np.maximum(self.clp_context.dualColumnSolution(),0)
-        self.mu = -np.minimum(self.clp_context.dualColumnSolution(),0)
-        if self.clp_context.status() == 0:
+        self.x = self.cbc_context.getColSolution()
+        if self.cbc_context.status() == 0:
             self.set_status(self.STATUS_SOLVED)
             self.set_error_msg('')
         else:
-            raise OptSolverError_Clp(self)
-            
+            raise OptSolverError_Cbc(self)

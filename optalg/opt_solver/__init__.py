@@ -9,7 +9,10 @@
 from .problem import OptProblem
 from .problem_quad import QuadProblem
 from .problem_lin import LinProblem
+from .problem_mixintlin import MixIntLinProblem
+
 from .clp import OptSolverClp
+from .cbc import OptSolverCbc
 from .iqp import OptSolverIQP
 from .ipopt import OptSolverIpopt
 from .augl import OptSolverAugL

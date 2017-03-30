@@ -17,17 +17,25 @@ class OptSolverError(Exception):
     def __str__(self):
         return str(self.value)
 
+class OptSolverError_Cbc(OptSolverError):    
+    def __init__(self,solver=None):
+        OptSolverError.__init__(self,solver,'cbc solver failed')
+
 class OptSolverError_Clp(OptSolverError):    
     def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'Clp failed')
+        OptSolverError.__init__(self,solver,'clp solver failed')
 
 class OptSolverError_Ipopt(OptSolverError):    
     def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'Ipopt failed')
+        OptSolverError.__init__(self,solver,'ipopt solver failed')
 
 class OptSolverError_LineSearch(OptSolverError):    
     def __init__(self,solver=None):
         OptSolverError.__init__(self,solver,'line search failed')
+
+class OptSolverError_BadProblemType(OptSolverError):
+    def __init__(self,solver=None):
+        OptSolverError.__init__(self,solver,'invalid problem type')
 
 class OptSolverError_BadLinSolver(OptSolverError):
     def __init__(self,solver=None):

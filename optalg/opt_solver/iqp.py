@@ -119,7 +119,7 @@ class OptSolverIQP(OptSolver):
 
         # Problem
         if not isinstance(problem,QuadProblem):
-            raise TypeError('problem is not instance of QuadProblem')
+            raise OptSolverError_BadProblemType(self)
         self.problem = problem
 
         # Reset

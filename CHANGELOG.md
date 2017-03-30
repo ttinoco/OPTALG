@@ -5,10 +5,10 @@ Targets
 
 Unreleased
 ----------
-* Correct handling of missing Ax=b in IQP.
-* Correct handling of l = u in IQP.
 * Linear problem class.
+* Mixed integer linear problem class.
 * Coin-OR Clp interface.
+* Coin-OR Cbc interface.
 
 Version 1.1.2
 -------------

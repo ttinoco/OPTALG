@@ -36,11 +36,16 @@ if '--no_ipopt' in sys.argv:
     sys.argv.remove('--no_ipopt')
 else:
     from Cython.Build import cythonize
+    library_dirs = []
+    include_dirs = []
+    if os.environ.get('IPOPT'):
+        library_dirs.append(os.environ.get('IPOPT')+'/lib')
+        include_dirs.append(os.environ.get('IPOPT')+'/include/coin')
     ext_modules += cythonize([Extension(name='optalg.opt_solver._ipopt.cipopt',
                                         sources=['./optalg/opt_solver/_ipopt/cipopt.pyx'],
                                         libraries=['ipopt','coinmumps'],
-                                        library_dirs=[os.getenv('IPOPT')+'/lib'],
-                                        include_dirs=[np.get_include(),os.getenv('IPOPT')+'/include/coin'],
+                                        library_dirs=library_dirs,
+                                        include_dirs=include_dirs+[np.get_include()],
                                         extra_link_args=[],
                                         extra_compile_args=[])])
 
@@ -52,6 +57,19 @@ else:
     ext_modules += cythonize([Extension(name='optalg.opt_solver._clp.cclp',
                                         sources=['./optalg/opt_solver/_clp/cclp.pyx'],
                                         libraries=['Clp'],
+                                        library_dirs=[],
+                                        include_dirs=[],
+                                        extra_link_args=[],
+                                        extra_compile_args=[])])
+
+# cbc
+if '--no_cbc' in sys.argv:
+    sys.argv.remove('--no_cbc')
+else:
+    from Cython.Build import cythonize 
+    ext_modules += cythonize([Extension(name='optalg.opt_solver._cbc.ccbc',
+                                        sources=['./optalg/opt_solver/_cbc/ccbc.pyx'],
+                                        libraries=['Cbc'],
                                         library_dirs=[],
                                         include_dirs=[],
                                         extra_link_args=[],
@@ -69,6 +87,7 @@ setup(name='OPTALG',
                 'optalg.opt_solver',
                 'optalg.opt_solver._ipopt',
                 'optalg.opt_solver._clp',
+                'optalg.opt_solver._cbc',
                 'optalg.stoch_solver'],
       requires=['scipy',
                 'numpy',
