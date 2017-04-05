@@ -7,8 +7,10 @@ Unreleased
 ----------
 * Correct handling of missing Ax=b in IQP.
 * Correct handling of l = u in IQP.
-* Two-stage stochastic optimization problem class (problem_ts/StochProblemTS)
-* SAA cutting-plane decomposition solvers for StochProblemTS
+
+Version 1.1.2
+-------------
+* AugL solver handles variable bounds using a barrier.
 
 Version 1.1.1
 -------------

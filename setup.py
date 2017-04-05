@@ -8,8 +8,10 @@
 
 import os
 import sys
-from setuptools import setup,Extension
+import platform
 import numpy as np
+#from setuptools import setup,Extension
+from distutils.core import setup,Extension
 
 ext_modules = []
 
@@ -18,9 +20,13 @@ if '--no_mumps' in sys.argv:
     sys.argv.remove('--no_mumps')
 else:
     from Cython.Build import cythonize
+    if platform.system() == 'Darwin':
+        libraries=['dmumps','mumps_common']
+    else:
+        libraries=['dmumps_seq']
     ext_modules += cythonize([Extension(name='optalg.lin_solver._mumps._dmumps',
                                         sources=['./optalg/lin_solver/_mumps/_dmumps.pyx'],
-                                        libraries=['dmumps_seq'],
+                                        libraries=libraries,
                                         library_dirs=[],
                                         include_dirs=[],
                                         extra_link_args=[],
@@ -40,7 +46,7 @@ else:
                                         extra_compile_args=[])])
 
 setup(name='OPTALG',
-      version='1.1.1',
+      version='1.1.2',
       description='Optimization Algorithms',
       author='Tomas Tinoco De Rubira',
       author_email='ttinoco5687@gmail.com',

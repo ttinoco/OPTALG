@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -15,18 +15,20 @@ from types import MethodType
 from numpy.linalg import norm
 from scipy.sparse import coo_matrix
 from .stoch_solver import StochSolver
+from .problem_ms import StochProblemMS
 from .problem_ms_policy import StochProblemMS_Policy
 
 class StochDualDynProg(StochSolver):
+    """
+    Multi-stage stochastic dual dynamic programming algorithm.
+    """
 
     parameters = {'maxiters': 1000,
                   'num_procs': 1,
                   'quiet' : True,
                   'warm_start': False,
-                  'callback': None,
                   'bounds': False,
                   'period': 10,
-                  'debug': False,
                   'key_iters': None,
                   'outdir': '',
                   'tol': 1e-4}
@@ -55,13 +57,12 @@ class StochDualDynProg(StochSolver):
         problem = self.problem
         tree = self.tree
         T = self.T
-        n = self.n
         tol = self.parameters['tol']
         
         # Solve tree
         id2x = {} # id -> x
         id2F = {} # id -> stage current cost
-        id2Qa = {}
+        id2Ha = {}
         for t in range(T):
             nodes = tree.get_stage_nodes(t)
             for node in nodes:
@@ -71,7 +72,7 @@ class StochDualDynProg(StochSolver):
                 else:
                     x_prev = problem.get_x_prev() 
                     assert(t == 0)
-                x,Q,gQ,results = problem.solve_stage_with_cuts(t,
+                x,H,gH,results = problem.solve_stage_with_cuts(t,
                                                                node.get_w(),
                                                                x_prev,
                                                                self.cuts[node.get_id()][0], # A
@@ -81,22 +82,22 @@ class StochDualDynProg(StochSolver):
                                                                tol=tol)
                 id2x[node.get_id()] = x
                 id2F[node.get_id()] = problem.eval_F(t,x,node.get_w())
-                id2Qa[node.get_id()] = Q # total cost using cuts
+                id2Ha[node.get_id()] = H # total cost using cuts
         
         # Get upper bound
-        id2Q = {} # id -> stage total cost (current + cost to go)
+        id2H = {} # id -> stage total cost (current + cost to go)
         for t in range(T-1,-1,-1):
             nodes = tree.get_stage_nodes(t)
             for node in nodes:
                 if node.get_children():
-                    cost_to_go = sum([id2Q[n.get_id()]*n.get_p() for n in node.get_children()])
+                    cost_to_go = sum([id2H[n.get_id()]*n.get_p() for n in node.get_children()])
                 else:
                     cost_to_go = 0.
                     assert(t == T-1)
-                id2Q[node.get_id()] = id2F[node.get_id()]+cost_to_go
+                id2H[node.get_id()] = id2F[node.get_id()]+cost_to_go
         
         # Return
-        return id2Qa,id2Q
+        return id2Ha,id2H
 
     def solve(self,problem,tree):
         """
@@ -107,27 +108,27 @@ class StochDualDynProg(StochSolver):
         problem : StochProblemMS
         tree : StochProbleMS_Tree
         """
-                
+
+        # Check
+        assert(isinstance(problem,StochProblemMS))
+        
         # Local vars
-        params = self.parameters
         self.problem = problem
         self.tree = tree
         self.T = problem.get_num_stages()
-        self.n = problem.get_size_x()
 
         # Check tree
         nodes = tree.get_nodes()
         assert(len(set([n.get_id() for n in nodes])) == len(nodes))
         
         # Parameters
+        params = self.parameters
         maxiters = params['maxiters']
         quiet = params['quiet']
         warm_start = params['warm_start']
-        callback = params['callback']
         num_procs = params['num_procs']
         bounds = params['bounds']
         period = params['period']
-        debug = params['debug']
         tol = params['tol']
         key_iters = params['key_iters']
         outdir = params['outdir']
@@ -146,11 +147,12 @@ class StochDualDynProg(StochSolver):
         self.k = 0
         t0 = time.time()
         self.time = 0.
-        x_prev = np.zeros(self.n)
+        x_prev = np.zeros(problem.get_size_x(0))
         lbound = {tree.root.get_id() : -np.inf}
         ubound = {tree.root.get_id() : np.inf}
-        self.cuts = dict([(node.get_id(),[np.zeros((0,self.n)),np.zeros(0)]) # (A,b) 
-                          for node in tree.get_nodes()])
+        self.cuts = dict([(n.get_id(),
+                           [np.zeros((0,problem.get_size_x(n.get_stage()))),np.zeros(0)]) # (A,b) 
+                          for n in tree.get_nodes()])
 
         # Loop
         while True:
@@ -174,7 +176,7 @@ class StochDualDynProg(StochSolver):
             solutions = {-1 : problem.get_x_prev()}
             for t in range(self.T):
                 node = branch[t]
-                x,Q,gQ,results = problem.solve_stage_with_cuts(t,
+                x,H,gh,results = problem.solve_stage_with_cuts(t,
                                                                node.get_w(),
                                                                solutions[t-1],
                                                                self.cuts[node.get_id()][0], # A
@@ -185,33 +187,18 @@ class StochDualDynProg(StochSolver):
                 solutions[t] = x
                 node.set_data(results)
 
-                # DEBUG: Check gQ
-                #****************
-                if debug:
-                    for i in range(10):
-                        d = np.random.randn(self.n)*1e-2
-                        xper = solutions[t-1]+d
-                        x1,Q1,gQ1,results = problem.solve_stage_with_cuts(t,
-                                                                          node.get_w(),
-                                                                          xper,
-                                                                          self.cuts[node.get_id()][0], # A
-                                                                          self.cuts[node.get_id()][1], # b
-                                                                          quiet=True,
-                                                                          tol=tol)
-                        assert(Q1+1e-8 >= Q+np.dot(gQ,d))
-                        print('gQ ok')
-
-            # Save sol
+            # Update solution
             self.x = solutions[0]
 
             # Backward pass
             for t in range(self.T-2,-1,-1):
                 node = branch[t]
+                assert(node.get_stage() == t)
                 x = solutions[t]
-                Q = 0
-                gQ = np.zeros(self.n)
+                H = 0
+                gH = np.zeros(problem.get_size_x(t))
                 for n in node.get_children():
-                    xn,Qn,gQn,results = problem.solve_stage_with_cuts(t+1,
+                    xn,Hn,gHn,results = problem.solve_stage_with_cuts(t+1,
                                                                       n.get_w(),
                                                                       x,
                                                                       self.cuts[n.get_id()][0], # A
@@ -219,11 +206,11 @@ class StochDualDynProg(StochSolver):
                                                                       quiet=True,
                                                                       init_data=n.get_data() if warm_start else None,
                                                                       tol=tol)
-                    Q += Qn*n.get_p()
-                    gQ += gQn*n.get_p()
+                    H += Hn*n.get_p()
+                    gH += gHn*n.get_p()
                     n.set_data(results)
-                a = -gQ
-                b = -Q + np.dot(gQ,x)
+                a = -gH
+                b = -H + np.dot(gH,x)
                 self.cuts[node.get_id()][0] = np.vstack((self.cuts[node.get_id()][0],a)) # A
                 self.cuts[node.get_id()][1] = np.hstack((self.cuts[node.get_id()][1],b)) # b
 
@@ -240,10 +227,10 @@ class StochDualDynProg(StochSolver):
                 print('{0:^12.5e}'.format(lbound[tree.root.get_id()]), end=' ')
                 print('{0:^12.5e}'.format(ubound[tree.root.get_id()]))
 
-            # Update
+            # Update previous solution
             x_prev = self.x.copy()
 
-            # Update
+            # Update iters
             self.k += 1
 
     def get_policy(self):
@@ -252,35 +239,37 @@ class StochDualDynProg(StochSolver):
         
         Returns
         -------
-        policy : 
+        policy : StochProbleMS_Policy 
         """
 
         # Local vars
         maxiters = self.parameters['maxiters']
 
         # Construct policy
-        def apply(cls,t,x_prev,Wt):
+        def apply(cls,t,x_prev,W):
             
             solver = cls.data
             problem = cls.problem
 
-            assert(0 <= t < problem.T)
-            assert(len(Wt) == t+1)
+            T = problem.get_num_stages()
+
+            assert(0 <= t < T)
+            assert(len(W) == t+1)
             
-            branch = solver.tree.get_closest_branch(Wt)
-            assert(len(branch) == len(Wt))
+            branch = solver.tree.get_closest_branch(W) # check
+            assert(len(branch) == len(W))
            
             node = branch[-1]
  
-            x,Q,gQ,results = problem.solve_stage_with_cuts(t,
-                                                           Wt[-1],                        # actual realization, not node
+            x,H,gH,results = problem.solve_stage_with_cuts(t,
+                                                           W[-1],                        # actual realization, not node
                                                            x_prev,
                                                            solver.cuts[node.get_id()][0], # A
                                                            solver.cuts[node.get_id()][1], # b
                                                            quiet=True)
             
             # Check feasibility
-            if not problem.is_point_feasible(t,x,x_prev,Wt[-1]):
+            if not problem.is_point_feasible(t,x,x_prev,W[-1]):
                 raise ValueError('point not feasible')
             
             # Return
@@ -288,7 +277,7 @@ class StochDualDynProg(StochSolver):
             
         policy = StochProblemMS_Policy(self.problem,
                                        data=self,
-                                       name='Stochastic Dual Dynamic Programming %d' %self.k,
+                                       name='SDDP',
                                        construction_time=self.time)
         policy.apply = MethodType(apply,policy)
         

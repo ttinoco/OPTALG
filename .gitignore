@@ -16,7 +16,7 @@ OPTALG.egg-info/
 dist/
 
 # Shared objects
-.so
+*.so
 
 # Cython C
 _dmumps.c
