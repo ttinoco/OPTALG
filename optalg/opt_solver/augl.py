@@ -508,8 +508,8 @@ class AugLBarrier:
         assert(np.all(umin <= umax))
 
         if n > 0:
-            umax += eps*np.linalg.norm(umax,np.inf)
-            umin -= eps*np.linalg.norm(umin,np.inf)
+            umax = umax + eps*np.abs(umax)+1./inf
+            umin = umin - eps*np.abs(umin)-1./inf
 
         assert(umin.size == n)
         assert(umin.size == umax.size)
