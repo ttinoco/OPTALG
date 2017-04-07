@@ -10,8 +10,8 @@ import os
 import sys
 import platform
 import numpy as np
-#from setuptools import setup,Extension
-from distutils.core import setup,Extension
+from setuptools import setup,Extension
+#from distutils.core import setup,Extension
 
 ext_modules = []
 
