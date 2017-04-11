@@ -103,6 +103,7 @@ class OptSolverIpopt(OptSolver):
         # Options
         self.ipopt_context.add_option('tol',tol)
         self.ipopt_context.add_option('print_level',0 if quiet else 5)
+        self.ipopt_context.add_option('mumps_mem_percent',200)
 
         # Reset
         self.reset()
