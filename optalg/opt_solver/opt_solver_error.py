@@ -29,6 +29,10 @@ class OptSolverError_Ipopt(OptSolverError):
     def __init__(self,solver=None):
         OptSolverError.__init__(self,solver,'ipopt solver failed')
 
+class OptSolverError_NumProblems(OptSolverError):
+    def __init__(self,solver=None):
+        OptSolverError.__init__(self,solver,'numerical problems')
+
 class OptSolverError_LineSearch(OptSolverError):    
     def __init__(self,solver=None):
         OptSolverError.__init__(self,solver,'line search failed')
