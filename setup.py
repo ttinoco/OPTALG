@@ -13,8 +13,8 @@ from distutils.core import setup,Extension
 
 ext_modules = []
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--with',nargs='*',dest='ext',default=[])
+parser = argparse.ArgumentParser(add_help=False)
+parser.add_argument('--with',nargs='?',dest='ext',type=str,const='',default='')
 args, unknown = parser.parse_known_args()
 sys.argv = [sys.argv[0]] + unknown
 
