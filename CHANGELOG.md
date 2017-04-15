@@ -5,7 +5,7 @@ Targets
 
 Unreleased
 ----------
-* Portable setup.py.
+* Portable setup.py (--with argument).
 * Linear problem class.
 * Mixed integer linear problem class.
 * Coin-OR Clp interface.
