@@ -6,7 +6,7 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-cdef extern from "IpStdCInterface.h":
+cdef extern from "coin/IpStdCInterface.h":
     
     ctypedef struct IpoptProblemInfo    
     ctypedef IpoptProblemInfo* IpoptProblem

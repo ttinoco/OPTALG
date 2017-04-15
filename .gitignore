@@ -18,3 +18,5 @@ cipopt.c
 cclp.c
 ccbc.c
 
+# Setup
+setup.cfg

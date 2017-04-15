@@ -6,6 +6,7 @@
 # OPTALG is released under the BSD 2-clause license.  #
 #*****************************************************#
 
+from __future__ import print_function
 import unittest
 import numpy as np
 import optalg as opt
@@ -17,6 +18,30 @@ class TestOptSolvers(unittest.TestCase):
     def setUp(self):
 
         np.random.seed(2)
+
+    def test_ipopt(self):
+
+        Ipopt = opt.opt_solver.OptSolverIpopt()
+        Ipopt.set_parameters({'quiet': True})
+
+        n = 50
+        m = 10
+        p = 20
+        A = coo_matrix(np.random.randn(m,n))
+        b = np.random.randn(m)
+        g = np.random.randn(n)
+        B = np.matrix(np.random.randn(p,n))
+        H = coo_matrix(B.T*B+1e-3*np.eye(n))
+        l = np.random.randn(n)
+        u = l+20*np.random.rand(n)
+        
+        prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u)
+    
+        try:
+            Ipopt.solve(prob)
+            self.assertEqual(Ipopt.get_status(),'solved')
+        except ImportError:
+            raise unittest.SkipTest('no ipopt')
 
     def test_clp(self):
 
@@ -38,8 +63,8 @@ class TestOptSolvers(unittest.TestCase):
         try:
             solver.solve(problem)
         except ImportError:
-            return
-
+            raise unittest.SkipTest('no clp')
+            
         x = solver.get_primal_variables()
         lam,nu,mu,pi = solver.get_dual_variables()
 
@@ -80,7 +105,7 @@ class TestOptSolvers(unittest.TestCase):
         try:
             solver.solve(problem)
         except ImportError:
-            return
+            raise unittest.SkipTest('no cbc')
 
         x = solver.get_primal_variables()
 
@@ -157,9 +182,6 @@ class TestOptSolvers(unittest.TestCase):
             H = coo_matrix(B.T*B+1e-3*np.eye(n))
             l = np.random.randn(n)
             u = l+20*np.random.rand(n)
-
-            #l = -1e8*np.ones(n)
-            #u = 1e8*np.ones(n)
             
             prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u)
             

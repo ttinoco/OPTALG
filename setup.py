@@ -6,74 +6,40 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
-import os
 import sys
-import platform
-import numpy as np
+import argparse
 from distutils.core import setup,Extension
 
 ext_modules = []
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--extensions',nargs='*',default=[])
+args, unknown = parser.parse_known_args()
+sys.argv = [sys.argv[0]] + unknown
+
 # mumps
-if '--no_mumps' in sys.argv:
-    sys.argv.remove('--no_mumps')
-else:
+if 'all' in args.extensions or 'mumps' in args.extensions:
     from Cython.Build import cythonize
-    if platform.system() == 'Darwin':
-        libraries=['dmumps','mumps_common']
-    else:
-        libraries=['dmumps_seq']
     ext_modules += cythonize([Extension(name='optalg.lin_solver._mumps._dmumps',
-                                        sources=['./optalg/lin_solver/_mumps/_dmumps.pyx'],
-                                        libraries=libraries,
-                                        library_dirs=[],
-                                        include_dirs=[],
-                                        extra_link_args=[],
-                                        extra_compile_args=[])])
+                                        sources=['./optalg/lin_solver/_mumps/_dmumps.pyx'])])
 
 # ipopt
-if '--no_ipopt' in sys.argv:
-    sys.argv.remove('--no_ipopt')
-else:
+if 'all' in args.extensions or 'ipopt' in args.extensions:
     from Cython.Build import cythonize
-    library_dirs = []
-    include_dirs = []
-    if os.environ.get('IPOPT'):
-        library_dirs.append(os.environ.get('IPOPT')+'/lib')
-        include_dirs.append(os.environ.get('IPOPT')+'/include/coin')
     ext_modules += cythonize([Extension(name='optalg.opt_solver._ipopt.cipopt',
-                                        sources=['./optalg/opt_solver/_ipopt/cipopt.pyx'],
-                                        libraries=['ipopt','coinmumps'],
-                                        library_dirs=library_dirs,
-                                        include_dirs=include_dirs+[np.get_include()],
-                                        extra_link_args=[],
-                                        extra_compile_args=[])])
+                                        sources=['./optalg/opt_solver/_ipopt/cipopt.pyx'])])
 
 # clp
-if '--no_clp' in sys.argv:
-    sys.argv.remove('--no_clp')
-else:
+if 'all' in args.extensions or 'clp' in args.extensions:
     from Cython.Build import cythonize 
     ext_modules += cythonize([Extension(name='optalg.opt_solver._clp.cclp',
-                                        sources=['./optalg/opt_solver/_clp/cclp.pyx'],
-                                        libraries=['Clp'],
-                                        library_dirs=[],
-                                        include_dirs=[],
-                                        extra_link_args=[],
-                                        extra_compile_args=[])])
+                                        sources=['./optalg/opt_solver/_clp/cclp.pyx'])])
 
 # cbc
-if '--no_cbc' in sys.argv:
-    sys.argv.remove('--no_cbc')
-else:
+if 'all' in args.extensions or 'cbc' in args.extensions:
     from Cython.Build import cythonize 
     ext_modules += cythonize([Extension(name='optalg.opt_solver._cbc.ccbc',
-                                        sources=['./optalg/opt_solver/_cbc/ccbc.pyx'],
-                                        libraries=['Cbc'],
-                                        library_dirs=[],
-                                        include_dirs=[],
-                                        extra_link_args=[],
-                                        extra_compile_args=[])])
+                                        sources=['./optalg/opt_solver/_cbc/ccbc.pyx'])])
  
 setup(name='OPTALG',
       version='1.1.2',

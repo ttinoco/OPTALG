@@ -12,5 +12,5 @@ install:
 - pip install -r requirements.txt
 
 script:
-- python setup.py build_ext --inplace --no_ipopt --no_clp --no_cbc
+- python setup.py build_ext --inplace --extensions mumps
 - nosetests -s -v
