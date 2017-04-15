@@ -8,6 +8,7 @@
 
 import sys
 import argparse
+import numpy as np
 from distutils.core import setup,Extension
 
 ext_modules = []
@@ -27,19 +28,22 @@ if 'all' in args.ext or 'mumps' in args.ext:
 if 'all' in args.ext or 'ipopt' in args.ext:
     from Cython.Build import cythonize
     ext_modules += cythonize([Extension(name='optalg.opt_solver._ipopt.cipopt',
-                                        sources=['./optalg/opt_solver/_ipopt/cipopt.pyx'])])
+                                        sources=['./optalg/opt_solver/_ipopt/cipopt.pyx'],
+                                        include_dirs=[np.get_include()])])
 
 # clp
 if 'all' in args.ext or 'clp' in args.ext:
     from Cython.Build import cythonize 
     ext_modules += cythonize([Extension(name='optalg.opt_solver._clp.cclp',
-                                        sources=['./optalg/opt_solver/_clp/cclp.pyx'])])
+                                        sources=['./optalg/opt_solver/_clp/cclp.pyx'],
+                                        include_dirs=[np.get_include()])])
 
 # cbc
 if 'all' in args.ext or 'cbc' in args.ext:
     from Cython.Build import cythonize 
     ext_modules += cythonize([Extension(name='optalg.opt_solver._cbc.ccbc',
-                                        sources=['./optalg/opt_solver/_cbc/ccbc.pyx'])])
+                                        sources=['./optalg/opt_solver/_cbc/ccbc.pyx'],
+                                        include_dirs=[np.get_include()])])
  
 setup(name='OPTALG',
       version='1.1.2',
