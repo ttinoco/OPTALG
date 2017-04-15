@@ -6,7 +6,6 @@
 # OPTALG is released under the BSD 2-clause license.  #
 #*****************************************************#
 
-from __future__ import print_function
 import unittest
 import numpy as np
 import optalg as opt

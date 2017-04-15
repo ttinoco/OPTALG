@@ -12,5 +12,5 @@ install:
 - pip install -r requirements.txt
 
 script:
-- python setup.py build_ext --inplace --extensions mumps
+- python setup.py build_ext --inplace --with mumps
 - nosetests -s -v

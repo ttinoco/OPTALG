@@ -13,30 +13,30 @@ from distutils.core import setup,Extension
 ext_modules = []
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--extensions',nargs='*',default=[])
+parser.add_argument('--with',nargs='*',dest='ext',default=[])
 args, unknown = parser.parse_known_args()
 sys.argv = [sys.argv[0]] + unknown
 
 # mumps
-if 'all' in args.extensions or 'mumps' in args.extensions:
+if 'all' in args.ext or 'mumps' in args.ext:
     from Cython.Build import cythonize
     ext_modules += cythonize([Extension(name='optalg.lin_solver._mumps._dmumps',
                                         sources=['./optalg/lin_solver/_mumps/_dmumps.pyx'])])
 
 # ipopt
-if 'all' in args.extensions or 'ipopt' in args.extensions:
+if 'all' in args.ext or 'ipopt' in args.ext:
     from Cython.Build import cythonize
     ext_modules += cythonize([Extension(name='optalg.opt_solver._ipopt.cipopt',
                                         sources=['./optalg/opt_solver/_ipopt/cipopt.pyx'])])
 
 # clp
-if 'all' in args.extensions or 'clp' in args.extensions:
+if 'all' in args.ext or 'clp' in args.ext:
     from Cython.Build import cythonize 
     ext_modules += cythonize([Extension(name='optalg.opt_solver._clp.cclp',
                                         sources=['./optalg/opt_solver/_clp/cclp.pyx'])])
 
 # cbc
-if 'all' in args.extensions or 'cbc' in args.extensions:
+if 'all' in args.ext or 'cbc' in args.ext:
     from Cython.Build import cythonize 
     ext_modules += cythonize([Extension(name='optalg.opt_solver._cbc.ccbc',
                                         sources=['./optalg/opt_solver/_cbc/ccbc.pyx'])])
