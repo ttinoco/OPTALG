@@ -6,11 +6,11 @@ python:
 
 before_install:
 - sudo apt-get update
-- sudo apt-get -y install libmumps-seq-dev coinor-libclp-dev coinor-libcbc-dev
+- sudo apt-get -y install libmumps-seq-dev coinor-libclp-dev coinor-libcbc-dev coinor-libipopt-dev
 
 install: 
 - pip install -r requirements.txt
 
 script:
-- python setup.py build_ext --inplace --with "mumps clp cbc" --libraries "dmumps_seq Clp Cbc"
+- python setup.py build_ext --inplace --with "mumps clp cbc ipopt" --libraries "dmumps_seq Clp Cbc ipopt"
 - nosetests -s -v
