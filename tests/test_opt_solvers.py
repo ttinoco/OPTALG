@@ -36,11 +36,11 @@ class TestOptSolvers(unittest.TestCase):
         
         prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u)
     
-        #try:
-        Ipopt.solve(prob)
-        self.assertEqual(Ipopt.get_status(),'solved')
-        #except ImportError:
-        #    raise unittest.SkipTest('no ipopt')
+        try:
+            Ipopt.solve(prob)
+            self.assertEqual(Ipopt.get_status(),'solved')
+        except ImportError:
+            raise unittest.SkipTest('no ipopt')
 
     def test_clp(self):
 
