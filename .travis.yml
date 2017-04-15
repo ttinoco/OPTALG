@@ -14,3 +14,6 @@ install:
 script:
 - python setup.py build_ext --inplace --with mumps clp cbc
 - nosetests -s -v
+- python -c "import optalg; optalg.lin_solver.LinSolverMUMPS();"
+- ls /usr/lib | grep mumps
+- ls /usr/lib/x86_64-linux-gnu/ | grep Clp
