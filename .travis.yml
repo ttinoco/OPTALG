@@ -12,5 +12,5 @@ install:
 - pip install -r requirements.txt
 
 script:
-- python setup.py build_ext --inplace --with "mumps clp cbc ipopt" --libraries "dmumps_seq Clp Cbc ipopt openmpi"
+- python setup.py build_ext --inplace --with "mumps clp cbc ipopt" --libraries "dmumps_seq Clp Cbc ipopt mpi"
 - nosetests -s -v
