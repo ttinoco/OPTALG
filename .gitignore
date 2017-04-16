@@ -19,4 +19,4 @@ cclp.c
 ccbc.c
 
 # Setup
-setup.cfg
+/setup.cfg

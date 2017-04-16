@@ -43,7 +43,7 @@ from the root directory of the package. By default, no wrappers are built for an
 
   sudo python setup.py build_ext --with "mumps cbc" install 
 
-To make this work, the options ``--libraries``, ``--include-dirs``, ``--library-dirs``, and ``--rpath`` of the command ``build_ext`` should be provided as needed either on the command line or through a configuration file `setup.cfg`_. A sample configuration file for OPTALG can be found :download:`here <../setup.cfg>`, which corresponds to an installation of all wrappers in a system with `IPOPT`_ installed in a non-standard location. 
+To make this work, the options ``--libraries``, ``--include-dirs``, ``--library-dirs``, and ``--rpath`` of the command ``build_ext`` should be provided as needed either on the command line or through a configuration file `setup.cfg`_. A sample configuration file for OPTALG can be found :download:`here <_static/setup.cfg>`, which corresponds to an installation of all wrappers in a system with `IPOPT`_ installed in a non-standard location. 
 
 To test OPTLAG, first execute the command ``build_ext`` with the option ``--inplace`` and then use `Nose`_, as in the following example::
 
