@@ -23,7 +23,7 @@ class MixIntLinProblem(OptProblem):
 
     def __init__(self,c,A,b,l,u,P,x=None):
         """
-        Linear program class.
+        Mixed integer linear program class.
         
         Parameters
         ----------

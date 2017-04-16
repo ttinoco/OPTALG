@@ -18,7 +18,7 @@ class OptSolverCbc(OptSolver):
 
     def __init__(self):
         """
-        Mixed integer liner "branch and cut" sovler from COIN-OR.
+        Mixed integer linear "branch and cut" sovler from COIN-OR.
         """
         
         OptSolver.__init__(self)

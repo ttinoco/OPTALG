@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2016, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -29,7 +29,7 @@ class OptSolverLCCP(OptSolver):
 
     def __init__(self):
         """
-        Interior-point solver for linearly-constrained convex programs.
+        Interior-point solver for linearly-constrained convex programs (WILL BE REPLACED WITH "INLP").
         """
         
         # Init

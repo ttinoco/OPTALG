@@ -26,6 +26,10 @@ Optimization Problems
 .. autoclass:: optalg.opt_solver.problem.OptProblem
    :members:
 
+.. autoclass:: optalg.opt_solver.problem_lin.LinProblem
+
+.. autoclass:: optalg.opt_solver.problem_mixintlin.MixIntLinProblem
+
 .. autoclass:: optalg.opt_solver.problem_quad.QuadProblem
 
 .. _ref_opt_solvers:
@@ -45,5 +49,9 @@ Optimization Solvers
 .. autoclass:: optalg.opt_solver.augl.OptSolverAugL
 
 .. autoclass:: optalg.opt_solver.ipopt.OptSolverIpopt
+
+.. autoclass:: optalg.opt_solver.clp.OptSolverClp
+
+.. autoclass:: optalg.opt_solver.cbc.OptSolverCbc
 
 

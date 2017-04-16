@@ -10,11 +10,14 @@ In OPTALG, optimization solvers are objects of type :class:`OptSolver <optalg.op
    :nowrap:
 
    \begin{alignat*}{3}
-   & \mbox{minimize}   \quad && \varphi(x)     \quad && \\
-   & \mbox{subject to} \quad && Ax = b         \quad && : \lambda \\
-   &                   \quad && f(x) = 0.      \quad && : \nu \\
-   &                   \quad && l \le x \le u. \quad && : \pi, \mu 
+   & \mbox{minimize}   \quad && \varphi(x)       \quad && \\
+   & \mbox{subject to} \quad && Ax = b           \quad && : \lambda \\
+   &                   \quad && f(x) = 0.        \quad && : \nu \\
+   &                   \quad && l \le x \le u    \quad && : \pi, \mu \\
+   &                   \quad && Px \in \{0,1\}^m,
    \end{alignat*}
+
+where :math:`P` is a matrix that extracts a sub-vector of :math:`x`. 
 
 Before solving a :class:`problem <optalg.opt_solver.problem.OptProblem>` with a specific solver, the solver parameters can be configured using the method :func:`set_parameters() <optalg.opt_solver.opt_solver.OptSolver.set_parameters>`. Then, the :func:`solve() <optalg.opt_solver.opt_solver.OptSolver.solve>` method can be invoked with the :class:`problem <optalg.opt_solver.problem.OptProblem>` to be solved as its argument. The status, optimal primal variables, and optimal dual variables can be extracted using the class methods :func:`get_status() <optalg.opt_solver.opt_solver.OptSolver.get_status>`, :func:`get_primal_variables() <optalg.opt_solver.opt_solver.OptSolver.get_primal_variables>`, and :func:`get_dual_variables() <optalg.opt_solver.opt_solver.OptSolver.get_dual_variables>`, respectively.
 
@@ -35,6 +38,43 @@ This solver, which corresponds to the class :class:`OptSolverNR <optalg.opt_solv
    \end{alignat*}
 
 using the Newton-Raphson algorithm. It requires the number of variables to be equal to the number of constraints.
+
+.. _opt_solver_clp:
+
+Clp
+===
+
+This is a wrapper of the solver `Clp`_ from COIN-OR. It corresponds to the class :class:`OptSolverClp <optalg.opt_solver.clp.OptSolverClp>`, and solves problems of the form 
+
+.. math:: 
+   :nowrap:
+
+   \begin{alignat*}{3}
+   & \mbox{minimize}   \quad && c^Tx           \quad && \\
+   & \mbox{subject to} \quad && Ax = b         \quad && : \lambda \\
+   &                   \quad && l \le x \le u. \quad && : \pi, \mu
+   \end{alignat*}
+
+Linear optimization problems solved with this solver must be instances of the class :class:`LinProblem <optalg.opt_solver.problem_lin.LinProblem>`, which is a subclass of :class:`OptProblem <optalg.opt_solver.problem.OptProblem>`.
+
+.. _opt_solver_cbc:
+
+Cbc
+===
+
+This is a wrapper of the solver `Cbc`_ from COIN-OR. It corresponds to the class :class:`OptSolverCbc <optalg.opt_solver.cbc.OptSolverCbc>`, and solves problems of the form 
+
+.. math:: 
+   :nowrap:
+
+   \begin{alignat*}{3}
+   & \mbox{minimize}   \quad && c^Tx              \\
+   & \mbox{subject to} \quad && Ax = b            \\
+   &                   \quad && l \le x \le u     \\
+   &                   \quad && Px \in \{0,1\}^m.
+   \end{alignat*}
+
+Mixed-integer linear optimization problems solved with this solver must be instances of the class :class:`MixIntLinProblem <optalg.opt_solver.problem_mixintlin.MixIntLinProblem>`, which is a subclass of :class:`OptProblem <optalg.opt_solver.problem.OptProblem>`.
 
 .. _opt_solver_iqp:
 
@@ -163,7 +203,7 @@ using an Augmented Lagrangian algorithm. It requires the objective function to b
 Ipopt
 =====
 
-This is a Python wrapper of the interior-point solver `IPOPT`_. It corresponds to the class :class:`OptSolverIpopt <optalg.opt_solver.ipopt.OptSolverIpopt>`, and solves optimization problems of the form 
+This is a wrapper of the solver `IPOPT`_ from COIN-OR. It corresponds to the class :class:`OptSolverIpopt <optalg.opt_solver.ipopt.OptSolverIpopt>`, and solves optimization problems of the form
 
 .. math:: 
    :nowrap:
@@ -174,3 +214,7 @@ This is a Python wrapper of the interior-point solver `IPOPT`_. It corresponds t
    &                   \quad && f(x) = 0.      \quad && : \nu \\
    &                   \quad && l \le x \le u. \quad && : \pi, \mu 
    \end{alignat*}
+
+.. _IPOPT: https://projects.coin-or.org/Ipopt
+.. _CLP: https://projects.coin-or.org/Clp
+.. _CBC: https://projects.coin-or.org/Cbc

@@ -20,7 +20,7 @@ class OptSolverIpopt(OptSolver):
     
     def __init__(self):
         """
-        Interior point nonlinear optimization algorithm.
+        Interior point nonlinear optimization algorithm from COIN-OR.
         """
         
         OptSolver.__init__(self)
