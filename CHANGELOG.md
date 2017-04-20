@@ -10,6 +10,7 @@ Unreleased
 * Mixed integer linear problem class.
 * Coin-OR Clp interface.
 * Coin-OR Cbc interface.
+* Auto objective scaling in AugL solver.
 
 Version 1.1.2
 -------------
