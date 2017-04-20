@@ -134,7 +134,7 @@ class OptSolverAugL(OptSolver):
         
         # Objective scaling
         fdata = self.func(self.x)
-        self.obj_sca = np.abs(fdata.phi)/100. if fdata.phi else 1.
+        self.obj_sca = np.maximum(np.abs(fdata.phi)/100.,1.)
         fdata = self.func(self.x)
         
         # Init penalty and barrier parameters
