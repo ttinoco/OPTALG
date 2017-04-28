@@ -37,7 +37,6 @@ class OptSolverIQP(OptSolver):
         OptSolver.__init__(self)
         self.parameters = OptSolverIQP.parameters.copy()                
         self.linsolver = None
-        self.problem = None
         
     def extract_components(self,y):
 

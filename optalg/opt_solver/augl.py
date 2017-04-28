@@ -8,11 +8,12 @@
 
 from __future__ import print_function
 import numpy as np
-from .opt_solver_error import *
-from .opt_solver import OptSolver
-from scipy.sparse import bmat,eye,coo_matrix,tril
-from optalg.lin_solver import new_linsolver
 from functools import reduce
+from .opt_solver_error import *
+from .problem import cast_problem
+from .opt_solver import OptSolver
+from optalg.lin_solver import new_linsolver
+from scipy.sparse import bmat,eye,coo_matrix,tril
 
 class OptSolverAugL(OptSolver):
     
@@ -46,7 +47,6 @@ class OptSolverAugL(OptSolver):
         self.parameters = OptSolverAugL.parameters.copy()
         self.linsolver1 = None 
         self.linsolver2 = None
-        self.problem = None
         self.barrier = None
 
     def solve(self,problem):
@@ -70,12 +70,13 @@ class OptSolverAugL(OptSolver):
         theta_init_max = params['theta_init_max']
         theta_min = params['theta_min']
 
+        # Problem
+        problem = cast_problem(problem)
+        self.problem = problem
+
         # Linear solver
         self.linsolver1 = new_linsolver(params['linsolver'],'symmetric')
         self.linsolver2 = new_linsolver(params['linsolver'],'symmetric')
-
-        # Problem
-        self.problem = problem
 
         # Reset
         self.reset()

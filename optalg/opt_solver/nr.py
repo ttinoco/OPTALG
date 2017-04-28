@@ -9,6 +9,7 @@
 from __future__ import print_function
 import numpy as np
 from .opt_solver_error import *
+from .problem import cast_problem
 from .opt_solver import OptSolver
 from scipy.sparse import bmat
 from optalg.lin_solver import new_linsolver
@@ -71,6 +72,7 @@ class OptSolverNR(OptSolver):
         self.linsolver = new_linsolver(params['linsolver'],'unsymmetric')
 
         # Problem
+        problem = cast_problem(problem)
         self.problem = problem
 
         # Reset

@@ -23,7 +23,6 @@ class OptSolverCbc(OptSolver):
         
         OptSolver.__init__(self)
         self.parameters = OptSolverCbc.parameters.copy()
-        self.problem = None
         
     def solve(self,problem):
 

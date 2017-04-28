@@ -46,6 +46,7 @@ class OptSolver:
         self.status = self.STATUS_UNKNOWN
         self.error_msg = ''
         self.obj_sca = 1. # objective scaling
+        self.problem = None
 
         # Norms
         self.norminf = lambda x: np.linalg.norm(x,np.inf) if x.size else 0.
@@ -115,7 +116,10 @@ class OptSolver:
         variables : ndarray
         """
 
-        return self.x
+        if self.problem:
+            return self.problem.recover_primal_variables(self.x)
+        else:
+            return None
 
     def get_dual_variables(self):
         """
@@ -129,11 +133,14 @@ class OptSolver:
         pi : vector
         """
         
-        return (self.lam*self.obj_sca,
-                self.nu*self.obj_sca,
-                self.mu*self.obj_sca,
-                self.pi*self.obj_sca)
-
+        if self.problem:
+            return self.problem.recover_dual_variables(self.lam*self.obj_sca,
+                                                       self.nu*self.obj_sca,
+                                                       self.mu*self.obj_sca,
+                                                       self.pi*self.obj_sca)
+        else:
+            return None,None,None,None
+        
     def get_results(self):
         """
         Gets results.

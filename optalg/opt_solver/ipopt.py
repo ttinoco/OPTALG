@@ -9,6 +9,7 @@
 from __future__ import print_function
 import numpy as np
 from .opt_solver_error import *
+from .problem import cast_problem
 from .opt_solver import OptSolver
 from scipy.sparse import bmat
 
@@ -25,7 +26,6 @@ class OptSolverIpopt(OptSolver):
         
         OptSolver.__init__(self)
         self.parameters = OptSolverIpopt.parameters.copy()
-        self.problem = None
 
     def create_ipopt_context(self):
         
@@ -95,6 +95,7 @@ class OptSolverIpopt(OptSolver):
         tol = params['tol']
 
         # Problem
+        problem = cast_problem(problem)
         self.problem = problem
 
         # Ipopt context
