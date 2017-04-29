@@ -199,7 +199,11 @@ def cast_problem(problem):
     else:
         
         # Type Base
-        if not hasattr(problem,'G') or np.all(problem.G.row == problem.G.col) and np.all(problem.G.data == 1.):
+        if (not hasattr(problem,'G') or 
+            (problem.G.shape[0] == problem.G.shape[1] and
+             problem.G.shape[0] == problem.G.nnz and
+             np.all(problem.G.row == problem.G.col) and 
+             np.all(problem.G.data == 1.))):
             return create_problem_from_type_base(problem)
 
         # Type A
@@ -214,6 +218,8 @@ def create_problem_from_type_base(problem):
     ----------
     problem : Object
     """
+
+    print('type base')
 
     p = OptProblem()
 
@@ -265,6 +271,8 @@ def create_problem_from_type_A(problem):
     ----------
     problem : Object
     """
+
+    print('type A')
     
     p = OptProblem()
     
