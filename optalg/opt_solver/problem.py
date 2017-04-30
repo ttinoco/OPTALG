@@ -219,8 +219,6 @@ def create_problem_from_type_base(problem):
     problem : Object
     """
 
-    print('type base')
-
     p = OptProblem()
 
     # Init attributes
@@ -271,8 +269,6 @@ def create_problem_from_type_A(problem):
     ----------
     problem : Object
     """
-
-    print('type A')
     
     p = OptProblem()
     
