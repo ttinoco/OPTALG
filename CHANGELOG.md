@@ -11,6 +11,7 @@ Unreleased
 * Coin-OR Clp interface.
 * Coin-OR Cbc interface.
 * Auto objective scaling in AugL solver.
+* IPOPT wrapper extracts number of iterations.
 
 Version 1.1.2
 -------------

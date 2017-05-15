@@ -119,6 +119,7 @@ class OptSolverIpopt(OptSolver):
         results = self.ipopt_context.solve(x0)
 
         # Save
+        self.k = results['k']
         self.x = results['x'].copy()
         self.lam = -results['lam'][:problem.get_num_linear_equality_constraints()].copy()
         self.nu = -results['lam'][problem.get_num_linear_equality_constraints():].copy()

@@ -40,6 +40,7 @@ cdef class IpoptContext:
     IPOPT context class.
     """
 
+    cdef int iters
     cdef int n
     cdef int m
     cdef int nnzj
@@ -56,7 +57,8 @@ cdef class IpoptContext:
     cdef cipopt.IpoptProblem problem
     
     def __init__(self,n,m,l,u,gl,gu,eval_f,eval_g,eval_grad_f,eval_jac_g,eval_h):
-        
+
+        self.iters = 0
         self.n = n
         self.m = m
         self.l = l.copy()
@@ -139,6 +141,8 @@ cdef class IpoptContext:
                                                  eval_grad_f_cb,
                                                  eval_jac_g_cb,
                                                  eval_h_cb)
+
+        cipopt.SetIntermediateCallback(self.problem,intermediate_cb)
     
     def solve(self,x):
 
@@ -158,6 +162,7 @@ cdef class IpoptContext:
                                    cself)
         
         return {'status' : status,
+                'k': self.iters,
                 'x': nx,
                 'lam': nlam,
                 'pi': npi,
@@ -218,6 +223,11 @@ cdef bint eval_h_cb(int n, double* x, bint new_x, double obj_factor, int m, doub
         memcpy(values,<double*>(Hdata_arr.data),sizeof(double)*nele_hess)
     return True
 
-        
+cdef bint intermediate_cb(int alg_mod, int iter_count, double obj_value, double inf_pr, double inf_du,
+                          double mu, double d_norm, double regularization_size, double alpha_du, double alpha_pr,
+                          int ls_trials, UserDataPtr user_data):
+    cdef IpoptContext c = <IpoptContext>user_data
+    c.iters = iter_count
+    return True
         
     
