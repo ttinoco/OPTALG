@@ -9,7 +9,7 @@
 import sys
 import argparse
 import numpy as np
-from distutils.core import setup,Extension
+from setuptools import setup,Extension
 
 ext_modules = []
 
@@ -59,6 +59,7 @@ setup(name='OPTALG',
                 'optalg.opt_solver._clp',
                 'optalg.opt_solver._cbc',
                 'optalg.stoch_solver'],
-      requires=['scipy',
-                'numpy',
-                'dill'])
+      install_requires=['scipy',
+                        'numpy',
+                        'dill',
+                        'multiprocess'])

@@ -7,7 +7,13 @@ build/*
 
 # PyCache
 *__pycache__*
-.pyc
+*.pyc
+
+# egg-info
+OPTALG.egg-info/
+
+# distribution files
+dist/
 
 # Shared objects
 *.so
