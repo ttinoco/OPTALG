@@ -5,6 +5,9 @@ Targets
 
 Unreleased
 ----------
+
+Version 1.1.3
+-------------
 * Portable setup.py (--with argument).
 * Linear problem class.
 * Mixed integer linear problem class.
