@@ -17,6 +17,7 @@ class OptSolverIpopt(OptSolver):
     
     parameters = {'tol': 1e-7,
                   'inf': 1e8,
+                  'derivative_test': 'none',
                   'quiet':False} # flag for omitting output
     
     def __init__(self):
@@ -93,6 +94,7 @@ class OptSolverIpopt(OptSolver):
         # Parameters
         quiet = params['quiet']
         tol = params['tol']
+        der_test = params['derivative_test']
 
         # Problem
         problem = cast_problem(problem)
@@ -105,6 +107,7 @@ class OptSolverIpopt(OptSolver):
         self.ipopt_context.add_option('tol',tol)
         self.ipopt_context.add_option('print_level',0 if quiet else 5)
         self.ipopt_context.add_option('mumps_mem_percent',200)
+        self.ipopt_context.add_option('derivative_test',der_test)
 
         # Reset
         self.reset()
@@ -114,7 +117,7 @@ class OptSolverIpopt(OptSolver):
             x0 = problem.x.copy()
         else:
             x0 = (problem.u+problem.l)/2
-                
+                            
         # Solve
         results = self.ipopt_context.solve(x0)
 

@@ -5,6 +5,7 @@ Targets
 
 Unreleased
 ----------
+* Improved error checks in ipopt wrapper, and added derivative_test option.
 
 Version 1.1.3
 -------------
