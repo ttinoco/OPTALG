@@ -10,7 +10,7 @@ import numpy as np
 from types import MethodType
 from scipy.sparse import eye, bmat, coo_matrix
 
-class OptProblem:
+class OptProblem(object):
     """
     Class for representing general optimization problems.
     """
@@ -25,7 +25,7 @@ class OptProblem:
         """
         
         #: Objective function value
-        self.phi = 0     
+        self.phi = 0
         
         #: Objective function gradient
         self.gphi = None 

@@ -6,6 +6,7 @@ Targets
 Unreleased
 ----------
 * Improved error checks in ipopt wrapper, and added derivative_test and hessian approx option.
+* Added linear_solver and print_level options for ipopt.
 
 Version 1.1.3
 -------------

@@ -19,8 +19,10 @@ class OptSolverIpopt(OptSolver):
                   'inf': 1e8,
                   'derivative_test': 'none',
                   'hessian_approximation': None,
+                  'linear_solver': None,
+                  'print_level': 5,
                   'mu_init': None,
-                  'quiet':False} # flag for omitting output
+                  'quiet':False}
     
     def __init__(self):
         """
@@ -99,6 +101,8 @@ class OptSolverIpopt(OptSolver):
         der_test = params['derivative_test']
         mu_init = params['mu_init']
         h_approx = params['hessian_approximation']
+        lin_solver = params['linear_solver']
+        print_level = params['print_level']
 
         # Problem
         problem = cast_problem(problem)
@@ -109,13 +113,15 @@ class OptSolverIpopt(OptSolver):
 
         # Options
         self.ipopt_context.add_option('tol',tol)
-        self.ipopt_context.add_option('print_level',0 if quiet else 5)
+        self.ipopt_context.add_option('print_level',0 if quiet else print_level)
         self.ipopt_context.add_option('mumps_mem_percent',200)
         self.ipopt_context.add_option('derivative_test',der_test)
         if mu_init:
             self.ipopt_context.add_option('mu_init',mu_init)
         if h_approx:
             self.ipopt_context.add_option('hessian_approximation',h_approx)
+        if lin_solver:
+            self.ipopt_context.add_option('linear_solver',lin_solver)
 
         # Reset
         self.reset()
