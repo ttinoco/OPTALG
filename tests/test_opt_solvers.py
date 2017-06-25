@@ -164,7 +164,7 @@ class TestOptSolvers(unittest.TestCase):
         IQP.set_parameters({'quiet': True})
         
         AugL = opt.opt_solver.OptSolverAugL()
-        AugL.set_parameters({'quiet': True})
+        AugL.set_parameters({'quiet': True, 'feastol': 5e-5})
         
         Ipopt = opt.opt_solver.OptSolverIpopt()
         Ipopt.set_parameters({'quiet': True})
