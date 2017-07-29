@@ -126,7 +126,7 @@ class TestOptSolvers(unittest.TestCase):
         solver.set_parameters({'tol': 1e-8,
                                'quiet': True})
 
-        self.assertRaises(opt.opt_solver.OptSolverError,solver.solve,4)
+        self.assertRaises(Exception,solver.solve,4)
 
         for i in range(10):
 

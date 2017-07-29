@@ -10,6 +10,7 @@ from __future__ import print_function
 import numpy as np
 from .opt_solver_error import *
 from .opt_solver import OptSolver
+from .problem import cast_problem
 from .problem_quad import QuadProblem
 from optalg.lin_solver import new_linsolver
 from scipy.sparse import bmat,triu,eye,spdiags,coo_matrix,tril
@@ -35,7 +36,7 @@ class OptSolverIQP(OptSolver):
         
         # Init
         OptSolver.__init__(self)
-        self.parameters = OptSolverIQP.parameters.copy()                
+        self.parameters = OptSolverIQP.parameters.copy()
         self.linsolver = None
         
     def extract_components(self,y):
@@ -97,7 +98,7 @@ class OptSolverIQP(OptSolver):
 
         Parameters
         ----------
-        problem : QuadProblem
+        problem : Object
         """
     
         # Local vars
@@ -118,21 +119,25 @@ class OptSolverIQP(OptSolver):
 
         # Problem
         if not isinstance(problem,QuadProblem):
-            raise OptSolverError_BadProblemType(self)
+            problem = cast_problem(problem)
+            quad_problem = QuadProblem(None,None,None,None,None,None,problem=problem)
+        else:
+            quad_problem = problem
         self.problem = problem
+        self.quad_problem = quad_problem
 
         # Reset
         self.reset()
 
         # Data
-        self.obj_sca = np.maximum(norminf(problem.g),1.)
-        self.H = problem.H/self.obj_sca
-        self.g = problem.g/self.obj_sca
-        self.A = problem.A
-        self.AT = problem.A.T
-        self.b = problem.b
-        self.l = problem.l
-        self.u = problem.u
+        self.obj_sca = np.maximum(norminf(quad_problem.g),1.)
+        self.H = quad_problem.H/self.obj_sca
+        self.g = quad_problem.g/self.obj_sca
+        self.A = quad_problem.A
+        self.AT = quad_problem.A.T
+        self.b = quad_problem.b
+        self.l = quad_problem.l
+        self.u = quad_problem.u
         self.n = self.H.shape[0]
         self.m = self.A.shape[0]
         self.e = np.ones(self.n)
@@ -153,23 +158,23 @@ class OptSolverIQP(OptSolver):
             raise OptSolverError_NoInterior(self)
 
         # Initial point
-        if problem.x is None or not problem.x.size:
+        if quad_problem.x is None or not quad_problem.x.size:
             self.x = (self.u + self.l)/2.
         else:
             dul = eps*(self.u-self.l)
-            self.x = np.maximum(np.minimum(problem.x,self.u-dul),self.l+dul)
-        if problem.lam is None or not problem.lam.size:
+            self.x = np.maximum(np.minimum(quad_problem.x,self.u-dul),self.l+dul)
+        if quad_problem.lam is None or not quad_problem.lam.size:
             self.lam = np.zeros(self.m)
         else:
-            self.lam = problem.lam.copy()/self.obj_sca
-        if problem.mu is None or not problem.mu.size:
+            self.lam = quad_problem.lam.copy()/self.obj_sca
+        if quad_problem.mu is None or not quad_problem.mu.size:
             self.mu = np.ones(self.x.size)*eps_cold
         else:
-            self.mu = np.maximum(problem.mu,eps)/self.obj_sca
-        if problem.pi is None or not problem.pi.size:
+            self.mu = np.maximum(quad_problem.mu,eps)/self.obj_sca
+        if quad_problem.pi is None or not quad_problem.pi.size:
             self.pi = np.ones(self.x.size)*eps_cold
         else:
-            self.pi = np.maximum(problem.pi,eps)/self.obj_sca
+            self.pi = np.maximum(quad_problem.pi,eps)/self.obj_sca
 
         # Check interior
         try:
