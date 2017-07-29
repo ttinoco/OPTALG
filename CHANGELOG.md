@@ -1,10 +1,14 @@
 Targets
 -------
-* ECOS interface?
-* SNOPT interface?
+* ECOS interface.
+* SNOPT interface.
+* CPLEX interace.
 
 Unreleased
 ----------
+
+Version 1.1.4
+-------------
 * Improved error checks in ipopt wrapper, and added derivative_test and hessian approx option.
 * Added linear_solver and print_level options for ipopt.
 * IQP allows general problem as input, forms QP approximation.

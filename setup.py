@@ -46,7 +46,7 @@ if 'all' in args.ext or 'cbc' in args.ext:
                                         include_dirs=[np.get_include()])])
  
 setup(name='OPTALG',
-      version='1.1.3',
+      version='1.1.4',
       description='Optimization Algorithms',
       author='Tomas Tinoco De Rubira',
       author_email='ttinoco5687@gmail.com',
