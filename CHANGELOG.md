@@ -6,6 +6,7 @@ Targets
 
 Unreleased
 ----------
+* Naive, but hopefully efficient interior-point nonlinear programming solver (inlp) based on taking newton steps on the KKT conditions.
 
 Version 1.1.4
 -------------
