@@ -44,7 +44,7 @@ Optimization Solvers
 
 .. autoclass:: optalg.opt_solver.iqp.OptSolverIQP
 
-.. autoclass:: optalg.opt_solver.lccp.OptSolverLCCP
+.. autoclass:: optalg.opt_solver.inlp.OptSolverINLP
 
 .. autoclass:: optalg.opt_solver.augl.OptSolverAugL
 
