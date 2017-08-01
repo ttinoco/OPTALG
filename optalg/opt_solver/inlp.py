@@ -71,15 +71,15 @@ class OptSolverINLP(OptSolver):
         self.reset()
 
         # Checks
-        if not np.all(problem.l < problem.u):
+        if not np.all(problem.l <= problem.u):
             raise OptSolverError_NoInterior(self)
 
         # Constants
         self.A = problem.A
         self.AT = problem.A.T
         self.b = problem.b
-        self.l = problem.l
-        self.u = problem.u
+        self.u = problem.u+1e-5*(problem.u-problem.l)+1e-8
+        self.l = problem.l-1e-5*(problem.u-problem.l)-1e-8
         self.n = problem.get_num_primal_variables()
         self.m1 = problem.get_num_linear_equality_constraints()
         self.m2 = problem.get_num_nonlinear_equality_constraints()
@@ -90,10 +90,10 @@ class OptSolverINLP(OptSolver):
 
         # Initial primal
         if problem.x is None:
-            self.x = (problem.u + problem.l)/2.
+            self.x = (self.u + self.l)/2.
         else:
-            dul = eps*(problem.u-problem.l)
-            self.x = np.maximum(np.minimum(problem.x,problem.u-dul),problem.l+dul)
+            dul = eps*(self.u-self.l)
+            self.x = np.maximum(np.minimum(problem.x,self.u-dul),self.l+dul)
 
         # Initial duals
         if problem.lam is None:
@@ -204,7 +204,19 @@ class OptSolverINLP(OptSolver):
                 D1 = spdiags(self.mu/ux,0,self.n,self.n,format='coo')
                 D2 = spdiags(self.pi/xl,0,self.n,self.n,format='coo')
                 fbar = np.hstack((-fdata.rd+fdata.ru/ux-fdata.rl/xl,fdata.rp1,fdata.rp2))
-                Jbar = bmat([[problem.Hphi/self.obj_sca+problem.H_combined+D1+D2,None,None],
+                Hbar = coo_matrix((np.concatenate((problem.Hphi.data/self.obj_sca,
+                                                   problem.H_combined.data,
+                                                   D1.data,
+                                                   D2.data)),
+                                   (np.concatenate((problem.Hphi.row,
+                                                    problem.H_combined.row,
+                                                    D1.row,
+                                                    D2.row)),
+                                    np.concatenate((problem.Hphi.col,
+                                                    problem.H_combined.col,
+                                                    D1.col,
+                                                    D2.col)))))
+                Jbar = bmat([[Hbar,None,None],
                              [-self.A,self.Omm1,None],
                              [-problem.J,None,self.Omm2]],
                             format='coo')

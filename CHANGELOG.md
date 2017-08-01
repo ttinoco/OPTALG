@@ -7,6 +7,8 @@ Targets
 Unreleased
 ----------
 * Naive, but hopefully efficient interior-point nonlinear programming solver (inlp) based on taking newton steps on the KKT conditions.
+* Improved obj scaling of IQP (to match that of INLP).
+* Improved bound stretching in AugL for problems with non-empty interior.
 
 Version 1.1.4
 -------------

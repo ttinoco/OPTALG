@@ -84,8 +84,7 @@ class OptSolverAugL(OptSolver):
         # Barrier
         self.barrier = AugLBarrier(problem.get_num_primal_variables(),
                                    problem.l,
-                                   problem.u,
-                                   eps=feastol)
+                                   problem.u)
         
         # Init primal
         if problem.x is not None:
@@ -226,16 +225,16 @@ class OptSolverAugL(OptSolver):
             
             # Show info
             if not quiet:
-                print('{0:^4d}'.format(self.k), end=' ')
-                print('{0:^9.2e}'.format(fdata.phi), end=' ')
-                print('{0:^9.2e}'.format(pres), end=' ')
-                print('{0:^9.2e}'.format(dres), end=' ')
-                print('{0:^9.2e}'.format(gLmax), end=' ')
-                print('{0:^8.1e}'.format(dmax), end=' ')
-                print('{0:^8.1e}'.format(alpha), end=' ')
-                print('{0:^7.1e}'.format(self.sigma), end=' ')
-                print('{0:^7.1e}'.format(self.theta), end=' ')
-                print('{0:^8s}'.format(reduce(lambda x,y: x+y,self.code)), end=' ')
+                print('{0:^4d}'.format(self.k),end=' ')
+                print('{0:^9.2e}'.format(problem.phi),end=' ')
+                print('{0:^9.2e}'.format(pres),end=' ')
+                print('{0:^9.2e}'.format(dres),end=' ')
+                print('{0:^9.2e}'.format(gLmax),end=' ')
+                print('{0:^8.1e}'.format(dmax),end=' ')
+                print('{0:^8.1e}'.format(alpha),end=' ')
+                print('{0:^7.1e}'.format(self.sigma),end=' ')
+                print('{0:^7.1e}'.format(self.theta),end=' ')
+                print('{0:^8s}'.format(reduce(lambda x,y: x+y,self.code)),end=' ')
                 if self.info_printer:
                     self.info_printer(self,False)
                 else:
@@ -509,11 +508,10 @@ class AugLBarrier:
     Class for handling bounds using barrier.
     """
 
-    def __init__(self,n,umin=None,umax=None,eps=1e-4,inf=1e8):
+    def __init__(self,n,umin=None,umax=None,inf=1e8):
         
         assert(n >= 0)
         assert(inf > 0)
-        assert(eps > 0)
 
         if umin is None or not umin.size:
             umin = -inf*np.ones(n)
@@ -523,15 +521,14 @@ class AugLBarrier:
         assert(np.all(umin <= umax))
 
         if n > 0:
-            umax = umax + eps*np.abs(umax)+1./inf
-            umin = umin - eps*np.abs(umin)-1./inf
+            umax = umax+1e-5*(umax-umin)+1./inf
+            umin = umin-1e-5*(umax-umin)-1./inf
 
         assert(umin.size == n)
         assert(umin.size == umax.size)
         assert(np.all(umin < umax))
         
         self.n = n
-        self.eps = eps
         self.inf = inf
         self.umin = umin
         self.umax = umax
@@ -558,91 +555,3 @@ class AugLBarrier:
         
         du = self.umax-self.umin
         return np.maximum(np.minimum(x,self.umax-0.01*du),self.umin+0.01*du)
-
-class AugLBounds:
-    """
-    Class for handling bounds as simple nonlinear constraints.
-    """
- 
-    def __init__(self,n,umin=None,umax=None,eps=1e-4,inf=1e8):
-        """
-        Class for handling bounds as simple nonlinear constraints.
-
-        Parameters
-        ----------
-        n : int
-        umin : ndarray
-        umax : ndarray
-        eps : float
-        inf : float
-        """
- 
-        assert(eps > 0.)
-        assert(inf > 0)
-        assert(n >= 0)
-
-        if umin is None or not umin.size:
-            umin = -inf*np.ones(n)
-        if umax is None or not umax.size:
-            umax = inf*np.ones(n)
-
-        assert(umin.size == n)
-        assert(umin.size == umax.size)
-        assert(np.all(umin <= umax))
-
-        self.n = n
-        self.eps = eps
-        self.inf = inf
-        self.umin = umin
-        self.umax = umax
-        self.du = np.maximum(umax-umin,eps)
-
-        self.f = np.zeros(2*self.n)
-
-        self.Jrow = np.array(range(2*self.n))
-        self.Jcol = np.concatenate((range(self.n),range(self.n)))
-        self.Jdata = np.zeros(2*self.n)
-        self.J = coo_matrix((self.Jdata,(self.Jrow,self.Jcol)),
-                            shape=(2*self.n,self.n))
-        
-        self.Hdata = np.zeros(2*self.n)
-        self.Hcomb_row = np.array(range(self.n))
-        self.Hcomb_col = np.array(range(self.n))
-        self.Hcomb_data = np.zeros(self.n)
-
-        self.H_combined = coo_matrix((self.Hcomb_data,(self.Hcomb_row,self.Hcomb_col)),
-                                     shape=(self.n,self.n))
-
-    def eval(self,u):
-
-        assert(u.size == self.n)
-
-        n = self.n
-        eps = self.eps
-        a1 = self.umax-u
-        a2 = u-self.umin
-        b = eps*eps/self.du
-        sqrterm1 = np.sqrt(a1*a1+b*b+eps*eps)
-        sqrterm2 = np.sqrt(a2*a2+b*b+eps*eps)
-        
-        self.f[:n] = a1 + b - sqrterm1
-        self.f[n:] = a2 + b - sqrterm2
-
-        self.Jdata[:n] = -(1-a1/sqrterm1)
-        self.Jdata[n:] = (1-a2/sqrterm2)
-        
-        self.Hdata[:n] = -(b*b+eps*eps)/(sqrterm1*sqrterm1*sqrterm1)
-        self.Hdata[n:] = -(b*b+eps*eps)/(sqrterm2*sqrterm2*sqrterm2)
-        
-    def combine_H(self,coeff,ensure_psd=False):
-
-        n = self.n
-        assert(coeff.size == 2*n)
-        coeff1 = coeff[:n]
-        coeff2 = coeff[n:]
-
-        if ensure_psd:
-            self.Hcomb_data[:] = np.zeros(n)
-        else:
-            self.Hcomb_data[:] = coeff1*self.Hdata[:n] + coeff2*self.Hdata[n:]
-        

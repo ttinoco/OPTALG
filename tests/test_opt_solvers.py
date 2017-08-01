@@ -212,37 +212,37 @@ class TestOptSolvers(unittest.TestCase):
             except ImportError:
                 has_ipopt = False
 
-            self.assertTrue(np.all(xIQP == xIQP))
-            self.assertFalse(np.all(xIQP == xAugL))
-            self.assertFalse(np.all(xIQP == xINLP))
+            self.assertFalse(xIQP is xAugL)
+            self.assertFalse(xIQP is xINLP)
             self.assertLess(100*norm(xAugL-xIQP)/(norm(xIQP)+eps),eps)
             self.assertLess(100*norm(xINLP-xIQP)/(norm(xIQP)+eps),eps)
             if has_ipopt:
-                self.assertFalse(np.all(xIQP == xIpopt))
+                self.assertFalse(xIQP is xIpopt)
                 self.assertLess(100*norm(xIpopt-xIQP)/(norm(xIQP)+eps),eps)
 
             if m > 0:
-                self.assertTrue(np.all(lamIQP == lamIQP))
-                self.assertFalse(np.all(lamIQP == lamAugL))
-                self.assertFalse(np.all(lamIQP == lamINLP))
+                self.assertFalse(lamIQP is lamAugL)
+                self.assertFalse(lamIQP is lamINLP)
                 self.assertLess(100*norm(lamAugL-lamIQP)/(norm(lamIQP)+eps),eps)
                 self.assertLess(100*norm(lamINLP-lamIQP)/(norm(lamIQP)+eps),eps)
                 if has_ipopt:
-                    self.assertFalse(np.all(lamIQP == lamIpopt))
+                    self.assertFalse(lamIQP is lamIpopt)
                     self.assertLess(100*norm(lamIpopt-lamIQP)/(norm(lamIQP)+eps),eps)
 
-            self.assertTrue(np.all(muIQP == muIQP))
+            self.assertFalse(muIQP is muAugL)
+            self.assertFalse(muIQP is muINLP)
             #self.assertLess(100*norm(muAugL-muIQP)/(norm(muIQP)+eps),eps)
             self.assertLess(100*norm(muINLP-muIQP)/(norm(muIQP)+eps),eps)
             if has_ipopt:
-                self.assertFalse(np.all(muIQP == muIpopt))
+                self.assertFalse(muIQP is muIpopt)
                 self.assertLess(100*norm(muIpopt-muIQP)/(norm(muIQP)+eps),eps)
 
-            self.assertTrue(np.all(piIQP == piIQP))
+            self.assertFalse(piIQP is piAugL)
+            self.assertFalse(piIQP is piINLP)
             #self.assertLess(100*norm(piAugL-piIQP)/(norm(piIQP)+eps),eps)
             self.assertLess(100*norm(piINLP-piIQP)/(norm(piIQP)+eps),eps)
             if has_ipopt:
-                self.assertFalse(np.all(piIQP == piIpopt))
+                self.assertFalse(piIQP is piIpopt)
                 self.assertLess(100*norm(piIpopt-piIQP)/(norm(piIQP)+eps),eps)
 
             prob.eval(xIQP)
@@ -258,12 +258,9 @@ class TestOptSolvers(unittest.TestCase):
                 prob.eval(xIpopt)
                 objIpopt = prob.phi
 
-            self.assertNotEqual(objIQP,objAugL)
-            self.assertNotEqual(objIQP,objINLP)
             self.assertLess(100*np.abs(objIQP-objAugL)/(np.abs(objIQP)+eps),eps)
             self.assertLess(100*np.abs(objIQP-objINLP)/(np.abs(objIQP)+eps),eps)
             if has_ipopt:
-                self.assertNotEqual(objIQP,objIpopt)
                 self.assertLess(100*np.abs(objIQP-objIpopt)/(np.abs(objIQP)+eps),eps)
 
     def test_augl_barrier(self):
@@ -326,66 +323,3 @@ class TestOptSolvers(unittest.TestCase):
                     Hd_approx = (gphi1-gphi0)/h
 
                     self.assertLess(100*norm(Hd-Hd_approx)/np.maximum(norm(Hd),1e-3),tol)
-
-    def test_augl_bounds(self):
-
-        from optalg.opt_solver.augl import AugLBounds
-
-        h = 1e-7
-        tol = 1.
-
-        bounds = AugLBounds(5)
-        self.assertTrue(np.all(bounds.umin == -bounds.inf*np.ones(5)))
-        self.assertTrue(np.all(bounds.umax == bounds.inf*np.ones(5)))
-
-        bounds = AugLBounds(0,np.zeros(0),np.zeros(0))
-        bounds.eval(np.ones(0))
-        bounds.combine_H(np.ones(0))
-
-        for i in range(10):
-            
-            n = 10
-            umin = 10*np.random.randn(n)
-            umax = umin + 10*np.random.rand(n)
-            bounds = AugLBounds(n,umin,umax)
-            self.assertEqual(bounds.eps,1e-4)
-            self.assertEqual(bounds.inf,1e8)
-
-            self.assertEqual(bounds.f.size,2*n)
-            self.assertTupleEqual(bounds.J.shape,(2*n,n))
-            self.assertTupleEqual(bounds.H_combined.shape,(n,n))
-            self.assertTrue(np.all(bounds.f == 0.))
-            self.assertTrue(np.all(bounds.J.data == 0.))
-            self.assertTrue(np.all(bounds.H_combined.data == 0.))
-            self.assertTrue(np.all(bounds.H_combined.row == bounds.H_combined.col))
-            
-            points = [(umin+umax)/2.,
-                      umax+np.random.randn(n)*0.1,
-                      umin+np.random.randn(n)*0.1]
-
-            for x0 in points:
-                                
-                lam = 10.*np.random.randn(2*x0.size)
-                bounds.eval(x0)
-                f0 = bounds.f.copy()
-                J0 = bounds.J.copy()
-                bounds.combine_H(lam)
-                H0 = bounds.H_combined.copy()
- 
-                for j in range(10):
-                    
-                    d = np.random.randn(n)
-                    x = x0 + h*d
-                    bounds.eval(x)
-
-                    Jd1 = (bounds.f-f0)/h
-                    Jd2 = J0*d
-                    
-                    self.assertLess(100*norm(Jd1-Jd2)/np.maximum(norm(Jd2),1e-5),tol)
-
-                    bounds.combine_H(lam)
-                    
-                    Hd1 = (bounds.J.T*lam-J0.T*lam)/h
-                    Hd2 = H0*d
-                    
-                    self.assertLess(100*norm(Hd1-Hd2)/np.maximum(norm(Hd2),1e-5),tol)
