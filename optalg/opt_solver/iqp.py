@@ -10,6 +10,7 @@ from __future__ import print_function
 import numpy as np
 from .opt_solver_error import *
 from .opt_solver import OptSolver
+from .problem import cast_problem
 from .problem_quad import QuadProblem
 from optalg.lin_solver import new_linsolver
 from scipy.sparse import bmat,triu,eye,spdiags,coo_matrix,tril
@@ -35,69 +36,16 @@ class OptSolverIQP(OptSolver):
         
         # Init
         OptSolver.__init__(self)
-        self.parameters = OptSolverIQP.parameters.copy()                
+        self.parameters = OptSolverIQP.parameters.copy()
         self.linsolver = None
         
-    def extract_components(self,y):
-
-        n = self.n
-        m = self.m
-        
-        x = y[:n]
-        lam = y[n:n+m]
-        mu = y[n+m:2*n+m]
-        pi = y[2*n+m:]
-
-        return x,lam,mu,pi
-        
-    def func(self,y):
-
-        fdata = self.fdata
-        sigma = self.parameters['sigma']
-
-        x,lam,mu,pi = self.extract_components(y)
-        ux = self.u-x
-        xl = x-self.l
-        
-        rd = self.H*x+self.g-self.AT*lam+mu-pi       # dual residual
-        rp = self.A*x-self.b                         # primal residual
-        ru = mu*ux-sigma*self.eta_mu*self.e  # residual of perturbed complementarity
-        rl = pi*xl-sigma*self.eta_pi*self.e  # residual of perturbed complementarity
-        
-        Dmu = spdiags(self.mu,0,self.n,self.n) 
-        Dux = spdiags(ux,0,self.n,self.n)
-        Dpi = spdiags(self.pi,0,self.n,self.n)
-        Dxl = spdiags(xl,0,self.n,self.n)
-
-        f = np.hstack((rd,rp,ru,rl))                        # residuals
-        
-        if self.A.shape[0] > 0:
-            Jbot = bmat([[-Dmu,None,Dux,None],
-                         [Dpi,self.Onm,None,Dxl]])      # bottom part of Jacobian of residuals
-        else:
-            Jbot = bmat([[-Dmu,Dux,None],
-                         [Dpi,None,Dxl]])               # bottom part of Jacobian of residuals
-        J = bmat([[self.Jtop],[Jbot]],format='coo')     # Jacobian of residuals
-
-        fdata.rp = rp
-        fdata.rd = rd
-        fdata.ru = ru
-        fdata.rl = rl
-        
-        fdata.f = f
-        fdata.J = J
-        fdata.F = 0.5*np.dot(f,f)                          # merit function
-        fdata.GradF = J.T*f                                # gradient of merit function
-
-        return fdata
-
     def solve(self,problem):
         """
         Solves optimization problem.
 
         Parameters
         ----------
-        problem : QuadProblem
+        problem : Object
         """
     
         # Local vars
@@ -112,64 +60,61 @@ class OptSolverIQP(OptSolver):
         sigma = parameters['sigma']
         eps = parameters['eps']
         eps_cold = parameters['eps_cold']
-        
-        # Linsolver
-        self.linsolver = new_linsolver(parameters['linsolver'],'symmetric')
 
         # Problem
         if not isinstance(problem,QuadProblem):
-            raise OptSolverError_BadProblemType(self)
+            problem = cast_problem(problem)
+            quad_problem = QuadProblem(None,None,None,None,None,None,problem=problem)
+        else:
+            quad_problem = problem
         self.problem = problem
+        self.quad_problem = quad_problem
+
+        # Linsolver
+        self.linsolver = new_linsolver(parameters['linsolver'],'symmetric')
 
         # Reset
         self.reset()
+    
+        # Checks
+        if not np.all(problem.l < problem.u):
+            raise OptSolverError_NoInterior(self)
 
         # Data
-        self.obj_sca = np.maximum(norminf(problem.g),1.)
-        self.H = problem.H/self.obj_sca
-        self.g = problem.g/self.obj_sca
-        self.A = problem.A
-        self.AT = problem.A.T
-        self.b = problem.b
-        self.l = problem.l
-        self.u = problem.u
-        self.n = self.H.shape[0]
-        self.m = self.A.shape[0]
+        self.H = quad_problem.H
+        self.g = quad_problem.g
+        self.A = quad_problem.A
+        self.AT = quad_problem.A.T
+        self.b = quad_problem.b
+        self.l = quad_problem.l
+        self.u = quad_problem.u
+        self.n = quad_problem.H.shape[0]
+        self.m = quad_problem.A.shape[0]
         self.e = np.ones(self.n)
         self.I = eye(self.n,format='coo')
         self.Onm = coo_matrix((self.n,self.m))
         self.Omm = coo_matrix((self.m,self.m))
-        if self.A.shape[0] > 0:
-            self.Jtop = bmat([[self.H,-self.AT,self.I,-self.I],
-                              [self.A,None,None,None]],format='coo')
-        else:
-            self.Jtop = bmat([[self.H,self.I,-self.I]],
-                             format='coo')
-    
-        # Checks
-        try:
-            assert(np.all(self.l < self.u))
-        except AssertionError:
-            raise OptSolverError_NoInterior(self)
 
-        # Initial point
-        if problem.x is None or not problem.x.size:
+        # Initial primal
+        if quad_problem.x is None:
             self.x = (self.u + self.l)/2.
         else:
             dul = eps*(self.u-self.l)
-            self.x = np.maximum(np.minimum(problem.x,self.u-dul),self.l+dul)
-        if problem.lam is None or not problem.lam.size:
+            self.x = np.maximum(np.minimum(quad_problem.x,self.u-dul),self.l+dul)
+
+        # Initial duals
+        if quad_problem.lam is None:
             self.lam = np.zeros(self.m)
         else:
-            self.lam = problem.lam.copy()/self.obj_sca
-        if problem.mu is None or not problem.mu.size:
+            self.lam = quad_problem.lam.copy()
+        if quad_problem.mu is None:
             self.mu = np.ones(self.x.size)*eps_cold
         else:
-            self.mu = np.maximum(problem.mu,eps)/self.obj_sca
-        if problem.pi is None or not problem.pi.size:
+            self.mu = np.maximum(quad_problem.mu,eps)
+        if quad_problem.pi is None:
             self.pi = np.ones(self.x.size)*eps_cold
         else:
-            self.pi = np.maximum(problem.pi,eps)/self.obj_sca
+            self.pi = np.maximum(quad_problem.pi,eps)
 
         # Check interior
         try:
@@ -182,6 +127,17 @@ class OptSolverIQP(OptSolver):
 
         # Init vector
         self.y = np.hstack((self.x,self.lam,self.mu,self.pi))
+
+        # Complementarity measures
+        self.eta_mu = np.dot(self.mu,self.u-self.x)/self.x.size
+        self.eta_pi = np.dot(self.pi,self.x-self.l)/self.x.size
+
+        # Objective scaling
+        fdata = self.func(self.y)
+        self.obj_sca = np.maximum(norminf(self.g+self.H*self.x)/10.,1.)
+        self.H = self.H/self.obj_sca
+        self.g = self.g/self.obj_sca
+        fdata = self.func(self.y)
 
         # Header
         if not quiet:
@@ -232,7 +188,7 @@ class OptSolverIQP(OptSolver):
                 gmax = norminf(fdata.GradF)
                 compu = norminf(self.mu*(self.u-self.x))
                 compl = norminf(self.pi*(self.x-self.l))
-                phi = 0.5*np.dot(self.x,self.H*self.x)+np.dot(self.g,self.x)
+                phi = (0.5*np.dot(self.x,self.H*self.x)+np.dot(self.g,self.x))*self.obj_sca
                 
                 # Show progress
                 if not quiet:
@@ -275,7 +231,6 @@ class OptSolverIQP(OptSolver):
                 except RuntimeError:
                     raise OptSolverError_BadLinSystem(self)
                 px = pbar[:self.n]
-                plam = pbar[self.n:self.n+self.m]                
                 pmu = (-fdata.ru + self.mu*px)/ux
                 ppi = (-fdata.rl - self.pi*px)/xl
                 p = np.hstack((pbar,pmu,ppi))
@@ -308,4 +263,53 @@ class OptSolverIQP(OptSolver):
                 except AssertionError:
                     raise OptSolverError_Infeasibility(self)
 
+
+    def extract_components(self,y):
+
+        n = self.n
+        m = self.m
         
+        x = y[:n]
+        lam = y[n:n+m]
+        mu = y[n+m:2*n+m]
+        pi = y[2*n+m:]
+
+        return x,lam,mu,pi
+        
+    def func(self,y):
+
+        fdata = self.fdata
+        sigma = self.parameters['sigma']
+
+        x,lam,mu,pi = self.extract_components(y)
+        ux = self.u-x
+        xl = x-self.l
+        
+        rd = self.H*x+self.g-self.AT*lam+mu-pi       # dual residual
+        rp = self.A*x-self.b                         # primal residual
+        ru = mu*ux-sigma*self.eta_mu*self.e  # residual of perturbed complementarity
+        rl = pi*xl-sigma*self.eta_pi*self.e  # residual of perturbed complementarity
+        
+        Dmu = spdiags(self.mu,0,self.n,self.n) 
+        Dux = spdiags(ux,0,self.n,self.n)
+        Dpi = spdiags(self.pi,0,self.n,self.n)
+        Dxl = spdiags(xl,0,self.n,self.n)
+
+        f = np.hstack((rd,rp,ru,rl))
+        
+        J = bmat([[self.H,-self.AT,self.I,-self.I],
+                  [self.A,None,None,None],
+                  [-Dmu,None,Dux,None],
+                  [Dpi,self.Onm,None,Dxl]])
+
+        fdata.rd = rd
+        fdata.rp = rp
+        fdata.ru = ru
+        fdata.rl = rl
+        fdata.f = f
+        fdata.J = J
+        
+        fdata.F = 0.5*np.dot(f,f) # merit function
+        fdata.GradF = J.T*f       # gradient of merit function
+
+        return fdata
