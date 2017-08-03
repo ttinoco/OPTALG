@@ -6,15 +6,15 @@ Targets
 
 Unreleased
 ----------
-* Naive, but hopefully efficient interior-point nonlinear programming solver (inlp) based on taking newton steps on the KKT conditions.
-* Improved obj scaling of IQP (to match that of INLP).
-* Improved bound stretching in AugL for problems with non-empty interior.
 
 Version 1.1.4
 -------------
 * Improved error checks in ipopt wrapper, and added derivative_test and hessian approx option.
 * Added linear_solver and print_level options for ipopt.
 * IQP allows general problem as input, forms QP approximation.
+* Naive, but hopefully efficient interior-point nonlinear programming solver (inlp) based on taking newton steps on the KKT conditions.
+* Improved obj scaling of IQP (to match that of INLP).
+* Improved bound stretching in AugL for problems with non-empty interior.
 
 Version 1.1.3
 -------------
