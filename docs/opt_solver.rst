@@ -12,7 +12,7 @@ In OPTALG, optimization solvers are objects of type :class:`OptSolver <optalg.op
    \begin{alignat*}{3}
    & \mbox{minimize}   \quad && \varphi(x)       \quad && \\
    & \mbox{subject to} \quad && Ax = b           \quad && : \lambda \\
-   &                   \quad && f(x) = 0.        \quad && : \nu \\
+   &                   \quad && f(x) = 0         \quad && : \nu \\
    &                   \quad && l \le x \le u    \quad && : \pi, \mu \\
    &                   \quad && Px \in \{0,1\}^m,
    \end{alignat*}
@@ -34,7 +34,7 @@ This solver, which corresponds to the class :class:`OptSolverNR <optalg.opt_solv
    \begin{alignat*}{2}
    & \mbox{find}       \quad && x \\
    & \mbox{subject to} \quad && Ax = b \\
-   &                   \quad && f(x) = 0.
+   &                   \quad && f(x) = 0
    \end{alignat*}
 
 using the Newton-Raphson algorithm. It requires the number of variables to be equal to the number of constraints.
@@ -52,7 +52,7 @@ This is a wrapper of the solver `Clp`_ from COIN-OR. It corresponds to the class
    \begin{alignat*}{3}
    & \mbox{minimize}   \quad && c^Tx           \quad && \\
    & \mbox{subject to} \quad && Ax = b         \quad && : \lambda \\
-   &                   \quad && l \le x \le u. \quad && : \pi, \mu
+   &                   \quad && l \le x \le u  \quad && : \pi, \mu.
    \end{alignat*}
 
 Linear optimization problems solved with this solver must be instances of the class :class:`LinProblem <optalg.opt_solver.problem_lin.LinProblem>`, which is a subclass of :class:`OptProblem <optalg.opt_solver.problem.OptProblem>`.
@@ -89,10 +89,10 @@ This solver, which corresponds to the class :class:`OptSolverIQP <optalg.opt_sol
    \begin{alignat*}{3}
    & \mbox{minimize}   \quad && \frac{1}{2}x^THx + g^Tx \quad && \\
    & \mbox{subject to} \quad && Ax = b                  \quad && : \lambda \\
-   &                   \quad && l \le x \le u.          \quad && : \pi, \mu
+   &                   \quad && l \le x \le u           \quad && : \pi, \mu
    \end{alignat*}
 
-using an interior point method. Quadratic problems solved with this solver must be instances of the class :class:`QuadProblem <optalg.opt_solver.problem_quad.QuadProblem>`, which is a subclass of :class:`OptProblem <optalg.opt_solver.problem.OptProblem>`. The following example shows how to solve the quadratic problem
+using an interior-point method. Quadratic problems solved with this solver must be instances of the class :class:`QuadProblem <optalg.opt_solver.problem_quad.QuadProblem>`, which is a subclass of :class:`OptProblem <optalg.opt_solver.problem.OptProblem>`. The following example shows how to solve the quadratic problem
 
 .. math:: 
    :nowrap:
@@ -165,10 +165,10 @@ Then, the optimal primal and dual variables can be extracted, and feasibility an
 
 .. _opt_solver_lccp:
 
-LCCP
+INLP
 ====
 
-This solver, which corresponds to the class :class:`OptSolverLCCP <optalg.opt_solver.lccp.OptSolverLCCP>`, solves convex linearly-constrained problems of the form
+This solver, which corresponds to the class :class:`OptSolverINLP <optalg.opt_solver.inlp.OptSolverINLP>`, solves general nonlinear optimization problems of the form
 
 .. math:: 
    :nowrap:
@@ -176,10 +176,11 @@ This solver, which corresponds to the class :class:`OptSolverLCCP <optalg.opt_so
    \begin{alignat*}{3}
    & \mbox{minimize}   \quad && \varphi(x)     \quad && \\
    & \mbox{subject to} \quad && Ax = b         \quad && : \lambda \\
-   &                   \quad && l \le x \le u. \quad && : \pi, \mu
+   &                   \quad && f(x) = 0       \quad && : \nu \\
+   &                   \quad && l \le x \le u  \quad && : \pi, \mu
    \end{alignat*}
 
-using an interior point method.
+using an interior-point method. It computes Newton steps for solving modified KKT conditions and it uses a line-search to try to ensure progress, but it is not globally convergent (yet!).
 
 .. _opt_solver_augl:
 
@@ -195,10 +196,10 @@ This solver, which corresponds to the class :class:`OptSolverAugL <optalg.opt_so
    & \mbox{minimize}   \quad && \varphi(x)     \quad && \\
    & \mbox{subject to} \quad && Ax = b         \quad && : \lambda \\
    &                   \quad && f(x) = 0       \quad && : \nu \\
-   &                   \quad && l \le x \le u. \quad && : \pi, \mu 
+   &                   \quad && l \le x \le u  \quad && : \pi, \mu 
    \end{alignat*}
 
-using an Augmented Lagrangian algorithm. It requires the objective function to be convex.
+using an Augmented Lagrangian algorithm. It requires the objective function :math:`\varphi` to be convex.
 
 Ipopt
 =====
@@ -212,7 +213,7 @@ This is a wrapper of the solver `IPOPT`_ from COIN-OR. It corresponds to the cla
    & \mbox{minimize}   \quad && \varphi(x)     \quad && \\
    & \mbox{subject to} \quad && Ax = b         \quad && : \lambda \\
    &                   \quad && f(x) = 0.      \quad && : \nu \\
-   &                   \quad && l \le x \le u. \quad && : \pi, \mu 
+   &                   \quad && l \le x \le u  \quad && : \pi, \mu.
    \end{alignat*}
 
 .. _IPOPT: https://projects.coin-or.org/Ipopt

@@ -8,7 +8,7 @@
 
 import numpy as np
 from .problem import OptProblem
-from scipy.sparse import tril,coo_matrix
+from scipy.sparse import tril,triu,coo_matrix
 
 class QuadProblem(OptProblem):
     """
@@ -20,7 +20,7 @@ class QuadProblem(OptProblem):
                 l <= x <= u
     """
 
-    def __init__(self,H,g,A,b,l,u,x=None,lam=None,mu=None,pi=None):
+    def __init__(self,H,g,A,b,l,u,x=None,lam=None,mu=None,pi=None,problem=None):
         """
         Quadratic program class.
         
@@ -32,10 +32,20 @@ class QuadProblem(OptProblem):
         l : vector
         u : vector
         x : vector
+        problem : OptProblem
         """
 
         OptProblem.__init__(self)
 
+        if problem is not None:
+            problem.eval(problem.x)
+            H = problem.Hphi + problem.Hphi.T - triu(problem.Hphi)
+            g = problem.gphi - H*problem.x
+            A = problem.A
+            b = problem.b
+            l = problem.l
+            u = problem.u
+            
         self.H = coo_matrix(H)
         self.Hphi = tril(self.H) # lower triangular
         self.g = g
@@ -53,7 +63,7 @@ class QuadProblem(OptProblem):
         self.lam = lam
         self.mu = mu
         self.pi = pi
-
+        
         # Check data
         assert(H.shape[0] == H.shape[1])
         assert(H.shape[0] == A.shape[1])
@@ -83,4 +93,3 @@ class QuadProblem(OptProblem):
         print('H nnz   : %.2f %%' %(100.*self.H.nnz/(self.H.shape[0]*self.H.shape[1])))
         print('A shape : (%d,%d)' %(self.A.shape[0],self.A.shape[1]))
         print('A nnz   : %.2f %%' %(100.*self.A.nnz/(self.A.shape[0]*self.A.shape[1])))
-        

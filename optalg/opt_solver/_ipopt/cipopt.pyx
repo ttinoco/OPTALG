@@ -30,10 +30,7 @@ class IpoptContextError(Exception):
     """
     IPOPT context error exception.
     """
-    def __init__(self,value):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
+    pass
 
 cdef class IpoptContext:
     """
@@ -191,16 +188,16 @@ cdef bint eval_jac_g_cb(int n, double* x, bint new_x, int m, int nele_jac,
     cdef np.ndarray[int,mode='c'] Jrow_arr
     cdef np.ndarray[int,mode='c'] Jcol_arr
     cdef np.ndarray[double,mode='c'] Jdata_arr
-    if x == NULL and iRow != NULL and jCol != NULL:
+    if values == NULL:
+        assert(iRow != NULL and jCol != NULL)
         Jrow_arr,Jcol_arr = c.eval_jac_g(None,True)
-        if Jrow_arr.size != nele_jac or Jcol_arr.size != nele_jac:
-            return False
+        assert(Jrow_arr.size == nele_jac and Jcol_arr.size == nele_jac)
         memcpy(iRow,<int*>(Jrow_arr.data),sizeof(int)*nele_jac)
         memcpy(jCol,<int*>(Jcol_arr.data),sizeof(int)*nele_jac)
     else:
+        assert(x != NULL)
         Jdata_arr = c.eval_jac_g(ArrayDouble(x,c.n),False)
-        if Jdata_arr.size != nele_jac:
-            return False
+        assert(Jdata_arr.size == nele_jac)
         memcpy(values,<double*>(Jdata_arr.data),sizeof(double)*nele_jac)
     return True
 
@@ -210,16 +207,16 @@ cdef bint eval_h_cb(int n, double* x, bint new_x, double obj_factor, int m, doub
     cdef np.ndarray[int,mode='c'] Hrow_arr
     cdef np.ndarray[int,mode='c'] Hcol_arr
     cdef np.ndarray[double,mode='c'] Hdata_arr
-    if x == NULL and iRow != NULL and jCol != NULL:
+    if values == NULL:
+        assert(iRow != NULL and jCol != NULL)
         Hrow_arr,Hcol_arr = c.eval_h(None,None,None,True)
-        if Hrow_arr.size != nele_hess or Hcol_arr.size != nele_hess:
-            return False
+        assert(Hrow_arr.size == nele_hess and Hcol_arr.size == nele_hess)
         memcpy(iRow,<int*>(Hrow_arr.data),sizeof(int)*nele_hess)
         memcpy(jCol,<int*>(Hcol_arr.data),sizeof(int)*nele_hess)
     else:
+        assert(x != NULL and lam != NULL)
         Hdata_arr = c.eval_h(ArrayDouble(x,c.n),ArrayDouble(lam,c.m),obj_factor,False)
-        if Hdata_arr.size != nele_hess:
-            return False
+        assert(Hdata_arr.size == nele_hess)
         memcpy(values,<double*>(Hdata_arr.data),sizeof(double)*nele_hess)
     return True
 
