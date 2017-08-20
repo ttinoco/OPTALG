@@ -6,6 +6,7 @@ Targets
 
 Unreleased
 ----------
+* Added initial dual update to AugL when initial point is primal feasible (done).	
 
 Version 1.1.4
 -------------

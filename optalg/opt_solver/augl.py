@@ -143,13 +143,20 @@ class OptSolverAugL(OptSolver):
         self.theta = kappa*norm2(fdata.GradF)/(self.sigma*np.maximum(norm2(fdata.gphiB),1.))
         self.theta = np.minimum(np.maximum(self.theta,theta_init_min),theta_init_max)
         fdata = self.func(self.x)
-        
+
+        # Init residuals
+        pres_prev = norminf(fdata.pres)
+        gLmax_prev = norminf(fdata.GradF)
+
+        # Init dual update
+        if pres_prev <= feastol:
+            self.update_multiplier_estimates()
+            fdata = self.func(self.x)
+            
         # Outer iterations
         self.k = 0
         self.useH = False
         self.code = list('----')
-        pres_prev = norminf(fdata.pres)
-        gLmax_prev = norminf(fdata.GradF)
         while True:
             
             # Solve subproblem
@@ -181,6 +188,9 @@ class OptSolverAugL(OptSolver):
             # Update refs
             pres_prev = pres
             gLmax_prev = gLmax
+
+            # Update iters
+            self.k += 1
 
     def solve_subproblem(self,delta):
         
