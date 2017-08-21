@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -21,6 +21,7 @@ class OptSolverIpopt(OptSolver):
                   'hessian_approximation': None,
                   'linear_solver': None,
                   'print_level': 5,
+                  'max_iter': None,
                   'mu_init': None,
                   'quiet':False}
     
@@ -103,6 +104,7 @@ class OptSolverIpopt(OptSolver):
         h_approx = params['hessian_approximation']
         lin_solver = params['linear_solver']
         print_level = params['print_level']
+        max_iter = params['max_iter']
 
         # Problem
         problem = cast_problem(problem)
@@ -116,12 +118,14 @@ class OptSolverIpopt(OptSolver):
         self.ipopt_context.add_option('print_level',0 if quiet else print_level)
         self.ipopt_context.add_option('mumps_mem_percent',200)
         self.ipopt_context.add_option('derivative_test',der_test)
-        if mu_init:
+        if mu_init is not None:
             self.ipopt_context.add_option('mu_init',mu_init)
         if h_approx:
             self.ipopt_context.add_option('hessian_approximation',h_approx)
         if lin_solver:
             self.ipopt_context.add_option('linear_solver',lin_solver)
+        if max_iter is not None:
+            self.ipopt_context.add_option('max_iter_',max_iter)
 
         # Reset
         self.reset()

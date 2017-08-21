@@ -6,7 +6,8 @@ Targets
 
 Unreleased
 ----------
-* Added initial dual update to AugL when initial point is primal feasible (done).	
+* Added initial dual update to AugL when initial point is primal feasible (done).
+* Exposed max_iter option for IPOPT (done).
 
 Version 1.1.4
 -------------
