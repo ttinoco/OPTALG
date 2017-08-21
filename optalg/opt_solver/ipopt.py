@@ -21,8 +21,8 @@ class OptSolverIpopt(OptSolver):
                   'hessian_approximation': None,
                   'linear_solver': None,
                   'print_level': 5,
-                  'max_iter': None,
-                  'mu_init': None,
+                  'max_iter': 1000,
+                  'mu_init': 1e-1,
                   'quiet':False}
     
     def __init__(self):
@@ -118,14 +118,12 @@ class OptSolverIpopt(OptSolver):
         self.ipopt_context.add_option('print_level',0 if quiet else print_level)
         self.ipopt_context.add_option('mumps_mem_percent',200)
         self.ipopt_context.add_option('derivative_test',der_test)
-        if mu_init is not None:
-            self.ipopt_context.add_option('mu_init',mu_init)
+        self.ipopt_context.add_option('mu_init',mu_init)
+        self.ipopt_context.add_option('max_iter',max_iter)
         if h_approx:
             self.ipopt_context.add_option('hessian_approximation',h_approx)
         if lin_solver:
             self.ipopt_context.add_option('linear_solver',lin_solver)
-        if max_iter is not None:
-            self.ipopt_context.add_option('max_iter_',max_iter)
 
         # Reset
         self.reset()
