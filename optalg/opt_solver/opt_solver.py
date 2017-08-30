@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -170,7 +170,7 @@ class OptSolver:
 
         return self.status == self.STATUS_SOLVED
 
-    def line_search(self,x,p,F,GradF,func,smax=np.inf):
+    def line_search(self,x,p,F,GradF,func,smax=np.inf,maxiter=40):
         """
         Finds steplength along search direction p that 
         satisfies the strong Wolfe conditions.
@@ -192,7 +192,6 @@ class OptSolver:
         # Parameters of line search
         c1 = 1e-4
         c2 = 5e-1
-        maxiter = 40
 
         # Initialize lower bound, upper bound and step
         l = 0.

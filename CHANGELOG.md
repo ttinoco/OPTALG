@@ -8,6 +8,8 @@ Unreleased
 ----------
 * Added initial dual update to AugL when initial point is primal feasible (done).
 * Exposed max_iter option for IPOPT (done).
+* Made maxiter of line seach an optionalo param (done).
+* Removed linesearch from INLP, improved performance (done).
 
 Version 1.1.4
 -------------

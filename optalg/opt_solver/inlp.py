@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -21,7 +21,7 @@ class OptSolverINLP(OptSolver):
     
     # Solver parameters
     parameters = {'tol': 1e-4,            # Optimality tolerance
-                  'maxiter': 1000,        # Max iterations
+                  'maxiter': 300,         # Max iterations
                   'sigma': 0.1,           # Factor for increasing subproblem solution accuracy
                   'eps': 1e-3,            # Boundary proximity factor 
                   'eps_cold': 1e-2,       # Boundary proximity factor (cold start)
@@ -243,11 +243,7 @@ class OptSolverINLP(OptSolver):
                 smax = (1.-eps)*np.min([s1,s2,s3,s4])
                 
                 # Line search
-                try:
-                    s,fdata = self.line_search(self.y,p,fdata.F,fdata.GradF,self.func,smax)
-                except OptSolverError_LineSearch:
-                    print('line search failed')
-                    s = np.min([smax,1.])
+                s = np.min([smax,1.])
                 
                 # Update x
                 self.y += s*p
