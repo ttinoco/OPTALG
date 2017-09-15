@@ -127,7 +127,7 @@ class OptSolverINLP(OptSolver):
 
         # Header
         if not quiet:
-            print('\nSolver: INLP')
+            print('\nSolver: inlp')
             print('------------')
                                    
         # Outer
@@ -258,7 +258,10 @@ class OptSolverINLP(OptSolver):
                     assert(np.all(self.pi > 0))
                 except AssertionError:
                     raise OptSolverError_Infeasibility(self)
-        
+
+            # Update iters
+            self.k += 1
+                
     def extract_components(self,y):
 
         n = self.n
