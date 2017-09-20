@@ -21,7 +21,7 @@ class TestOptSolvers(unittest.TestCase):
     def test_ipopt(self):
 
         Ipopt = opt.opt_solver.OptSolverIpopt()
-        Ipopt.set_parameters({'quiet': True})
+        Ipopt.set_parameters({'quiet': True, 'sb': 'yes'})
 
         n = 50
         m = 10

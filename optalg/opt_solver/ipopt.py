@@ -23,6 +23,7 @@ class OptSolverIpopt(OptSolver):
                   'print_level': 5,
                   'max_iter': 1000,
                   'mu_init': 1e-1,
+                  'sb' : 'yes',
                   'quiet':False}
     
     def __init__(self):
@@ -105,6 +106,7 @@ class OptSolverIpopt(OptSolver):
         lin_solver = params['linear_solver']
         print_level = params['print_level']
         max_iter = params['max_iter']
+        sb = params['sb']
 
         # Problem
         problem = cast_problem(problem)
@@ -114,6 +116,7 @@ class OptSolverIpopt(OptSolver):
         self.ipopt_context = self.create_ipopt_context()
 
         # Options
+        self.ipopt_context.add_option('sb',sb)
         self.ipopt_context.add_option('tol',tol)
         self.ipopt_context.add_option('print_level',0 if quiet else print_level)
         self.ipopt_context.add_option('mumps_mem_percent',200)
