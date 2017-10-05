@@ -149,8 +149,11 @@ class OptSolverNR(OptSolver):
                 t(self)
             
             # Search direction
-            p = self.linsolver.factorize_and_solve(bmat([[problem.J],[problem.A]]),
-                                                   np.hstack([-fdata.f,-fdata.r]))
+            try:
+                p = self.linsolver.factorize_and_solve(bmat([[problem.J],[problem.A]]),
+                                                       np.hstack([-fdata.f,-fdata.r]))
+            except RuntimeError:
+                raise OptSolverError_BadLinSystem(self)
             pmax = norminf(p)
 
             # Line search
