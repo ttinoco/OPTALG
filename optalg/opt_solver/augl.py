@@ -27,7 +27,7 @@ class OptSolverAugL(OptSolver):
                   'kappa' : 1e-2,           # for initializing sigma
                   'maxiter' : 1000,         # maximum iterations
                   'sigma_min' : 1e-12,      # minimum sigma
-                  'sigma_init_min' : 1e-6,  # minimum initial sigma
+                  'sigma_init_min' : 1e-3,  # minimum initial sigma
                   'sigma_init_max' : 1e6,   # maximum initial sigma
                   'theta_min'      : 1e-6,  # minimum barrier parameter
                   'theta_init_min' : 1e-6,  # minimum initial barrier parameter
@@ -518,7 +518,7 @@ class AugLBarrier:
     Class for handling bounds using barrier.
     """
 
-    def __init__(self,n,umin=None,umax=None,inf=1e8):
+    def __init__(self, n, umin=None, umax=None, eps=1e-5, inf=1e8):
         
         assert(n >= 0)
         assert(inf > 0)
@@ -531,8 +531,8 @@ class AugLBarrier:
         assert(np.all(umin <= umax))
 
         if n > 0:
-            umax = umax+1e-5*(umax-umin)+1./inf
-            umin = umin-1e-5*(umax-umin)-1./inf
+            umax = umax+eps*(umax-umin)+1./inf
+            umin = umin-eps*(umax-umin)-1./inf
 
         assert(umin.size == n)
         assert(umin.size == umax.size)
@@ -561,7 +561,7 @@ class AugLBarrier:
         self.gphi[:] = -1./dumin+1./dumax
         self.Hphi_data[:] = 1./np.square(dumin)+1./np.square(dumax)
 
-    def to_interior(self,x):
+    def to_interior(self,x, eps=1e-5):
         
         du = self.umax-self.umin
-        return np.maximum(np.minimum(x,self.umax-0.01*du),self.umin+0.01*du)
+        return np.maximum(np.minimum(x, self.umax-eps*du), self.umin+eps*du)
