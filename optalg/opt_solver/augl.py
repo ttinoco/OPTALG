@@ -93,7 +93,7 @@ class OptSolverAugL(OptSolver):
             self.x = (self.barrier.umax+self.barrier.umin)/2.
         assert(np.all(self.x > self.barrier.umin))
         assert(np.all(self.x < self.barrier.umax))
-            
+
         # Init dual
         if problem.lam is not None:
             self.lam = problem.lam.copy()

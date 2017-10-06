@@ -12,7 +12,7 @@ from .opt_solver_error import *
 from .opt_solver import OptSolver
 from .problem import cast_problem
 from optalg.lin_solver import new_linsolver
-from scipy.sparse import bmat,triu,eye,spdiags,coo_matrix
+from scipy.sparse import bmat, triu, eye, spdiags, coo_matrix
 
 class OptSolverINLP(OptSolver):
     """
@@ -92,7 +92,7 @@ class OptSolverINLP(OptSolver):
         if problem.x is None:
             self.x = (self.u + self.l)/2.
         else:
-            dul = eps*(self.u-self.l)
+            dul = 1e-5*(self.u-self.l)
             self.x = np.maximum(np.minimum(problem.x,self.u-dul),self.l+dul)
 
         # Initial duals
@@ -142,6 +142,8 @@ class OptSolverINLP(OptSolver):
             # Init eval
             fdata = self.func(self.y)
             fmax = norminf(fdata.f)     # KKT residual
+            pres = norminf(np.hstack((fdata.rp1,fdata.rp2)))
+            dres = norminf(np.hstack((fdata.rd,fdata.ru,fdata.rl)))
             gmax = norminf(fdata.GradF) # Gradient of merit function
             
             # Done
@@ -159,7 +161,8 @@ class OptSolverINLP(OptSolver):
                     print('')
                 print('{0:^3s}'.format('iter'),end=' ')
                 print('{0:^9s}'.format('phi'),end=' ')
-                print('{0:^9s}'.format('fmax'),end=' ')
+                print('{0:^9s}'.format('pres'),end=' ')
+                print('{0:^9s}'.format('dres'),end=' ')
                 print('{0:^9s}'.format('gmax'),end=' ')
                 print('{0:^8s}'.format('cu'),end=' ')
                 print('{0:^8s}'.format('cl'),end=' ')
@@ -180,7 +183,8 @@ class OptSolverINLP(OptSolver):
                 if not quiet:
                     print('{0:^3d}'.format(self.k),end=' ')
                     print('{0:^9.2e}'.format(phi),end=' ')
-                    print('{0:^9.2e}'.format(fmax),end=' ')
+                    print('{0:^9.2e}'.format(pres),end=' ')
+                    print('{0:^9.2e}'.format(dres),end=' ')
                     print('{0:^9.2e}'.format(gmax),end=' ')
                     print('{0:^8.1e}'.format(compu),end=' ')
                     print('{0:^8.1e}'.format(compl),end=' ')
