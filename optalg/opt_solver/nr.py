@@ -90,7 +90,7 @@ class OptSolverNR(OptSolver):
         # Analyze phase
         try: 
             self.linsolver.analyze(bmat([[problem.J],[problem.A]]))
-        except RuntimeError:
+        except Exception:
             raise OptSolverError_BadLinSystem(self)
             
         # Print header
@@ -152,7 +152,7 @@ class OptSolverNR(OptSolver):
             try:
                 p = self.linsolver.factorize_and_solve(bmat([[problem.J],[problem.A]]),
                                                        np.hstack([-fdata.f,-fdata.r]))
-            except RuntimeError:
+            except Exception:
                 raise OptSolverError_BadLinSystem(self)
             pmax = norminf(p)
 
