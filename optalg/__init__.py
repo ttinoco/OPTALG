@@ -8,4 +8,3 @@
 
 from . import lin_solver
 from . import opt_solver
-from . import stoch_solver

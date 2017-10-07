@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -46,10 +46,12 @@ if 'all' in args.ext or 'cbc' in args.ext:
                                         include_dirs=[np.get_include()])])
  
 setup(name='OPTALG',
+      zip_safe=False,
       version='1.1.4',
       description='Optimization Algorithms',
       author='Tomas Tinoco De Rubira',
       author_email='ttinoco5687@gmail.com',
+      license='BSD 2-Clause License',
       ext_modules=ext_modules,
       packages=['optalg',
                 'optalg.lin_solver',
@@ -57,9 +59,7 @@ setup(name='OPTALG',
                 'optalg.opt_solver',
                 'optalg.opt_solver._ipopt',
                 'optalg.opt_solver._clp',
-                'optalg.opt_solver._cbc',
-                'optalg.stoch_solver'],
-      install_requires=['scipy',
-                        'numpy',
-                        'dill',
-                        'multiprocess'])
+                'optalg.opt_solver._cbc'],
+      install_requires=['numpy>=1.11.2',
+                        'scipy>=0.18.1'])
+
