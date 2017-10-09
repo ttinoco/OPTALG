@@ -20,8 +20,12 @@ OPTALG.egg-info/
 # distribution files
 dist/
 
-# Shared objects
+# Libraries
+*.la
 *.so
+*.so.*
+*.dylib
+lib/
 
 # Cython C
 _dmumps.c

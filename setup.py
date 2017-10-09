@@ -6,53 +6,74 @@
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
+import os
 import sys
-import argparse
 import numpy as np
-from setuptools import setup,Extension
+from subprocess import call
+from Cython.Build import cythonize
+from setuptools import setup, Extension
 
+# External libraries
+if 'darwin' in sys.platform.lower() or 'linux' in sys.platform.lower():
+    return_code = call(["./build_lib.sh"])
+else:
+    return_code = call(["build_lib.bat"])
+if return_code != 0:
+    raise ValueError('Unable to build external library')
+
+# Extra link args
+if 'darwin' in sys.platform.lower():
+    extra_link_args=['-Wl,-rpath,@loader_path/']
+elif 'linux' in sys.platform.lower():
+    extra_link_args=['-Wl,-rpath=$ORIGIN']
+else:
+    extra_link_args=['']
+
+# Extension modules
 ext_modules = []
 
-parser = argparse.ArgumentParser(add_help=False)
-parser.add_argument('--with',nargs='?',dest='ext',type=str,const='',default='')
-args, unknown = parser.parse_known_args()
-sys.argv = [sys.argv[0]] + unknown
+# IPOPT and MUMPS
+if os.environ.get('OPTALG_IPOPT') == 'true':
 
-# mumps
-if 'all' in args.ext or 'mumps' in args.ext:
-    from Cython.Build import cythonize
+    # MUMPS
     ext_modules += cythonize([Extension(name='optalg.lin_solver._mumps._dmumps',
-                                        sources=['./optalg/lin_solver/_mumps/_dmumps.pyx'])])
+                                        sources=['./optalg/lin_solver/_mumps/_dmumps.pyx'],
+                                        libraries=['coinmumps'],
+                                        include_dirs=['./lib/ipopt/include/coin/ThirdParty'],
+                                        library_dirs=['./lib/ipopt/lib'],
+                                        extra_link_args=extra_link_args)])
+                                        
 
-# ipopt
-if 'all' in args.ext or 'ipopt' in args.ext:
-    from Cython.Build import cythonize
+    # IPOPT
     ext_modules += cythonize([Extension(name='optalg.opt_solver._ipopt.cipopt',
                                         sources=['./optalg/opt_solver/_ipopt/cipopt.pyx'],
-                                        include_dirs=[np.get_include()])])
-
+                                        libraries=['ipopt'],
+                                        include_dirs=[np.get_include(),'./lib/ipopt/include'],
+                                        library_dirs=['./lib/ipopt/lib'],
+                                        extra_link_args=extra_link_args)])
+    
 # clp
-if 'all' in args.ext or 'clp' in args.ext:
-    from Cython.Build import cythonize 
-    ext_modules += cythonize([Extension(name='optalg.opt_solver._clp.cclp',
-                                        sources=['./optalg/opt_solver/_clp/cclp.pyx'],
-                                        include_dirs=[np.get_include()])])
+#if 'all' in args.ext or 'clp' in args.ext:
+#    from Cython.Build import cythonize 
+#    ext_modules += cythonize([Extension(name='optalg.opt_solver._clp.cclp',
+#                                        sources=['./optalg/opt_solver/_clp/cclp.pyx'],
+#                                        include_dirs=[np.get_include()])])
 
-# cbc
-if 'all' in args.ext or 'cbc' in args.ext:
-    from Cython.Build import cythonize 
-    ext_modules += cythonize([Extension(name='optalg.opt_solver._cbc.ccbc',
-                                        sources=['./optalg/opt_solver/_cbc/ccbc.pyx'],
-                                        include_dirs=[np.get_include()])])
+# cbc (need to fix)
+#if 'all' in args.ext or 'cbc' in args.ext:
+#    from Cython.Build import cythonize 
+#    ext_modules += cythonize([Extension(name='optalg.opt_solver._cbc.ccbc',
+#                                        sources=['./optalg/opt_solver/_cbc/ccbc.pyx'],
+#                                        include_dirs=[np.get_include()])])
  
 setup(name='OPTALG',
       zip_safe=False,
-      version='1.1.4',
+      version='1.1.4rc1',
       description='Optimization Algorithms',
       author='Tomas Tinoco De Rubira',
       author_email='ttinoco5687@gmail.com',
+      include_package_data=True,
       license='BSD 2-Clause License',
-      ext_modules=ext_modules,
       packages=['optalg',
                 'optalg.lin_solver',
                 'optalg.lin_solver._mumps',
@@ -60,6 +81,16 @@ setup(name='OPTALG',
                 'optalg.opt_solver._ipopt',
                 'optalg.opt_solver._clp',
                 'optalg.opt_solver._cbc'],
-      install_requires=['numpy>=1.11.2',
-                        'scipy>=0.18.1'])
+      install_requires=['cython>=0.20.1',
+                        'numpy>=1.11.2',
+                        'scipy>=0.18.1',
+                        'nose'],
+      package_data={'optalg.lin_solver._mumps' : ['libcoinmumps*'],
+                    'optalg.opt_solver._ipopt' : ['libipopt*']},
+      classifiers=['Development Status :: 5 - Production/Stable',
+                   'License :: OSI Approved :: BSD License',
+                   'Programming Language :: Python :: 2.7',
+                   'Programming Language :: Python :: 3.5'],
+      ext_modules=ext_modules)
+      
 
