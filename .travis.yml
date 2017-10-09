@@ -1,16 +1,20 @@
-language: python
+language: c
 
-python:
-- "2.7"
-- "3.4"
+os:
+- osx
+- linux
 
 before_install:
-- sudo apt-get update
-- sudo apt-get -y install libmumps-seq-dev coinor-libclp-dev coinor-libcbc-dev
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then 
+    sudo apt-get update;
+  fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
+    brew update;
+  fi
 
-install: 
-- pip install -r requirements.txt
+install:
+- sudo pip install -r ./python/requirements.txt
 
-script:
-- python setup.py build_ext --inplace --with "mumps clp cbc" --libraries "dmumps_seq Clp Cbc"
+script: 
+- python setup.py build_ext --inplace
 - nosetests -s -v
