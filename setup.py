@@ -21,14 +21,20 @@ else:
 if return_code != 0:
     raise ValueError('Unable to build external library')
 
-# Extra link args
+# Libraries and extra link args
 if 'darwin' in sys.platform.lower():
-    extra_link_args=['-Wl,-rpath,@loader_path/']
+    libraries_mumps = ['coinmumps']
+    libraries_ipopt = ['ipopt']
+    extra_link_args = ['-Wl,-rpath,@loader_path/']
 elif 'linux' in sys.platform.lower():
-    extra_link_args=['-Wl,-rpath=$ORIGIN']
+    libraries_mumps = ['coinmumps']
+    libraries_ipopt = ['ipopt']
+    extra_link_args = ['-Wl,-rpath=$ORIGIN']
 else:
-    extra_link_args=['']
-
+    libraries_mumps = ['IpOptFSS']
+    libraries_ipopt = ['IpOpt-vc10']
+    extra_link_args = ['']
+    
 # Extension modules
 ext_modules = []
 
@@ -38,7 +44,7 @@ if os.environ.get('OPTALG_IPOPT') == 'true':
     # MUMPS
     ext_modules += cythonize([Extension(name='optalg.lin_solver._mumps._dmumps',
                                         sources=['./optalg/lin_solver/_mumps/_dmumps.pyx'],
-                                        libraries=['coinmumps'],
+                                        libraries=libraries_mumps,
                                         include_dirs=['./lib/ipopt/include/coin/ThirdParty'],
                                         library_dirs=['./lib/ipopt/lib'],
                                         extra_link_args=extra_link_args)])
@@ -47,7 +53,7 @@ if os.environ.get('OPTALG_IPOPT') == 'true':
     # IPOPT
     ext_modules += cythonize([Extension(name='optalg.opt_solver._ipopt.cipopt',
                                         sources=['./optalg/opt_solver/_ipopt/cipopt.pyx'],
-                                        libraries=['ipopt'],
+                                        libraries=libraries_ipopt,
                                         include_dirs=[np.get_include(),'./lib/ipopt/include'],
                                         library_dirs=['./lib/ipopt/lib'],
                                         extra_link_args=extra_link_args)])
@@ -70,7 +76,7 @@ if os.environ.get('OPTALG_CLP') == 'true':
  
 setup(name='OPTALG',
       zip_safe=False,
-      version='1.1.4rc1',
+      version='1.1.4rc2',
       description='Optimization Algorithms and Wrappers',
       author='Tomas Tinoco De Rubira',
       author_email='ttinoco5687@gmail.com',
@@ -87,8 +93,8 @@ setup(name='OPTALG',
                         'numpy>=1.11.2',
                         'scipy>=0.18.1',
                         'nose'],
-      package_data={'optalg.lin_solver._mumps' : ['libcoinmumps*'],
-                    'optalg.opt_solver._ipopt' : ['libipopt*'],
+      package_data={'optalg.lin_solver._mumps' : ['libcoinmumps*', 'IpOptFSS*'],
+                    'optalg.opt_solver._ipopt' : ['libipopt*', 'IpOpt-vc10*'],
                     'optalg.opt_solver._clp' : ['libClp*']},
       classifiers=['Development Status :: 5 - Production/Stable',
                    'License :: OSI Approved :: BSD License',
