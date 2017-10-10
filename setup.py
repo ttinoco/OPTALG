@@ -42,7 +42,7 @@ if os.environ.get('OPTALG_IPOPT') == 'true':
                                         include_dirs=['./lib/ipopt/include/coin/ThirdParty'],
                                         library_dirs=['./lib/ipopt/lib'],
                                         extra_link_args=extra_link_args)])
-                                        
+    
 
     # IPOPT
     ext_modules += cythonize([Extension(name='optalg.opt_solver._ipopt.cipopt',
@@ -52,12 +52,14 @@ if os.environ.get('OPTALG_IPOPT') == 'true':
                                         library_dirs=['./lib/ipopt/lib'],
                                         extra_link_args=extra_link_args)])
     
-# clp
-#if 'all' in args.ext or 'clp' in args.ext:
-#    from Cython.Build import cythonize 
-#    ext_modules += cythonize([Extension(name='optalg.opt_solver._clp.cclp',
-#                                        sources=['./optalg/opt_solver/_clp/cclp.pyx'],
-#                                        include_dirs=[np.get_include()])])
+# CLP
+if os.environ.get('OPTALG_CLP') == 'true':
+    ext_modules += cythonize([Extension(name='optalg.opt_solver._clp.cclp',
+                                        sources=['./optalg/opt_solver/_clp/cclp.pyx'],
+                                        libraries=['Clp'],
+                                        include_dirs=[np.get_include(),'./lib/clp/include'],
+                                        library_dirs=['./lib/clp/lib'],
+                                        extra_link_args=extra_link_args)])
 
 # cbc (need to fix)
 #if 'all' in args.ext or 'cbc' in args.ext:
@@ -86,7 +88,8 @@ setup(name='OPTALG',
                         'scipy>=0.18.1',
                         'nose'],
       package_data={'optalg.lin_solver._mumps' : ['libcoinmumps*'],
-                    'optalg.opt_solver._ipopt' : ['libipopt*']},
+                    'optalg.opt_solver._ipopt' : ['libipopt*'],
+                    'optalg.opt_solver._clp' : ['libClp*']},
       classifiers=['Development Status :: 5 - Production/Stable',
                    'License :: OSI Approved :: BSD License',
                    'Programming Language :: Python :: 2.7',
