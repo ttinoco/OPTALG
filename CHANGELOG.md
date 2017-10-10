@@ -11,7 +11,7 @@ Unreleased
 * Made maxiter of line seach an optional param (done).
 * Removed linesearch from INLP (improved performance) until KKT modifications are introduced (done).
 * Added automatic ipopt/mumps building and linking, controlled by env variable OPTAlG_IPOPT (done).
-* Add automatic clp building and linking, controlled by env varaibel OPTALG_CLP (todo).
+* Added automatic clp building and linking, controlled by env varaibel OPTALG_CLP (done).
 * Upload OPTALG to pypi and test (todo).
 * Update documentation (todo).
 
