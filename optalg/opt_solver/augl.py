@@ -32,7 +32,7 @@ class OptSolverAugL(OptSolver):
                   'theta_min'      : 1e-6,  # minimum barrier parameter
                   'theta_init_min' : 1e-6,  # minimum initial barrier parameter
                   'theta_init_max' : 1e0 ,  # maximum initial barrier parameter
-                  'lam_reg' : 1e-2,         # eta/sigma ratio for regularization of first order dual update
+                  'lam_reg' : 1e-4,         # regularization of first order dual update
                   'subprob_force' : 10,     # for periodic sigma decrease
                   'subprob_maxiter' : 150,  # maximum subproblem iterations
                   'linsolver' : 'default',  # linear solver
@@ -481,7 +481,7 @@ class OptSolverAugL(OptSolver):
         lam_reg = params['lam_reg']
         sigma = self.sigma
         theta = self.theta
-        eta = lam_reg*sigma
+        eta = lam_reg
 
         # Eval
         fdata = self.func(self.x)
