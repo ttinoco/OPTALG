@@ -24,6 +24,9 @@ class LinSolver:
         # Check
         if prop not in [self.SYMMETRIC,self.UNSYMMETRIC]:
             raise ValueError('invalid property')
+
+        #: Name (string)
+        self.name = ''
             
         #: Linear system property {``'symmetric'``, ``'unsymmetric'``}.
         self.prop = prop
