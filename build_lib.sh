@@ -14,8 +14,12 @@ if [ ! -d "lib/ipopt" ] && [ "$OPTALG_IPOPT" = true ]; then
     make clean
     make uninstall
     make
-    #make test
     make install
+    if [ "$(uname)" == "Darwin" ]; then
+      install_name_tool -id "@rpath/libcoinmumps.1.dylib" lib/libcoinmumps.1.dylib
+      install_name_tool -id "@rpath/libipopt.1.dylib" lib/libipopt.1.dylib
+      install_name_tool -change "$PWD/lib/libcoinmumps.1.dylib" "@loader_path/../../lin_solver/_mumps/libcoinmumps.1.dylib" lib/libipopt.1.dylib
+    fi
     cp lib/libipopt* ../../optalg/opt_solver/_ipopt
     cp lib/libcoinmumps* ../../optalg/lin_solver/_mumps
     cd ../../
@@ -32,8 +36,11 @@ if [ ! -d "lib/clp" ] && [ "$OPTALG_CLP" = true ]; then
     ./configure
     make clean
     make uninstall
-    #make test
+    make
     make install
+    if [ "$(uname)" == "Darwin" ]; then
+      install_name_tool -id "@rpath/libClp.1.dylib" lib/libClp.1.dylib
+    fi
     cp lib/libClp* ../../optalg/opt_solver/_clp
     cd ../../
 fi
