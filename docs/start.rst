@@ -4,7 +4,7 @@
 Getting Started
 ***************
 
-This section describes how to get started with OPTALG. In particular, it covers dependencies, installation, and provides a quick example showing how to use this package.
+This section describes how to get started with OPTALG. In particular, it covers dependencies and installation.
 
 .. _start_dependencies:
 
@@ -13,58 +13,47 @@ Dependencies
 
 OPTALG has the following dependencies:
 
-* `Numpy`_ (>=1.11.2)
-* `Scipy`_ (>=0.18.1)
-* `Dill`_ (>=0.2.5)
-* `Cython`_ (>=0.20.1)
-* `MUMPS`_ (==4.10.0) (optional)
-* `IPOPT`_ (>=3.12.6) (optional)
-* `CLP`_ (>=1.15.5) (optional)
-* `CBC`_ (>=2.8.7) (optional)
-
-.. _start_download:
-
-Download
-========
-
-The latest version of OPTALG can be downloaded from `<https://github.com/ttinoco/OPTALG>`_.
+* `Numpy`_ (>=1.11.2): the fundamental package for scientific computing in Python.
+* `Scipy`_ (>=0.18.1): a collection of mathematical algorithms and functions built on top of Numpy.
+* `Cython`_ (>=0.20.1): an optimizing static compiler for both Python and the extended Cython programming language.
 
 .. _start_installation:
 
 Installation
 ============
 
-The OPTALG Python module can be installed using::
+In order to install OPTALG, the following tools are needed:
 
-  sudo pip install -r requirements.txt
-  sudo python setup.py install
+* Linux and Mac OS X: a C compiler, `Make`_, `Python`_ and `pip`_.
+* Windows : `Anaconda`_, `7-Zip`_, and `MinGW`_.
 
-from the root directory of the package. By default, no wrappers are built for any of the optional dependencies. To build wrappers, the command ``build_ext`` should be added along with the option ``--with`` followed by the key word ``all`` or by a list of specific wrappers to be built, *e.g.*, ``mumps ipopt clp cbc``. For example, the following command builds wrappers for `MUMPS`_ and `CBC`_::
+After getting these tools, the OPTALG Python module can be installed using::
 
-  sudo python setup.py build_ext --with "mumps cbc" install 
+  pip install numpy cython
+  pip install optalg
 
-To make this work, the options ``--libraries``, ``--include-dirs``, ``--library-dirs``, and ``--rpath`` of the command ``build_ext`` should be provided as needed either on the command line or through a configuration file `setup.cfg`_. A sample configuration file for OPTALG can be found :download:`here <_static/setup.cfg>`, which corresponds to an installation of all wrappers in a system with `IPOPT`_ installed in a non-standard location. 
+By default, no wrappers are built for any external solvers. If the environment variable ``OPTALG_IPOPT`` has the value ``true`` during the installation, OPTALG will download and build the solver `IPOPT`_ for you, and then build its Python wrapper. Similarly, if the environment variable ``OPTALG_CLP`` has the value ``true`` during the installation, OPTLAG will download and build the solver `Clp`_ for you, and then build its Python wrapper.
 
-To test OPTLAG, first execute the command ``build_ext`` with the option ``--inplace`` and then use `Nose`_, as in the following example::
+.. note:: Currently, the installation with `IPOPT`_ does not work on Mac OS X, and the installation with `Clp`_ does not work on Windows.
+  
+To install the module from source, the code can be obtained from `<https://github.com/ttinoco/OPTALG>`_, and then the following commands can be executed on the terminal or Anaconda prompt from the root directory of the package::
 
-  python setup.py build_ext --inplace --with "mumps cbc"
-  nosetests -s -v
+    pip install numpy cython
+    python setup.py install
 
-Example
-=======
+Running the unit tests can be done with::
 
-As a quick example of how to use OPTALG, consider the task of solving a quadratic program. This can be done as follows::
-
-  >>> coming soon
+    python setup.py build_ext --inplace
+    nosetests -s -v
 
 .. _Numpy: http://www.numpy.org
 .. _Scipy: http://www.scipy.org
-.. _Dill: https://pypi.python.org/pypi/dill
 .. _Cython: http://cython.org/
-.. _MUMPS: http://mumps.enseeiht.fr/
 .. _IPOPT: https://projects.coin-or.org/Ipopt
-.. _CLP: https://projects.coin-or.org/Clp
-.. _CBC: https://projects.coin-or.org/Cbc
-.. _Nose: http://nose.readthedocs.io/en/latest/
-.. _setup.cfg : https://docs.python.org/2/distutils/configfile.html
-
+.. _Clp: https://projects.coin-or.org/Clp
+.. _Make: https://www.gnu.org/software/make/
+.. _Python: https://www.python.org/
+.. _pip: https://pip.pypa.io/en/stable/
+.. _Anaconda: https://www.anaconda.com/
+.. _7-zip: http://www.7-zip.org/
+.. _MinGW: https://anaconda.org/carlkl/mingwpy

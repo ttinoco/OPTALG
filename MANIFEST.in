@@ -12,3 +12,4 @@ global-include *.pyx
 global-exclude *.pyc
 global-exclude __pycache__
 global-exclude *.c
+global-exclude *~

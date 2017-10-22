@@ -1,10 +1,13 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
+
+import sys
+sys.path.append('.')
 
 import numpy as np
 from optalg.opt_solver import OptSolverCbc, MixIntLinProblem

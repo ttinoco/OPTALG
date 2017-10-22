@@ -6,14 +6,17 @@ Targets
 
 Unreleased
 ----------
-* Added initial dual update to AugL when initial point is primal feasible (done).
-* Exposed max_iter option for IPOPT (done).
-* Made maxiter of line seach an optional param (done).
-* Removed linesearch from INLP (improved performance) until KKT modifications are introduced (done).
-* Added automatic ipopt/mumps building and linking, controlled by env variable OPTAlG_IPOPT (done).
-* Added automatic clp building and linking, controlled by env varaibel OPTALG_CLP (done).
-* Upload OPTALG to pypi and test (todo).
-* Update documentation (todo).
+
+Version 1.1.5
+-------------
+* Added initial dual update to AugL when initial point is primal feasible.
+* Exposed max_iter option for IPOPT.
+* Made maxiter of line seach an optional param.
+* Removed linesearch from INLP (improved performance) until KKT modifications are introduced.
+* Added automatic ipopt/mumps building and linking, controlled by env variable OPTAlG_IPOPT.
+* Added automatic clp building and linking, controlled by env variable OPTALG_CLP.
+* Uploaded OPTALG to pypi.
+* Updated documentation.
 
 Version 1.1.4
 -------------

@@ -6,7 +6,7 @@
 OPTALG Documentation
 ====================
 
-Welcome! This is the documentation for OPTALG, last updated |today|.
+Welcome! This is the documentation for OPTALG version |version|, last updated |today|.
 
 **What is OPTALG?**
 
@@ -16,7 +16,7 @@ OPTALG is a Python package that provides algorithms, wrappers, and tools for sol
 
 OPTALG is released under the BSD 2-clause license.
 
-**Documentation Contents**
+**Contents**
 
 .. module:: optalg
 
@@ -31,7 +31,7 @@ OPTALG is released under the BSD 2-clause license.
 **Contributors (alphabetical)**
 
 * Martin Baltzinger
-* `Tomas Tinoco De Rubira <http://n.ethz.ch/~tomast/>`_
+* `Tomas Tinoco De Rubira <http://ttinoco.github.io/>`_
 
 Indices and tables
 ==================
