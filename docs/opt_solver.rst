@@ -165,7 +165,7 @@ Then, the optimal primal and dual variables can be extracted, and feasibility an
   >>> print np.dot(pi,x-l)
   2.16e-06
 
-.. _opt_solver_lccp:
+.. _opt_solver_inlp:
 
 INLP
 ====
@@ -202,6 +202,8 @@ This solver, which corresponds to the class :class:`OptSolverAugL <optalg.opt_so
    \end{alignat*}
 
 using an Augmented Lagrangian algorithm. It requires the objective function :math:`\varphi` to be convex.
+
+.. _opt_solver_ipopt:
 
 Ipopt
 =====
