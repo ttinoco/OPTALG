@@ -34,7 +34,7 @@ After getting these tools, the OPTALG Python module can be installed using::
 
 By default, no wrappers are built for any external solvers. If the environment variable ``OPTALG_IPOPT`` has the value ``true`` during the installation, OPTALG will download and build the solver `IPOPT`_ for you, and then build its Python wrapper. Similarly, if the environment variable ``OPTALG_CLP`` has the value ``true`` during the installation, OPTLAG will download and build the solver `Clp`_ for you, and then build its Python wrapper.
 
-.. note:: Currently, the installation with `IPOPT`_ does not work on Mac OS X, and the installation with `Clp`_ does not work on Windows.
+.. note:: Currently, the installation with `Clp`_ does not work on Windows and Mac OS X.
   
 To install the module from source, the code can be obtained from `<https://github.com/ttinoco/OPTALG>`_, and then the following commands can be executed on the terminal or Anaconda prompt from the root directory of the package::
 
