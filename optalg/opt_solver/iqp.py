@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -75,11 +75,11 @@ class OptSolverIQP(OptSolver):
 
         # Reset
         self.reset()
-    
-        # Checks
-        if not np.all(problem.l < problem.u):
-            raise OptSolverError_NoInterior(self)
 
+        # Checks
+        if not np.all(problem.l <= problem.u):
+            raise OptSolverError_NoInterior(self)
+    
         # Data
         self.H = quad_problem.H
         self.g = quad_problem.g
@@ -94,6 +94,11 @@ class OptSolverIQP(OptSolver):
         self.I = eye(self.n,format='coo')
         self.Onm = coo_matrix((self.n,self.m))
         self.Omm = coo_matrix((self.m,self.m))
+
+        # Make interior
+        d = np.abs(self.u-self.l)
+        self.l = self.l-1e-2*tol*d-1e-8
+        self.u = self.u+1e-2*tol*d+1e-8
 
         # Initial primal
         if quad_problem.x is None:

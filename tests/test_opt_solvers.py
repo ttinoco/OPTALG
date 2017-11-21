@@ -151,8 +151,8 @@ class TestOptSolvers(unittest.TestCase):
             eps = 1e-10
             self.assertLess(norm(g + H*x - A.T*lam + mu - pi),eps)
             self.assertLess(norm(A*x-b),eps)
-            self.assertTrue(np.all(x <= u))
-            self.assertTrue(np.all(x >= l))
+            self.assertTrue(np.all(x <= u+1e-5))
+            self.assertTrue(np.all(x >= l-1e-5))
             self.assertTrue(norm(mu*(u-x),np.inf),eps)
             self.assertTrue(norm(pi*(x-l),np.inf),eps)
             
