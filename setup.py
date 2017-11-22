@@ -76,7 +76,7 @@ if os.environ.get('OPTALG_CLP') == 'true':
  
 setup(name='OPTALG',
       zip_safe=False,
-      version='1.1.5rc1',
+      version='1.1.5rc2',
       description='Optimization Algorithms and Wrappers',
       url='https://github.com/ttinoco/OPTALG',
       author='Tomas Tinoco De Rubira',
