@@ -29,7 +29,7 @@ if 'darwin' in sys.platform.lower():
 elif 'linux' in sys.platform.lower():
     libraries_mumps = ['coinmumps']
     libraries_ipopt = ['ipopt']
-    extra_link_args = ['-Wl,-rpath=$ORIGIN']
+    extra_link_args = ['-Wl,-rpath=$ORIGIN', '-Wl,-rpath=$ORIGIN/../../lin_solver/_mumps']
 else:
     libraries_mumps = ['IpOptFSS']
     libraries_ipopt = ['IpOpt-vc10']

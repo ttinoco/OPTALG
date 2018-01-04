@@ -96,6 +96,9 @@ cdef class IpoptContext:
 
     def add_option(self,key,val):
 
+        if not self.n:
+            return
+
         try:
             ckey = bytes(key,'utf-8')
         except TypeError:
@@ -139,7 +142,8 @@ cdef class IpoptContext:
                                                  eval_jac_g_cb,
                                                  eval_h_cb)
 
-        cipopt.SetIntermediateCallback(self.problem,intermediate_cb)
+        if self.n:
+            cipopt.SetIntermediateCallback(self.problem,intermediate_cb)
     
     def solve(self,x):
 
@@ -148,15 +152,18 @@ cdef class IpoptContext:
         cdef np.ndarray[double,mode='c'] nlam = np.zeros(self.m)
         cdef np.ndarray[double,mode='c'] npi = np.zeros(self.n)
         cdef np.ndarray[double,mode='c'] nmu = np.zeros(self.n)
-   
-        status = cipopt.IpoptSolve(self.problem,
-                                   <double*>(nx.data),
-                                   NULL,
-                                   NULL,
-                                   <double*>(nlam.data),
-                                   <double*>(npi.data),
-                                   <double*>(nmu.data),
-                                   cself)
+
+        if self.n:
+            status = cipopt.IpoptSolve(self.problem,
+                                       <double*>(nx.data),
+                                       NULL,
+                                       NULL,
+                                       <double*>(nlam.data),
+                                       <double*>(npi.data),
+                                       <double*>(nmu.data),
+                                       cself)
+        else:
+            status = 0
         
         return {'status' : status,
                 'k': self.iters,

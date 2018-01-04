@@ -6,6 +6,8 @@ Targets
 
 Unreleased
 ----------
+* Fixed bug with Linux installation with OPTALG_IPOPT=true.
+* Made AugL/INLP/Ipopt work with empty problems.
 
 Version 1.1.5
 -------------

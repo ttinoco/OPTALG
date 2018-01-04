@@ -117,8 +117,8 @@ class OptSolverINLP(OptSolver):
         self.y = np.hstack((self.x,self.lam,self.nu,self.mu,self.pi))
 
         # Average violation of complementarity slackness
-        self.eta_mu = np.dot(self.mu,self.u-self.x)/self.x.size
-        self.eta_pi = np.dot(self.pi,self.x-self.l)/self.x.size
+        self.eta_mu = (np.dot(self.mu,self.u-self.x)/self.x.size) if self.x.size else 0.
+        self.eta_pi = (np.dot(self.pi,self.x-self.l)/self.x.size) if self.x.size else 0.
 
         # Objective scaling
         fdata = self.func(self.y)
@@ -136,8 +136,8 @@ class OptSolverINLP(OptSolver):
         while True:
 
             # Average violation of complementarity slackness
-            self.eta_mu = np.dot(self.mu,self.u-self.x)/self.x.size
-            self.eta_pi = np.dot(self.pi,self.x-self.l)/self.x.size
+            self.eta_mu = (np.dot(self.mu,self.u-self.x)/self.x.size) if self.x.size else 0.
+            self.eta_pi = (np.dot(self.pi,self.x-self.l)/self.x.size) if self.x.size else 0.
             
             # Init eval
             fdata = self.func(self.y)
@@ -147,7 +147,7 @@ class OptSolverINLP(OptSolver):
             gmax = norminf(fdata.GradF) # Gradient of merit function
             
             # Done
-            if fmax < tol and sigma*np.maximum(self.eta_mu,self.eta_pi) < tol:
+            if self.k > 0 and fmax < tol and sigma*np.maximum(self.eta_mu,self.eta_pi) < tol:
                 self.set_status(self.STATUS_SOLVED)
                 self.set_error_msg('')
                 return

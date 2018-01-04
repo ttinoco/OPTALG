@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -147,7 +147,7 @@ class OptSolverAugL(OptSolver):
         # Init residuals
         pres_prev = norminf(fdata.pres)
         gLmax_prev = norminf(fdata.GradF)
-
+        
         # Init dual update
         if pres_prev <= feastol:
             self.update_multiplier_estimates()
@@ -503,15 +503,17 @@ class OptSolverAugL(OptSolver):
                        J*t,
                        self.ox))
 
-        if not self.linsolver2.is_analyzed():
-            self.linsolver2.analyze(W)
+        if W.size:
+            
+            if not self.linsolver2.is_analyzed():
+                self.linsolver2.analyze(W)
 
-        sol = self.linsolver2.factorize_and_solve(W,b)
+            sol = self.linsolver2.factorize_and_solve(W,b)
         
-        self.lam += sol[:self.na]
-        self.nu += sol[self.na:self.na+self.nf]
-        self.mu = theta/(barrier.umax-self.x)
-        self.pi = theta/(self.x-barrier.umin)
+            self.lam += sol[:self.na]
+            self.nu += sol[self.na:self.na+self.nf]
+            self.mu = theta/(barrier.umax-self.x)
+            self.pi = theta/(self.x-barrier.umin)
 
 class AugLBarrier:
     """
