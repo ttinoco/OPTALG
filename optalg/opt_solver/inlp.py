@@ -20,13 +20,14 @@ class OptSolverINLP(OptSolver):
     """
     
     # Solver parameters
-    parameters = {'tol': 1e-4,            # Optimality tolerance
-                  'maxiter': 300,         # Max iterations
-                  'sigma': 0.1,           # Factor for increasing subproblem solution accuracy
-                  'eps': 1e-3,            # Boundary proximity factor 
-                  'eps_cold': 1e-2,       # Boundary proximity factor (cold start)
-                  'linsolver': 'default', # Linear solver
-                  'quiet': False}         # Quiet flag
+    parameters = {'tol': 1e-4,              # Optimality tolerance
+                  'maxiter': 300,           # Max iterations
+                  'sigma': 0.1,             # Factor for increasing subproblem solution accuracy
+                  'eps': 1e-3,              # Boundary proximity factor 
+                  'eps_cold': 1e-2,         # Boundary proximity factor (cold start)
+                  'linsolver': 'default',   # Linear solver
+                  'line_search_maxiter': 0, # maxiter for linesearch
+                  'quiet': False}           # Quiet flag
 
     def __init__(self):
         """
@@ -59,6 +60,7 @@ class OptSolverINLP(OptSolver):
         sigma = parameters['sigma']
         eps = parameters['eps']
         eps_cold = parameters['eps_cold']
+        ls_maxiter = parameters['line_search_maxiter']
 
         # Problem
         problem = cast_problem(problem)
@@ -247,12 +249,15 @@ class OptSolverINLP(OptSolver):
                 smax = (1.-eps)*np.min([s1,s2,s3,s4])
                 
                 # Line search
-                s = np.min([smax,1.])
-                
-                # Update x
+                try:
+                    s, fdata = self.line_search(self.y, p, fdata.F, fdata.GradF, self.func, smax=smax, maxiter=ls_maxiter)
+                except OptSolverError_LineSearch:
+                    s = np.minimum(1., smax)
+
+                # Update
                 self.y += s*p
-                self.k += 1
-                self.x,self.lam,self.nu,self.mu,self.pi = self.extract_components(self.y)
+                self.x, self.lam, self.nu, self.mu, self.pi = self.extract_components(self.y)
+                self.k += 1                
 
                 # Check
                 try:
