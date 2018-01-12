@@ -12,7 +12,7 @@ class LinSolver:
     SYMMETRIC = 'symmetric'
     UNSYMMETRIC = 'unsymmetric'
     
-    def __init__(self,prop='unsymmetric'):
+    def __init__(self, prop='unsymmetric'):
         """
         Linear solver class.
         
@@ -45,7 +45,7 @@ class LinSolver:
 
         return self.analyzed
 
-    def analyze(self,A):
+    def analyze(self, A):
         """
         Analyzes structure of A.
 
@@ -56,7 +56,7 @@ class LinSolver:
 
         self.analyzed = True
         
-    def factorize(self,A):
+    def factorize(self, A):
         """
         Factorizes A.
 
@@ -67,7 +67,7 @@ class LinSolver:
 
         pass
 
-    def solve(self,b):
+    def solve(self, b):
         """
         Solves system Ax=b.
         
@@ -82,7 +82,7 @@ class LinSolver:
 
         return None
 
-    def factorize_and_solve(self,A,b):
+    def factorize_and_solve(self, A, b):
         """
         Factorizes A and solves Ax=b.
 

@@ -9,6 +9,8 @@ Unreleased
 * Fixed bug with Linux installation with OPTALG_IPOPT=true.
 * Made AugL/INLP/Ipopt work with empty problems.
 * Added line_search option to INLP as well as line search maxiter param.
+* Added UMFPACK linear solver interface (can be used if scikit-umfpack is installed).
+* Changed 'linsolver' param value of nr to 'default'.
 
 Version 1.1.5
 -------------

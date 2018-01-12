@@ -18,7 +18,7 @@ class OptSolverNR(OptSolver):
     
     parameters = {'feastol':1e-4,
                   'maxiter':100,
-                  'linsolver':'superlu',
+                  'linsolver':'default',
                   'quiet':False}
 
     def __init__(self):

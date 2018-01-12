@@ -9,6 +9,7 @@
 from .lin_solver import LinSolver
 from .mumps import LinSolverMUMPS
 from .superlu import LinSolverSUPERLU
+from .umfpack import LinSolverUMFPACK
 
 def new_linsolver(name,prop):
     """
@@ -28,6 +29,8 @@ def new_linsolver(name,prop):
         return LinSolverMUMPS(prop)
     elif name == 'superlu':
         return LinSolverSUPERLU(prop)
+    elif name == 'umfpack':
+        return LinSolverUMFPACK(prop)
     elif name == 'default':
         try:
             return new_linsolver('mumps',prop)
