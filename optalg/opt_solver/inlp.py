@@ -23,8 +23,7 @@ class OptSolverINLP(OptSolver):
     parameters = {'tol': 1e-4,              # Optimality tolerance
                   'maxiter': 300,           # Max iterations
                   'sigma': 0.1,             # Factor for increasing subproblem solution accuracy
-                  'eps': 1e-3,              # Boundary proximity factor 
-                  'eps_cold': 1e-2,         # Boundary proximity factor (cold start)
+                  'eps': 1e-4,              # Boundary proximity factor 
                   'linsolver': 'default',   # Linear solver
                   'line_search_maxiter': 0, # maxiter for linesearch
                   'quiet': False}           # Quiet flag
@@ -59,7 +58,6 @@ class OptSolverINLP(OptSolver):
         quiet = parameters['quiet']
         sigma = parameters['sigma']
         eps = parameters['eps']
-        eps_cold = parameters['eps_cold']
         ls_maxiter = parameters['line_search_maxiter']
 
         # Problem
@@ -80,8 +78,8 @@ class OptSolverINLP(OptSolver):
         self.A = problem.A
         self.AT = problem.A.T
         self.b = problem.b
-        self.u = problem.u+1e-5*(problem.u-problem.l)+1e-8
-        self.l = problem.l-1e-5*(problem.u-problem.l)-1e-8
+        self.u = problem.u+tol
+        self.l = problem.l-tol
         self.n = problem.get_num_primal_variables()
         self.m1 = problem.get_num_linear_equality_constraints()
         self.m2 = problem.get_num_nonlinear_equality_constraints()
@@ -94,8 +92,7 @@ class OptSolverINLP(OptSolver):
         if problem.x is None:
             self.x = (self.u + self.l)/2.
         else:
-            dul = 1e-5*(self.u-self.l)
-            self.x = np.maximum(np.minimum(problem.x,self.u-dul),self.l+dul)
+            self.x = np.maximum(np.minimum(problem.x,problem.u),problem.l)
 
         # Initial duals
         if problem.lam is None:
@@ -106,14 +103,8 @@ class OptSolverINLP(OptSolver):
             self.nu = np.zeros(problem.get_num_nonlinear_equality_constraints())
         else:
             self.nu = problem.nu.copy()
-        if problem.mu is None:
-            self.mu = np.ones(self.x.size)*eps_cold
-        else:
-            self.mu = np.maximum(problem.mu,eps)
-        if problem.pi is None:
-            self.pi = np.ones(self.x.size)*eps_cold
-        else:
-            self.pi = np.maximum(problem.pi,eps)
+        self.mu = np.minimum(1./(self.u-self.x), 1.)
+        self.pi = np.minimum(1./(self.x-self.l), 1.)
 
         # Init vector
         self.y = np.hstack((self.x,self.lam,self.nu,self.mu,self.pi))
@@ -176,7 +167,7 @@ class OptSolverINLP(OptSolver):
                 # Eval
                 fdata = self.func(self.y)
                 fmax = norminf(fdata.f)
-                gmax = norminf(fdata.GradF)
+                gmax = norminf(fdata.GradF)                
                 compu = norminf(self.mu*(self.u-self.x))
                 compl = norminf(self.pi*(self.x-self.l))
                 phi = problem.phi
@@ -247,16 +238,31 @@ class OptSolverINLP(OptSolver):
                 indices = ppi < 0
                 s4 = np.min(np.hstack((-self.pi[indices]/ppi[indices],np.inf)))
                 smax = (1.-eps)*np.min([s1,s2,s3,s4])
+                spmax = (1.-eps)*np.min([s1,s2])
+                sdmax = (1.-eps)*np.min([s3,s4])
                 
                 # Line search
                 try:
                     s, fdata = self.line_search(self.y, p, fdata.F, fdata.GradF, self.func, smax=smax, maxiter=ls_maxiter)
-                except OptSolverError_LineSearch:
-                    s = np.minimum(1., smax)
 
-                # Update
-                self.y += s*p
-                self.x, self.lam, self.nu, self.mu, self.pi = self.extract_components(self.y)
+                    # Update point
+                    self.y += s*p
+                    self.x, self.lam, self.nu, self.mu, self.pi = self.extract_components(self.y)
+                    
+                except OptSolverError_LineSearch:
+                    sp = np.minimum(1., spmax)
+                    sd = np.minimum(1., sdmax)
+                    s = np.minimum(sp,sd)
+
+                    # Update point
+                    self.x += sp*px
+                    self.lam += sd*pbar[self.x.size:self.x.size+self.lam.size]
+                    self.nu += sd*pbar[self.x.size+self.lam.size:]
+                    self.mu += sd*pmu
+                    self.pi += sd*ppi
+                    self.y = np.hstack((self.x,self.lam,self.nu,self.mu,self.pi))
+
+                # Update iters
                 self.k += 1                
 
                 # Check

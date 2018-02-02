@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -59,7 +59,7 @@ class OptSolverError_LinFeasLost(OptSolverError):
 
 class OptSolverError_Infeasibility(OptSolverError):
     def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'infeasible problem')
+        OptSolverError.__init__(self,solver,'problem appears infeasible')
 
 class OptSolverError_NoInterior(OptSolverError):
     def __init__(self,solver=None):

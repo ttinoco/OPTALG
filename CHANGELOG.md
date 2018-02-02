@@ -11,6 +11,7 @@ Unreleased
 * Added line_search option to INLP as well as line search maxiter param.
 * Added UMFPACK linear solver interface (can be used if scikit-umfpack is installed).
 * Changed 'linsolver' param value of nr to 'default'.
+* INLP improvements: separate primal and dual steps, better var initializations.
 
 Version 1.1.5
 -------------
