@@ -12,6 +12,7 @@ Unreleased
 * Added UMFPACK linear solver interface (can be used if scikit-umfpack is installed).
 * Changed 'linsolver' param value of nr to 'default'.
 * INLP improvements: separate primal and dual steps, better var initializations.
+* Fixed IPOPT windows dll handling.
 
 Version 1.1.5
 -------------

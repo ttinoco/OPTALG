@@ -14,6 +14,7 @@ IF "%OPTALG_IPOPT%" == "true" (
         copy lib\x64\ReleaseMKL\IpOpt-vc10.dll ..\lib
         cd ..
         copy lib\Ipopt-vc10.dll ..\..\optalg\opt_solver\_ipopt
+	copy lib\IpoptFSS.dll ..\..\optalg\opt_solver\_ipopt
         copy lib\IpoptFSS.dll ..\..\optalg\lin_solver\_mumps
         cd ..\..\
         python setup.py setopt --command build -o compiler -s mingw32
