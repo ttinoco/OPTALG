@@ -84,11 +84,13 @@ class OptSolverAugL(OptSolver):
         # Barrier
         self.barrier = AugLBarrier(problem.get_num_primal_variables(),
                                    problem.l,
-                                   problem.u)
+                                   problem.u,
+                                   eps=feastol/10.)
         
         # Init primal
         if problem.x is not None:
-            self.x = self.barrier.to_interior(problem.x.copy())
+            self.x = self.barrier.to_interior(problem.x.copy(),
+                                              eps=feastol/10.)
         else:
             self.x = (self.barrier.umax+self.barrier.umin)/2.
         assert(np.all(self.x > self.barrier.umin))
@@ -533,8 +535,8 @@ class AugLBarrier:
         assert(np.all(umin <= umax))
 
         if n > 0:
-            umax = umax+eps*(umax-umin)+1./inf
-            umin = umin-eps*(umax-umin)-1./inf
+            umax = umax+eps
+            umin = umin-eps
 
         assert(umin.size == n)
         assert(umin.size == umax.size)
@@ -565,5 +567,4 @@ class AugLBarrier:
 
     def to_interior(self,x, eps=1e-5):
         
-        du = self.umax-self.umin
-        return np.maximum(np.minimum(x, self.umax-eps*du), self.umin+eps*du)
+        return np.maximum(np.minimum(x, self.umax-eps), self.umin+eps)

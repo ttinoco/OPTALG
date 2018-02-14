@@ -86,8 +86,8 @@ class OptSolverIQP(OptSolver):
         self.A = quad_problem.A
         self.AT = quad_problem.A.T
         self.b = quad_problem.b
-        self.l = quad_problem.l
-        self.u = quad_problem.u
+        self.l = quad_problem.l-tol/10.
+        self.u = quad_problem.u+tol/10.
         self.n = quad_problem.H.shape[0]
         self.m = quad_problem.A.shape[0]
         self.e = np.ones(self.n)
@@ -95,17 +95,11 @@ class OptSolverIQP(OptSolver):
         self.Onm = coo_matrix((self.n,self.m))
         self.Omm = coo_matrix((self.m,self.m))
 
-        # Make interior
-        d = np.abs(self.u-self.l)
-        self.l = self.l-1e-2*tol*d-1e-8
-        self.u = self.u+1e-2*tol*d+1e-8
-
         # Initial primal
         if quad_problem.x is None:
             self.x = (self.u + self.l)/2.
         else:
-            dul = eps*(self.u-self.l)
-            self.x = np.maximum(np.minimum(quad_problem.x,self.u-dul),self.l+dul)
+            self.x = np.maximum(np.minimum(quad_problem.x,problem.u),problem.l)
 
         # Initial duals
         if quad_problem.lam is None:

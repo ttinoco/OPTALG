@@ -78,8 +78,8 @@ class OptSolverINLP(OptSolver):
         self.A = problem.A
         self.AT = problem.A.T
         self.b = problem.b
-        self.u = problem.u+tol
-        self.l = problem.l-tol
+        self.u = problem.u+tol/10.
+        self.l = problem.l-tol/10.
         self.n = problem.get_num_primal_variables()
         self.m1 = problem.get_num_linear_equality_constraints()
         self.m2 = problem.get_num_nonlinear_equality_constraints()

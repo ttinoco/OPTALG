@@ -53,7 +53,7 @@ class TestOptSolvers(unittest.TestCase):
         u = np.array([5.,5.,0.,0.,0.])
         
         c = np.array([180.,160.,0.,0.,0.])
-        
+
         problem = opt.opt_solver.LinProblem(c,A,b,l,u)
         
         solver = opt.opt_solver.OptSolverClp()
@@ -67,14 +67,25 @@ class TestOptSolvers(unittest.TestCase):
         x = solver.get_primal_variables()
         lam,nu,mu,pi = solver.get_dual_variables()
 
+        problem.eval(x)
+        self.assertLess(np.linalg.norm(np.dot(A,x)-b),1e-8)
+        self.assertTrue(np.all(l <= x))
+        self.assertTrue(np.all(x <= u))
         self.assertLess(np.abs(x[0]-1.71428571),1e-8)
         self.assertLess(np.abs(x[1]-2.85714286),1e-8)
+        self.assertLess(np.abs(problem.phi-765.714285218),1e-6)
         
         qp = opt.opt_solver.OptSolverIQP()
         qp.set_parameters({'quiet':True})
-        qp.solve(opt.opt_solver.QuadProblem(coo_matrix((5,5)),c,A,b,l,u))
+        problem1 = opt.opt_solver.QuadProblem(coo_matrix((5,5)),c,A,b,l,u) 
+        qp.solve(problem1)
         x1 = qp.get_primal_variables()
         lam1,nu1,mu1,pi1 = qp.get_dual_variables()
+
+        problem1.eval(x1)
+        self.assertLess(np.linalg.norm(np.dot(A,x1)-b),1e-8)
+        self.assertTrue(np.all(l-1e-5 <= x1))
+        self.assertTrue(np.all(x1 <= u+1e-5))
         
         self.assertLess(100.*norm(x-x1,np.inf)/norm(x,np.inf),0.1)
         self.assertLess(100.*norm(lam-lam1,np.inf)/norm(lam,np.inf),0.1)
@@ -155,6 +166,42 @@ class TestOptSolvers(unittest.TestCase):
             self.assertTrue(np.all(x >= l-1e-5))
             self.assertTrue(norm(mu*(u-x),np.inf),eps)
             self.assertTrue(norm(pi*(x-l),np.inf),eps)
+
+    def test_solvers_on_LPs(self):
+
+        A = np.array([[6.,1.,1.,0.,0.],
+                      [3.,1.,0.,1.,0.],
+                      [4.,6.,0.,0.,1.]])
+        b = np.array([12.,8.,24.])
+        
+        l = np.array([0.,0.,-1e8,-1e8,-1e8])
+        u = np.array([5.,5.,0.,0.,0.])
+        
+        c = np.array([180.,160.,0.,0.,0.])
+
+        problem = opt.opt_solver.LinProblem(c,A,b,l,u)
+
+        for solver in [opt.opt_solver.OptSolverIpopt(),
+                       opt.opt_solver.OptSolverINLP(),
+                       opt.opt_solver.OptSolverAugL()]:
+
+            solver.set_parameters({'quiet': True})
+            
+            try:
+                solver.solve(problem)
+            except ImportError:
+                continue
+            
+            x = solver.get_primal_variables()
+            lam,nu,mu,pi = solver.get_dual_variables()
+
+            problem.eval(x)
+            self.assertLess(np.linalg.norm(np.dot(A,x)-b),1e-5*np.linalg.norm(b))
+            self.assertTrue(np.all(l-1e-5 <= x))
+            self.assertTrue(np.all(x <= u+1e-5))
+            self.assertLess(np.abs(x[0]-1.71428571),1e-5)
+            self.assertLess(np.abs(x[1]-2.85714286),1e-5)
+            self.assertLess(np.abs(problem.phi-765.714285218),1e-5*765)
             
     def test_solvers_on_QPs(self):
 
