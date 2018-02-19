@@ -20,7 +20,8 @@ class OptSolverINLP(OptSolver):
     """
     
     # Solver parameters
-    parameters = {'tol': 1e-4,              # Optimality tolerance
+    parameters = {'feastol': 1e-4,          # Feasibility tolerance
+                  'optol': 1e-4,            # Optimality tolerance
                   'maxiter': 300,           # Max iterations
                   'sigma': 0.1,             # Factor for increasing subproblem solution accuracy
                   'eps': 1e-4,              # Boundary proximity factor 
@@ -53,7 +54,8 @@ class OptSolverINLP(OptSolver):
         parameters = self.parameters
         
         # Parameters
-        tol = parameters['tol']
+        feastol = parameters['feastol']
+        optol = parameters['optol']
         maxiter = parameters['maxiter']
         quiet = parameters['quiet']
         sigma = parameters['sigma']
@@ -78,8 +80,8 @@ class OptSolverINLP(OptSolver):
         self.A = problem.A
         self.AT = problem.A.T
         self.b = problem.b
-        self.u = problem.u+tol/10.
-        self.l = problem.l-tol/10.
+        self.u = problem.u+feastol/10.
+        self.l = problem.l-feastol/10.
         self.n = problem.get_num_primal_variables()
         self.m1 = problem.get_num_linear_equality_constraints()
         self.m2 = problem.get_num_nonlinear_equality_constraints()
@@ -134,13 +136,12 @@ class OptSolverINLP(OptSolver):
             
             # Init eval
             fdata = self.func(self.y)
-            fmax = norminf(fdata.f)     # KKT residual
             pres = norminf(np.hstack((fdata.rp1,fdata.rp2)))
             dres = norminf(np.hstack((fdata.rd,fdata.ru,fdata.rl)))
             gmax = norminf(fdata.GradF) # Gradient of merit function
             
             # Done
-            if self.k > 0 and fmax < tol and sigma*np.maximum(self.eta_mu,self.eta_pi) < tol:
+            if self.k > 0 and pres < feastol and dres < optol and sigma*np.maximum(self.eta_mu,self.eta_pi) < optol:
                 self.set_status(self.STATUS_SOLVED)
                 self.set_error_msg('')
                 return
@@ -166,7 +167,8 @@ class OptSolverINLP(OptSolver):
                 
                 # Eval
                 fdata = self.func(self.y)
-                fmax = norminf(fdata.f)
+                pres = norminf(np.hstack((fdata.rp1,fdata.rp2)))
+                dres = norminf(np.hstack((fdata.rd,fdata.ru,fdata.rl)))
                 gmax = norminf(fdata.GradF)                
                 compu = norminf(self.mu*(self.u-self.x))
                 compl = norminf(self.pi*(self.x-self.l))
@@ -188,7 +190,7 @@ class OptSolverINLP(OptSolver):
                     break
 
                 # Done 
-                if fmax < tol and np.maximum(compu,compl) < tol:
+                if pres < feastol and dres < optol and np.maximum(compu,compl) < optol:
                     break
 
                 # Maxiters
