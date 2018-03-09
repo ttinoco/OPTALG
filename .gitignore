@@ -26,6 +26,7 @@ dist/
 *.so.*
 *.dylib
 lib/
+*.dll
 
 # Cython C
 _dmumps.c
