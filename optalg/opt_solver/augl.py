@@ -285,8 +285,8 @@ class OptSolverAugL(OptSolver):
             p = self.compute_search_direction(self.useH)
 
             # Max steplength
-            ppos = p > 0
-            pneg = p < 0
+            ppos = p > 1e-15
+            pneg = p < -1e-15            
             a1 = np.min(((barrier.umax-self.x)[ppos])/(p[ppos])) if ppos.sum() else np.inf
             a2 = np.min(((barrier.umin-self.x)[pneg])/(p[pneg])) if pneg.sum() else np.inf
             alpha_max = 0.98*min([a1,a2])
