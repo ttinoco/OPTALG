@@ -6,6 +6,9 @@ Targets
 
 Unreleased
 ----------
+
+Version 1.1.6
+-------------
 * Fixed bug with Linux installation with OPTALG_IPOPT=true.
 * Made AugL/INLP/Ipopt work with empty problems.
 * Added line_search option to INLP as well as line search maxiter param.
