@@ -9,5 +9,5 @@ rm -rf build
 rm -rf dist
 rm -rf lib/ipopt
 rm -rf lib/clp
-rm lib/Ipopt*
-rm lib/Clp*
+rm -f lib/Ipopt*
+rm -f lib/Clp*
