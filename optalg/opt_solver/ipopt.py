@@ -123,11 +123,7 @@ class OptSolverIpopt(OptSolver):
         self.ipopt_context.add_option('derivative_test',der_test)
         self.ipopt_context.add_option('mu_init',mu_init)
         self.ipopt_context.add_option('max_iter',max_iter)
-        # Hack attempts
-        self.ipopt_context.add_option('check_derivatives_for_naninf','yes')
-        self.ipopt_context.add_option('nlp_lower_bound_inf', -1e8)
-        self.ipopt_context.add_option('nlp_upper_bound_inf', 1e8)
-        self.ipopt_context.add_option('expect_infeasible_problem', 'yes')
+        self.ipopt_context.add_option('expect_infeasible_problem', 'yes')  # Early checks on infeasibility and applies heuristics
         if h_approx:
             self.ipopt_context.add_option('hessian_approximation',h_approx)
         if lin_solver:
