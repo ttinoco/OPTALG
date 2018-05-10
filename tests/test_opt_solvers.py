@@ -21,7 +21,8 @@ class TestOptSolvers(unittest.TestCase):
     def test_ipopt(self):
 
         Ipopt = opt.opt_solver.OptSolverIpopt()
-        Ipopt.set_parameters({'quiet': True, 'sb': 'yes'})
+        Ipopt.set_parameters({'quiet': True,
+                              'sb': 'yes'})
 
         n = 50
         m = 10
@@ -37,8 +38,24 @@ class TestOptSolvers(unittest.TestCase):
         prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u)
     
         try:
+            # Default parameters
             Ipopt.solve(prob)
             self.assertEqual(Ipopt.get_status(),'solved')
+            
+            # Modify exposed parameters
+            new_parameters = {'tol': 1e-7,
+                              'inf': 1e8,
+                              'derivative_test': 'first-order',
+                              'hessian_approximation': 'exact',
+                              'linear_solver': 'mumps',
+                              'print_level': 1,
+                              'max_iter': 100,
+                              'mu_init': 1e-2,
+                              'expect_infeasible_problem' : True}
+            
+            Ipopt.set_parameters(new_parameters)
+            Ipopt.solve(prob)
+            
         except ImportError:
             raise unittest.SkipTest('no ipopt')
 

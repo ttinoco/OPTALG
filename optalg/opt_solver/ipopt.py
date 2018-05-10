@@ -24,6 +24,7 @@ class OptSolverIpopt(OptSolver):
                   'max_iter': 1000,
                   'mu_init': 1e-1,
                   'sb' : 'yes',
+                  'expect_infeasible_problem' : False,
                   'quiet':False}
     
     def __init__(self):
@@ -107,6 +108,7 @@ class OptSolverIpopt(OptSolver):
         print_level = params['print_level']
         max_iter = params['max_iter']
         sb = params['sb']
+        exp_infeasible = params['expect_infeasible_problem']
 
         # Problem
         problem = cast_problem(problem)
@@ -123,7 +125,8 @@ class OptSolverIpopt(OptSolver):
         self.ipopt_context.add_option('derivative_test',der_test)
         self.ipopt_context.add_option('mu_init',mu_init)
         self.ipopt_context.add_option('max_iter',max_iter)
-        self.ipopt_context.add_option('expect_infeasible_problem', 'yes')  # Early checks on infeasibility and applies heuristics
+        if exp_infeasible:
+            self.ipopt_context.add_option('expect_infeasible_problem', 'yes')
         if h_approx:
             self.ipopt_context.add_option('hessian_approximation',h_approx)
         if lin_solver:
