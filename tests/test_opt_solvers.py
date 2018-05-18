@@ -70,7 +70,6 @@ class TestOptSolvers(unittest.TestCase):
             bad_prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u,x=x)
             Ipopt.solve(bad_prob)
             self.assertEqual(Ipopt.get_status(),'error')
-            print(Ipopt.error_msg)
 
     def test_clp(self):
 
