@@ -23,9 +23,12 @@ class OptSolverIpopt(OptSolver):
                   'print_level': 5,
                   'max_iter': 1000,
                   'mu_init': 1e-1,
-                  'sb' : 'yes',
-                  'expect_infeasible_problem' : False,
-                  'quiet':False}
+                  'sb': 'yes',
+                  'expect_infeasible_problem': False,
+                  'check_derivatives_for_naninf': False,
+                  'diverging_iterates_tol': 0,
+                  'max_cpu_time': 0,
+                  'quiet': False}
     
     def __init__(self):
         """
@@ -109,6 +112,9 @@ class OptSolverIpopt(OptSolver):
         max_iter = params['max_iter']
         sb = params['sb']
         exp_infeasible = params['expect_infeasible_problem']
+        d_check_naninf = params['check_derivatives_for_naninf']
+        div_iters_tol = params['diverging_iterates_tol']
+        max_cpu_time = params['max_cpu_time']
 
         # Problem
         problem = cast_problem(problem)
@@ -127,6 +133,13 @@ class OptSolverIpopt(OptSolver):
         self.ipopt_context.add_option('max_iter',max_iter)
         if exp_infeasible:
             self.ipopt_context.add_option('expect_infeasible_problem', 'yes')
+        if d_check_naninf:
+            self.ipopt_context.add_option('check_derivatives_for_naninf', 'yes')
+        if div_iters_tol:
+            self.ipopt_context.add_option('diverging_iterates_tol', div_iters_tol)
+        if max_cpu_time:
+            max_cpu_time = float(max_cpu_time)
+            self.ipopt_context.add_option('max_cpu_time', max_cpu_time)
         if h_approx:
             self.ipopt_context.add_option('hessian_approximation',h_approx)
         if lin_solver:
@@ -140,10 +153,20 @@ class OptSolverIpopt(OptSolver):
             x0 = problem.x.copy()
         else:
             x0 = (problem.u+problem.l)/2
-                            
+        
+        # Check nan and inf
+        if np.isinf(x0).any():
+            self.set_status(self.STATUS_ERROR)
+            self.set_error_msg('bad initial point (contains inf)')
+            return
+        elif np.isnan(x0).any():
+            self.set_status(self.STATUS_ERROR)
+            self.set_error_msg('bad initial point (contains nan)')
+            return
+        
         # Solve
         results = self.ipopt_context.solve(x0)
-
+        
         # Save
         self.k = results['k']
         self.x = results['x'].copy()
