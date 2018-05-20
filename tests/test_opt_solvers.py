@@ -21,8 +21,7 @@ class TestOptSolvers(unittest.TestCase):
     def test_ipopt(self):
 
         Ipopt = opt.opt_solver.OptSolverIpopt()
-        Ipopt.set_parameters({'quiet': True,
-                              'sb': 'yes'})
+        Ipopt.set_parameters({'quiet': True, 'sb': 'yes'})
 
         n = 50
         m = 10
@@ -38,6 +37,7 @@ class TestOptSolvers(unittest.TestCase):
         prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u)
     
         try:
+            
             # Default parameters
             Ipopt.solve(prob)
             self.assertEqual(Ipopt.get_status(),'solved')
@@ -51,8 +51,8 @@ class TestOptSolvers(unittest.TestCase):
                               'print_level': 1,
                               'max_iter': 100,
                               'mu_init': 1e-2,
-                              'expect_infeasible_problem' : True,
-                              'check_derivatives_for_naninf' : True,
+                              'expect_infeasible_problem' : 'yes',
+                              'check_derivatives_for_naninf' : 'yes',
                               'diverging_iterates_tol' : 1e6,
                               'max_cpu_time' : 10}
             
@@ -68,8 +68,8 @@ class TestOptSolvers(unittest.TestCase):
         for x_bad in [np.inf, np.nan]:
             x[n/2] = x_bad
             bad_prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u,x=x)
-            Ipopt.solve(bad_prob)
-            self.assertEqual(Ipopt.get_status(),'error')
+            self.assertRaises(opt.opt_solver.opt_solver_error.OptSolverError_Ipopt, Ipopt.solve, bad_prob)
+            self.assertEqual(Ipopt.get_status(), 'error')
 
     def test_clp(self):
 

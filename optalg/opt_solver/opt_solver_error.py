@@ -8,7 +8,7 @@
 
 class OptSolverError(Exception):
     
-    def __init__(self,solver,value):
+    def __init__(self, solver, value):
         if solver:
             solver.set_status(solver.STATUS_ERROR)
             solver.set_error_msg(value)
@@ -18,62 +18,62 @@ class OptSolverError(Exception):
         return str(self.value)
 
 class OptSolverError_Cbc(OptSolverError):    
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'cbc solver failed')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'cbc solver failed')
 
 class OptSolverError_Clp(OptSolverError):    
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'clp solver failed')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'clp solver failed')
 
 class OptSolverError_Ipopt(OptSolverError):    
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'ipopt solver failed')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'ipopt solver failed')
 
 class OptSolverError_NumProblems(OptSolverError):
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'numerical problems')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'numerical problems')
 
 class OptSolverError_LineSearch(OptSolverError):    
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'line search failed')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'line search failed')
 
 class OptSolverError_BadProblemType(OptSolverError):
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'invalid problem type')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'invalid problem type')
 
 class OptSolverError_BadLinSolver(OptSolverError):
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'invalid linear solver')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'invalid linear solver')
 
 class OptSolverError_BadSearchDir(OptSolverError_LineSearch):
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'bad search direction')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'bad search direction')
 
 class OptSolverError_BadLinSystem(OptSolverError):
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'bad linear system')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'bad linear system')
 
 class OptSolverError_LinFeasLost(OptSolverError):
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'linear equality constraint feasibility lost')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'linear equality constraint feasibility lost')
 
 class OptSolverError_Infeasibility(OptSolverError):
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'problem appears infeasible')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'problem appears infeasible')
 
 class OptSolverError_NoInterior(OptSolverError):
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'empty interior')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'empty interior')
 
 class OptSolverError_MaxIters(OptSolverError):
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'maximum number of iterations')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'maximum number of iterations')
 
 class OptSolverError_SmallPenalty(OptSolverError):
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'penalty parameter too small')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'penalty parameter too small')
 
 class OptSolverError_BadInitPoint(OptSolverError):
-    def __init__(self,solver=None):
-        OptSolverError.__init__(self,solver,'bad initial point')
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'bad initial point')
 

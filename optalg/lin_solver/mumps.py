@@ -38,7 +38,7 @@ class LinSolverMUMPS(LinSolver):
             
         # Configure
         self.mumps.set_silent()
-        self.mumps.set_icntl(14,1000) # % increase of estimated working space
+        self.mumps.set_icntl(14, 200) # % increase of estimated working space
 
     def analyze(self,A):
         """
