@@ -37,10 +37,39 @@ class TestOptSolvers(unittest.TestCase):
         prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u)
     
         try:
+            
+            # Default parameters
             Ipopt.solve(prob)
             self.assertEqual(Ipopt.get_status(),'solved')
+            
+            # Modify exposed parameters
+            new_parameters = {'tol': 1e-7,
+                              'inf': 1e8,
+                              'derivative_test': 'first-order',
+                              'hessian_approximation': 'exact',
+                              'linear_solver': 'mumps',
+                              'print_level': 1,
+                              'max_iter': 100,
+                              'mu_init': 1e-2,
+                              'expect_infeasible_problem' : 'yes',
+                              'check_derivatives_for_naninf' : 'yes',
+                              'diverging_iterates_tol' : 1e6,
+                              'max_cpu_time' : 10}
+            
+            Ipopt.set_parameters(new_parameters)
+            Ipopt.solve(prob)
+            
         except ImportError:
             raise unittest.SkipTest('no ipopt')
+        
+        # Test with inf and nan
+        x = np.random.randn(n)
+        
+        for x_bad in [np.inf, np.nan]:
+            x[n/2] = x_bad
+            bad_prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u,x=x)
+            self.assertRaises(opt.opt_solver.opt_solver_error.OptSolverError_Ipopt, Ipopt.solve, bad_prob)
+            self.assertEqual(Ipopt.get_status(), 'error')
 
     def test_clp(self):
 
