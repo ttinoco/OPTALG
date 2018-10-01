@@ -44,3 +44,25 @@ if [ ! -d "lib/clp" ] && [ "$OPTALG_CLP" = true ]; then
     cp lib/libClp* ../../optalg/opt_solver/_clp
     cd ../../
 fi
+
+# CBC
+if [ ! -d "lib/cbc" ] && [ "$OPTALG_CBC" = true ]; then
+    mkdir -p lib
+    cd lib
+    wget https://www.coin-or.org/download/source/Cbc/Cbc-2.9.9.zip
+    unzip Cbc-2.9.9.zip
+    mv Cbc-2.9.9 cbc
+    cd cbc
+    ./configure
+    make clean
+    make uninstall
+    make
+    make install
+    if [ "$(uname)" == "Darwin" ]; then
+      install_name_tool -id "@rpath/libCbc.1.dylib" lib/libCbc.1.dylib
+    fi
+    cp lib/libCbc* ../../optalg/opt_solver/_cbc
+    cd ../../
+fi
+
+
