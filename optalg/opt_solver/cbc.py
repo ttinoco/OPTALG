@@ -55,8 +55,8 @@ class OptSolverCbc(OptSolver):
         self.reset()
 
         # Options
-        #if quiet:
-        #    self.cbc_context.setlogLevel(0)
+        if quiet:
+            self.cbc_context.setParameter("loglevel", 0)
 
         # Solve
         self.cbc_context.solve()

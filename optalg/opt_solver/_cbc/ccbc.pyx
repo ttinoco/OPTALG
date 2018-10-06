@@ -95,19 +95,20 @@ cdef class CbcContext:
         if flags.size != ccbc.Cbc_getNumCols(self.model):
             raise CbcContextError('flags array must of size numcols')
 
-        #cdef np.ndarray[char,mode='c'] _flags = flags.astype(np.uint8)
-        #ccbc.Cbc_copyInIntegerInformation(self.model,<char*>(_flags.data))
         for i in range(flags.size):
             if flags[i]:
                 ccbc.Cbc_setInteger(self.model, i)
 
+    def setParameter(self, name, value):
+
+        name = str(name).encode('UTF-8')
+        value = str(value).encode('UTF-8')
+        
+        ccbc.Cbc_setParameter(self.model, name, value)
+
     def isProvenOptimal(self):
 
         return ccbc.Cbc_isProvenOptimal(self.model)
-
-    #def setlogLevel(self,value):
-    #    
-    #    ccbc.Cbc_setLogLevel(self.model,value)
 
     def status(self):
 
