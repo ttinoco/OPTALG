@@ -66,7 +66,7 @@ class TestOptSolvers(unittest.TestCase):
         x = np.random.randn(n)
         
         for x_bad in [np.inf, np.nan]:
-            x[n/2] = x_bad
+            x[int(n/2)] = x_bad
             bad_prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u,x=x)
             self.assertRaises(opt.opt_solver.opt_solver_error.OptSolverError_Ipopt, Ipopt.solve, bad_prob)
             self.assertEqual(Ipopt.get_status(), 'error')
