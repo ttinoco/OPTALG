@@ -16,15 +16,16 @@ cdef extern from "coin/Cbc_C_Interface.h":
     void Cbc_loadProblem(Cbc_Model* model, int numcols, int numrows, int* start, int* index, double* value,
                          double* collb, double* colub, double* obj, double* rowlb, double* rowub)
 
-    void Cbc_setLogLevel(Cbc_Model* model, int value)
     
     int Cbc_status(Cbc_Model* model)
-    int Cbc_branchAndBound(Cbc_Model* model)
+
+    int Cbc_solve(Cbc_Model* model)
     
     int Cbc_getNumRows(Cbc_Model* model)
     int Cbc_getNumCols(Cbc_Model* model)
     
-    void Cbc_copyInIntegerInformation(Cbc_Model* model, char* information)
+    void Cbc_setInteger(Cbc_Model* model, int iColumn)
+    void Cbc_setParameter(Cbc_Model* model, char* name, char* value)
 
     double* Cbc_getColSolution(Cbc_Model* model)
     

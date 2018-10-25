@@ -1,11 +1,6 @@
-Targets
--------
-* ECOS interface.
-* SNOPT interface.
-* CPLEX interace.
-
 Unreleased
 ----------
+- Got CBC interface working again on Linux.
 
 Version 1.1.6
 -------------

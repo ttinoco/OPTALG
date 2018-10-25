@@ -49,17 +49,17 @@ class OptSolverCbc(OptSolver):
                                      problem.c,
                                      problem.b,
                                      problem.b)
-        self.cbc_context.copyInIntegerInformation(problem.P)
+        self.cbc_context.setInteger(problem.P)
         
         # Reset
         self.reset()
 
         # Options
         if quiet:
-            self.cbc_context.setlogLevel(0)
+            self.cbc_context.setParameter("loglevel", 0)
 
         # Solve
-        self.cbc_context.branchAndBound()
+        self.cbc_context.solve()
 
         # Save
         self.x = self.cbc_context.getColSolution()

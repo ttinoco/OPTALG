@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -52,7 +52,7 @@ cdef class CbcContext:
             ccbc.Cbc_deleteModel(self.model)
         self.model = NULL
 
-    def loadProblem(self,n,A,collb,colub,obj,rowlb,rowub):
+    def loadProblem(self, n, A, collb, colub, obj, rowlb, rowub):
         
         A = csc_matrix(A)
         
@@ -88,31 +88,35 @@ cdef class CbcContext:
                              <double*>(_rowlb.data),
                              <double*>(_rowub.data))
 
-    def copyInIntegerInformation(self,flags):
+    def setInteger(self, flags):
         
         if flags.dtype != 'bool':
             raise CbcContextError('flags must be bool array')
         if flags.size != ccbc.Cbc_getNumCols(self.model):
             raise CbcContextError('flags array must of size numcols')
 
-        cdef np.ndarray[char,mode='c'] _flags = flags.astype(np.uint8)
-        ccbc.Cbc_copyInIntegerInformation(self.model,<char*>(_flags.data))
+        for i in range(flags.size):
+            if flags[i]:
+                ccbc.Cbc_setInteger(self.model, i)
+
+    def setParameter(self, name, value):
+
+        name = str(name).encode('UTF-8')
+        value = str(value).encode('UTF-8')
+        
+        ccbc.Cbc_setParameter(self.model, name, value)
 
     def isProvenOptimal(self):
 
         return ccbc.Cbc_isProvenOptimal(self.model)
 
-    def setlogLevel(self,value):
-
-        ccbc.Cbc_setLogLevel(self.model,value)
-
     def status(self):
 
         return ccbc.Cbc_status(self.model)
 
-    def branchAndBound(self):
+    def solve(self):
         
-        return ccbc.Cbc_branchAndBound(self.model)
+        return ccbc.Cbc_solve(self.model)
 
     def getColSolution(self):
 
