@@ -136,15 +136,6 @@ class OptSolverINLP(OptSolver):
             
             # Init eval
             fdata = self.func(self.y)
-            pres = norminf(np.hstack((fdata.rp1,fdata.rp2)))
-            dres = norminf(np.hstack((fdata.rd,fdata.ru,fdata.rl)))
-            gmax = norminf(fdata.GradF) # Gradient of merit function
-            
-            # Done
-            if self.k > 0 and pres < feastol and dres < optol and sigma*np.maximum(self.eta_mu,self.eta_pi) < optol:
-                self.set_status(self.STATUS_SOLVED)
-                self.set_error_msg('')
-                return
 
             # Target
             tau = sigma*norminf(fdata.GradF)
@@ -184,7 +175,13 @@ class OptSolverINLP(OptSolver):
                     print('{0:^8.1e}'.format(compu),end=' ')
                     print('{0:^8.1e}'.format(compl),end=' ')
                     print('{0:^8.1e}'.format(s))
-                
+
+                # Done
+                if self.k > 0 and pres < feastol and dres < optol and sigma*np.maximum(self.eta_mu,self.eta_pi) < optol:
+                    self.set_status(self.STATUS_SOLVED)
+                    self.set_error_msg('')
+                    return
+                    
                 # Done
                 if gmax < tau: 
                     break
