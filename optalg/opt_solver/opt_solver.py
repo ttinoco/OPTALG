@@ -83,7 +83,7 @@ class OptSolver:
         message : string
         """
 
-        return self.error_msg
+        return self.error_msg if self.error_msg else 'none'
         
     def get_iterations(self):
         """

@@ -94,26 +94,20 @@ cdef class IpoptContext:
             cipopt.FreeIpoptProblem(<cipopt.IpoptProblem>self.problem)
         self.problem = NULL
 
-    def add_option(self,key,val):
+    def add_option(self, key, val):
 
         if not self.n:
             return
 
-        try:
-            ckey = bytes(key,'utf-8')
-        except TypeError:
-            ckey = bytes(key)
+        key = key.encode('UTF-8')
 
-        if isinstance(val,int):
-            valid = cipopt.AddIpoptIntOption(self.problem,ckey,val)
-        elif isinstance(val,str):
-            try:
-                cval = bytes(val,'utf-8')
-            except TypeError:
-                cval = bytes(val)
-            valid = cipopt.AddIpoptStrOption(self.problem,ckey,cval)
-        elif isinstance(val,float):
-            valid = cipopt.AddIpoptNumOption(self.problem,ckey,val)
+        if isinstance(val, int):
+            valid = cipopt.AddIpoptIntOption(self.problem, key, val)
+        elif isinstance(val, str):
+            val = val.encode('UTF-8')
+            valid = cipopt.AddIpoptStrOption(self.problem, key, val)
+        elif isinstance(val, float):
+            valid = cipopt.AddIpoptNumOption(self.problem, key, val)
         else:
             raise ValueError('invalid value')
 
