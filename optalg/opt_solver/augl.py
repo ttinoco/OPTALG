@@ -366,7 +366,10 @@ class OptSolverAugL(OptSolver):
         if not self.linsolver1.is_analyzed():
             self.linsolver1.analyze(W)
 
-        return self.linsolver1.factorize_and_solve(W,b)[:self.x.size]
+        try:
+            return self.linsolver1.factorize_and_solve(W,b)[:self.x.size]
+        except Exception:
+            raise OptSolverError_BadSearchDir(self)
         
     def func(self,x):
         
