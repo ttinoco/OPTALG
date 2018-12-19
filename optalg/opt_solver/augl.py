@@ -246,7 +246,7 @@ class OptSolverAugL(OptSolver):
                 print('{0:^8.1e}'.format(alpha),end=' ')
                 print('{0:^7.1e}'.format(self.sigma),end=' ')
                 print('{0:^7.1e}'.format(self.theta),end=' ')
-                print('{0:^8s}'.format(reduce(lambda x,y: x+y,self.code)),end=' ')
+                print('{0:^7s}'.format(reduce(lambda x,y: x+y,self.code)),end=' ')
                 if self.info_printer:
                     self.info_printer(self,False)
                 else:
@@ -466,7 +466,7 @@ class OptSolverAugL(OptSolver):
                 print('{0:^8}'.format('alpha'), end=' ')
                 print('{0:^7}'.format('sigma'), end=' ')
                 print('{0:^7}'.format('theta'), end=' ')
-                print('{0:^8}'.format('code'), end=' ')
+                print('{0:^7}'.format('code'), end=' ')
                 if self.info_printer:
                     self.info_printer(self,True)
                 else:
