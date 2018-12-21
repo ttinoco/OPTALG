@@ -1,5 +1,5 @@
-Unreleased
-----------
+Version 1.1.7
+-------------
 - Got CBC interface working again on Linux.
 - Improved location of inlp termination condition in order not to miss output of last iter.
 - Added version file.

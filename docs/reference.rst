@@ -15,8 +15,8 @@ Linear Solvers
    :members:
 
 .. autoclass:: optalg.lin_solver.mumps.LinSolverMUMPS
-
 .. autoclass:: optalg.lin_solver.superlu.LinSolverSUPERLU
+.. autoclass:: optalg.lin_solver.umfpack.LinSolverUMFPACK			      
 
 Optimization Problems
 =====================

@@ -4,7 +4,7 @@
 Optimization Solvers
 ********************
 
-In OPTALG, optimization solvers are objects of type :class:`OptSolver <optalg.opt_solver.opt_solver.OptSolver>`, and optimization problems are objects of type :class:`OptProblem <optalg.opt_solver.problem.OptProblem>`, which represents general problems of the form 
+In OPTALG, optimization solvers are objects of type :class:`OptSolver <optalg.opt_solver.opt_solver.OptSolver>`, and optimization problems are objects of type :class:`OptProblem <optalg.opt_solver.problem.OptProblem>` and represent general problems of the form 
 
 .. math:: 
    :nowrap:
@@ -75,8 +75,6 @@ This is a wrapper of the solver `Cbc`_ from COIN-OR. It corresponds to the class
    \end{alignat*}
 
 Mixed-integer linear optimization problems solved with this solver must be instances of the class :class:`MixIntLinProblem <optalg.opt_solver.problem_mixintlin.MixIntLinProblem>`, which is a subclass of :class:`OptProblem <optalg.opt_solver.problem.OptProblem>`.
-
-.. note:: Currently, this wrapper is not working and will be updated soon.
 
 .. _opt_solver_iqp:
 
@@ -182,7 +180,7 @@ This solver, which corresponds to the class :class:`OptSolverINLP <optalg.opt_so
    &                   \quad && l \le x \le u  \ && : \pi, \mu
    \end{alignat*}
 
-using a primal-dual interior-point algorithm. It computes Newton steps for solving modified KKT conditions and it is not globally convergent (yet!).
+using a primal-dual interior-point algorithm. It computes Newton steps for solving modified KKT conditions and does not have any global convergence guarantees.
 
 .. _opt_solver_augl:
 
