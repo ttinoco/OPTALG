@@ -7,12 +7,12 @@
 
 OPTALG is a Python package that provides algorithms, wrappers, and tools for solving large and sparse optimization problems. Currently, it contains the following:
 * Newton-Raphson algorithm for solving systems of equations.
-* Interior-point algorithm for solving convex quadratic problems.
+* Primal-dual interior-point algorithms for solving convex problems.
 * Augmented Lagrangian algorithm for solving problems with convex objective.
 * Interface for the interior-point solver [Ipopt](https://projects.coin-or.org/Ipopt).
 * Interface for the linear programming solver [Clp](https://projects.coin-or.org/Clp).
-* Interface for mixed integer programming solver [Cbc](https://projects.coin-or.org/Cbc).
-* Common interface for linear solvers ([SuperLU](http://crd-legacy.lbl.gov/~xiaoye/SuperLU/), [MUMPS](http://mumps-solver.org)).
+* Interface for mixed-integer linear programming solver [Cbc](https://projects.coin-or.org/Cbc).
+* Common interface for linear solvers ([SuperLU](http://crd-legacy.lbl.gov/~xiaoye/SuperLU/), [MUMPS](http://mumps-solver.org), [UMFPACK](https://directory.fsf.org/wiki/UMFPACK)).
 
 ## License
 

@@ -4,18 +4,7 @@
 Getting Started
 ***************
 
-This section describes how to get started with OPTALG. In particular, it covers dependencies and installation.
-
-.. _start_dependencies:
-
-Dependencies
-============
-
-OPTALG has the following dependencies:
-
-* `Numpy`_ (>=1.11.2): the fundamental package for scientific computing in Python.
-* `Scipy`_ (>=0.18.1): a collection of mathematical algorithms and functions built on top of Numpy.
-* `Cython`_ (>=0.20.1): an optimizing static compiler for both Python and the extended Cython programming language.
+This section describes how to get started with OPTALG.
 
 .. _start_installation:
 
@@ -24,17 +13,27 @@ Installation
 
 In order to install OPTALG, the following tools are needed:
 
-* Linux and Mac OS X: a C compiler, `Make`_, `Python`_ and `pip`_.
-* Windows : `Anaconda`_, `7-Zip`_, and `MinGW`_.
+* Linux and Mac OS X:
+
+  * C compiler
+  * `Make`_
+  * `Python`_ (2 or 3)
+  * `pip`_
+  
+* Windows:
+      
+  * `Anaconda`_ (for Python 2.7)
+  * `MinGW`_ (use ``pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy``)
+  * `7-Zip`_ (update system path to include the 7z executable, typically in ``C:\Program Files\7-Zip``)
 
 After getting these tools, the OPTALG Python module can be installed using::
 
   pip install numpy cython
   pip install optalg
 
-By default, no wrappers are built for any external solvers. If the environment variable ``OPTALG_IPOPT`` has the value ``true`` during the installation, OPTALG will download and build the solver `IPOPT`_ for you, and then build its Python wrapper. Similarly, if the environment variable ``OPTALG_CLP`` has the value ``true`` during the installation, OPTLAG will download and build the solver `Clp`_ for you, and then build its Python wrapper.
+By default, no wrappers are built for any external solvers. If the environment variable ``OPTALG_IPOPT`` has the value ``true`` during the installation, OPTALG will download and build the solver `IPOPT`_ for you, and then build its Python wrapper. Similarly, if the environment variables ``OPTALG_CLP`` amd ``OPTALG_CBC`` have the value ``true`` during the installation, OPTLAG will download and build the solvers `Clp`_ and `Cbc`_ for you, and then build their Python wrappers.
 
-.. note:: Currently, the installation with `Clp`_ does not work on Windows and Mac OS X.
+.. note:: Currently, the installation with `Clp`_ and `Cbc`_ does not work on Windows.
   
 To install the module from source, the code can be obtained from `<https://github.com/ttinoco/OPTALG>`_, and then the following commands can be executed on the terminal or Anaconda prompt from the root directory of the package::
 
@@ -43,6 +42,7 @@ To install the module from source, the code can be obtained from `<https://githu
 
 Running the unit tests can be done with::
 
+    pip install nose
     python setup.py build_ext --inplace
     nosetests -s -v
 
@@ -51,6 +51,7 @@ Running the unit tests can be done with::
 .. _Cython: http://cython.org/
 .. _IPOPT: https://projects.coin-or.org/Ipopt
 .. _Clp: https://projects.coin-or.org/Clp
+.. _Cbc: https://projects.coin-or.org/Cbc
 .. _Make: https://www.gnu.org/software/make/
 .. _Python: https://www.python.org/
 .. _pip: https://pip.pypa.io/en/stable/

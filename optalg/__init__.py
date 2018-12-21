@@ -8,3 +8,5 @@
 
 from . import lin_solver
 from . import opt_solver
+
+from .version import __version__

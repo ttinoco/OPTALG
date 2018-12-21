@@ -28,11 +28,6 @@ OPTALG is released under the BSD 2-clause license.
    Optimization Solvers<opt_solver>
    API Reference<reference>
 
-**Contributors (alphabetical)**
-
-* Martin Baltzinger
-* `Tomas Tinoco De Rubira <http://ttinoco.github.io/>`_
-
 Indices and tables
 ==================
 

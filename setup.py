@@ -74,10 +74,12 @@ if os.environ.get('OPTALG_CBC') == 'true':
                                         include_dirs=[np.get_include(),'./lib/cbc/include'],
                                         library_dirs=['./lib/cbc/lib'],
                                         extra_link_args=extra_link_args)])
+
+exec(open(os.path.join('optalg', 'version.py')).read())    
  
 setup(name='OPTALG',
       zip_safe=False,
-      version='1.1.6rc1',
+      version=__version__,
       description='Optimization Algorithms and Wrappers',
       url='https://github.com/ttinoco/OPTALG',
       author='Tomas Tinoco De Rubira',
