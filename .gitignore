@@ -2,6 +2,7 @@
 *.[oa]
 *~
 *.pyc
+*.pyd
 
 # PyCharm Project Files
 .idea/*
@@ -11,8 +12,6 @@ build/*
 
 # PyCache
 *__pycache__*
-
-*.pyc
 
 # egg-info
 OPTALG.egg-info/
