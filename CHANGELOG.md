@@ -1,3 +1,7 @@
+Unreleased
+----------
+* Simplified barrier parameters in augl.
+
 Version 1.1.7
 -------------
 - Got CBC interface working again on Linux.
