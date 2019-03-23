@@ -72,7 +72,7 @@ class OptSolverCbcCMD(OptSolver):
 
         # Check
         if not utils.cmd_exists('cbc'):
-            raise OptSolverError_CbcCMDExists(self)
+            raise OptSolverError_NotAvailable(self)
 
         # Solve
         status = ''

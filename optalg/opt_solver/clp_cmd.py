@@ -71,7 +71,7 @@ class OptSolverClpCMD(OptSolver):
 
         # Check
         if not utils.cmd_exists('clp'):
-            raise OptSolverError_ClpCMDExists(self)
+            raise OptSolverError_NotAvailable(self)
 
         # Solve
         status = ''

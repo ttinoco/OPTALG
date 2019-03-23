@@ -53,7 +53,10 @@ class OptSolverIpopt(OptSolver):
     def create_ipopt_context(self):
         
         # Import
-        from ._ipopt import IpoptContext
+        try:
+            from ._ipopt import IpoptContext
+        except ImportError:
+            raise OptSolverError_NotAvailable(self)
 
         # Problem
         problem = self.problem

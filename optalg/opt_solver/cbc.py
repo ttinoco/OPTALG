@@ -38,7 +38,10 @@ class OptSolverCbc(OptSolver):
     def solve(self, problem):
 
         # Import
-        from ._cbc import CbcContext
+        try:
+            from ._cbc import CbcContext
+        except ImportError:
+            raise OptSolverError_NotAvailable(self)
 
         # Local vars
         params = self.parameters

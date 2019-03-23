@@ -136,7 +136,7 @@ class TestOptSolvers(unittest.TestCase):
             Ipopt.set_parameters(new_parameters)
             Ipopt.solve(prob)
             
-        except ImportError:
+        except opt.opt_solver.OptSolverError_NotAvailable:
             raise unittest.SkipTest('no ipopt')
         
         # Test with inf and nan
@@ -145,7 +145,7 @@ class TestOptSolvers(unittest.TestCase):
         for x_bad in [np.inf, np.nan]:
             x[int(n/2)] = x_bad
             bad_prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u,x=x)
-            self.assertRaises(opt.opt_solver.opt_solver_error.OptSolverError_Ipopt, Ipopt.solve, bad_prob)
+            self.assertRaises(opt.opt_solver.OptSolverError_Ipopt, Ipopt.solve, bad_prob)
             self.assertEqual(Ipopt.get_status(), 'error')
 
     def test_clp(self):
@@ -167,7 +167,7 @@ class TestOptSolvers(unittest.TestCase):
 
         try:
             solver.solve(problem)
-        except ImportError:
+        except opt.opt_solver.OptSolverError_NotAvailable:
             raise unittest.SkipTest('no clp')
             
         x = solver.get_primal_variables()
@@ -219,7 +219,7 @@ class TestOptSolvers(unittest.TestCase):
 
         try:
             solver.solve(problem)
-        except opt.opt_solver.OptSolverError_ClpCMDExists:
+        except opt.opt_solver.OptSolverError_NotAvailable:
             raise unittest.SkipTest('no clp command-line solver')
             
         x = solver.get_primal_variables()
@@ -253,7 +253,7 @@ class TestOptSolvers(unittest.TestCase):
 
         try:
             solver.solve(problem)
-        except ImportError:
+        except opt.opt_solver.OptSolverError_NotAvailable:
             raise unittest.SkipTest('no cbc')
 
         x = solver.get_primal_variables()
@@ -290,7 +290,7 @@ class TestOptSolvers(unittest.TestCase):
 
         try:
             solver.solve(problem)
-        except opt.opt_solver.OptSolverError_CbcCMDExists:
+        except opt.opt_solver.OptSolverError_NotAvailable:
             raise unittest.SkipTest('no cbc command-line solver')
 
         self.assertEqual(solver.get_status(), 'solved')

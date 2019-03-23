@@ -37,7 +37,10 @@ class OptSolverClp(OptSolver):
     def solve(self, problem):
 
         # Import
-        from ._clp import ClpContext
+        try:
+            from ._clp import ClpContext
+        except ImportError:
+            raise OptSolverError_NotAvailable(self)
 
         # Local vars
         params = self.parameters
