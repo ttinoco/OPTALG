@@ -43,6 +43,8 @@ class LinProblem(OptProblem):
 
         self.n = self.get_num_primal_variables()
 
+        self.P = np.zeros(self.n, dtype=bool)
+
         self.f = np.zeros(0)
         self.J = coo_matrix((0,self.n))
         self.H_combined = coo_matrix((self.n,self.n))
@@ -80,3 +82,8 @@ class LinProblem(OptProblem):
         print('----------')
         print('A shape : (%d,%d)' %(self.A.shape[0],self.A.shape[1]))
         print('A nnz   : %.2f %%' %(100.*self.A.nnz/(self.A.shape[0]*self.A.shape[1])))
+
+    def write_to_lp_file(self, filename):
+
+        p = self.to_mixintlin()
+        p.write_to_lp_file(filename)

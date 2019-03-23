@@ -18,7 +18,7 @@ class OptSolverCbc(OptSolver):
 
     def __init__(self):
         """
-        Mixed integer linear "branch and cut" sovler from COIN-OR.
+        Mixed integer linear "branch and cut" solver from COIN-OR.
         """
         
         OptSolver.__init__(self)
@@ -29,7 +29,7 @@ class OptSolverCbc(OptSolver):
         for p in properties:
             if p not in [OptProblem.PROP_CURV_LINEAR,
                          OptProblem.PROP_VAR_CONTINUOUS,
-                         OptProblem.PROP_VAR_BINARY,
+                         OptProblem.PROP_VAR_INTEGER,
                          OptProblem.PROP_TYPE_FEASIBILITY,
                          OptProblem.PROP_TYPE_OPTIMIZATION]:
                 return False
@@ -72,7 +72,7 @@ class OptSolverCbc(OptSolver):
 
         # Solve
         self.cbc_context.solve()
-
+        
         # Save
         self.x = self.cbc_context.getColSolution()
         if self.cbc_context.status() == 0:

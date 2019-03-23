@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -21,9 +21,33 @@ class OptSolverError_Cbc(OptSolverError):
     def __init__(self, solver=None):
         OptSolverError.__init__(self,solver, 'cbc solver failed')
 
+class OptSolverError_CbcCMD(OptSolverError):    
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'cbc command-line solver failed')
+
+class OptSolverError_CbcCMDExists(OptSolverError):    
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'cbc command-line solver does not exist')
+
+class OptSolverError_CbcCMDCall(OptSolverError):    
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'error while calling cbc command-line solver')
+        
 class OptSolverError_Clp(OptSolverError):    
     def __init__(self, solver=None):
         OptSolverError.__init__(self,solver, 'clp solver failed')
+
+class OptSolverError_ClpCMD(OptSolverError):    
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'clp command-line solver failed')
+
+class OptSolverError_ClpCMDExists(OptSolverError):    
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'clp command-line solver does not exist')
+
+class OptSolverError_ClpCMDCall(OptSolverError):    
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self,solver, 'error while calling clp command-line solver')
 
 class OptSolverError_Ipopt(OptSolverError):    
     def __init__(self, solver=None):

@@ -35,12 +35,12 @@ class TestOptSolvers(unittest.TestCase):
                                                   'continuous',
                                                   'feasibility',
                                                   'optimization']))
-        self.assertFalse(augl.supports_properties(['binary']))
+        self.assertFalse(augl.supports_properties(['integer']))
 
         # cbc
         self.assertTrue(cbc.supports_properties(['linear',
                                                  'continuous',
-                                                 'binary',
+                                                 'integer',
                                                  'feasibility',
                                                  'optimization']))
         self.assertFalse(cbc.supports_properties(['quadratic']))
@@ -53,7 +53,7 @@ class TestOptSolvers(unittest.TestCase):
                                                  'optimization']))
         self.assertFalse(clp.supports_properties(['quadratic']))
         self.assertFalse(clp.supports_properties(['nonlinear']))
-        self.assertFalse(clp.supports_properties(['binary']))
+        self.assertFalse(clp.supports_properties(['integer']))
 
         # inlp
         self.assertTrue(inlp.supports_properties(['linear',
@@ -62,7 +62,7 @@ class TestOptSolvers(unittest.TestCase):
                                                   'continuous',
                                                   'feasibility',
                                                   'optimization']))
-        self.assertFalse(inlp.supports_properties(['binary']))
+        self.assertFalse(inlp.supports_properties(['integer']))
 
         # ipopt
         self.assertTrue(ipopt.supports_properties(['linear',
@@ -71,7 +71,7 @@ class TestOptSolvers(unittest.TestCase):
                                                    'continuous',
                                                    'feasibility',
                                                    'optimization']))
-        self.assertFalse(ipopt.supports_properties(['binary']))
+        self.assertFalse(ipopt.supports_properties(['integer']))
 
         # iqp
         self.assertTrue(iqp.supports_properties(['linear',
@@ -79,7 +79,7 @@ class TestOptSolvers(unittest.TestCase):
                                                  'continuous',
                                                  'feasibility',
                                                  'optimization']))
-        self.assertFalse(iqp.supports_properties(['binary']))
+        self.assertFalse(iqp.supports_properties(['integer']))
         self.assertFalse(iqp.supports_properties(['nonlinear']))
 
         # nr
@@ -88,7 +88,7 @@ class TestOptSolvers(unittest.TestCase):
                                                 'nonlinear',
                                                 'continuous',
                                                 'feasibility']))
-        self.assertFalse(nr.supports_properties(['binary']))
+        self.assertFalse(nr.supports_properties(['integer']))
         self.assertFalse(nr.supports_properties(['optimization']))
 
     def test_ipopt(self):
@@ -195,6 +195,39 @@ class TestOptSolvers(unittest.TestCase):
         self.assertLess(100.*norm(pi-pi1,np.inf)/max([norm(mu,np.inf),norm(mu,np.inf),1e-8]),0.1)
         
         self.assertRaises(opt.opt_solver.OptSolverError,solver.solve,4)
+
+    def test_clp_cmd(self):
+
+        A = np.array([[6.,1.,1.,0.,0.],
+                      [3.,1.,0.,1.,0.],
+                      [4.,6.,0.,0.,1.]])
+        b = np.array([12.,8.,24.])
+        
+        l = np.array([0.,0.,-1e8,-1e8,-1e8])
+        u = np.array([5.,5.,0.,0.,0.])
+        
+        c = np.array([180.,160.,0.,0.,0.])
+
+        problem = opt.opt_solver.LinProblem(c,A,b,l,u)
+        
+        solver = opt.opt_solver.OptSolverClpCMD()
+        solver.set_parameters({'quiet':True})
+
+        try:
+            solver.solve(problem)
+        except opt.opt_solver.OptSolverError_ClpCMDExists:
+            raise unittest.SkipTest('no clp command-line solver')
+            
+        x = solver.get_primal_variables()
+        #lam,nu,mu,pi = solver.get_dual_variables()
+
+        problem.eval(x)
+        self.assertLess(np.linalg.norm(np.dot(A,x)-b),1e-6)
+        self.assertTrue(np.all(l <= x))
+        self.assertTrue(np.all(x <= u))
+        self.assertLess(np.abs(x[0]-1.71428571),1e-7)
+        self.assertLess(np.abs(x[1]-2.85714286),1e-7)
+        self.assertLess(np.abs(problem.phi-765.714285218),1e-5)
         
     def test_cbc(self):
 
@@ -233,6 +266,45 @@ class TestOptSolvers(unittest.TestCase):
         self.assertAlmostEqual(x[0],4.)
         self.assertAlmostEqual(x[1],4.5)
 
+    def test_cbc_cmd(self):
+
+        A = np.array([[-2.,2. ,1.,0.],
+                      [-8.,10.,0.,1.]])
+        b = np.array([1.,13.])
+        
+        l = np.array([-1e8,-1e8,-1e8,0.])
+        u = np.array([1e8,1e8,0.,1e8])
+        
+        c = np.array([-1.,-1.,0.,0.])
+        
+        P = np.array([True,True,False,False])
+        
+        problem = opt.opt_solver.MixIntLinProblem(c,A,b,l,u,P)
+        
+        solver = opt.opt_solver.OptSolverCbcCMD()
+        solver.set_parameters({'quiet':True})
+
+        try:
+            solver.solve(problem)
+        except opt.opt_solver.OptSolverError_CbcCMDExists:
+            raise unittest.SkipTest('no cbc command-line solver')
+
+        self.assertEqual(solver.get_status(), 'solved')
+        x = solver.get_primal_variables()
+
+        self.assertAlmostEqual(x[0],1.)
+        self.assertAlmostEqual(x[1],2.)
+
+        problem.P[:] = False
+
+        solver.solve(problem)
+        
+        self.assertEqual(solver.get_status(), 'solved')
+        x = solver.get_primal_variables()
+
+        self.assertAlmostEqual(x[0],4.)
+        self.assertAlmostEqual(x[1],4.5)
+        
     def test_iqp_random(self):
         
         solver = opt.opt_solver.OptSolverIQP()

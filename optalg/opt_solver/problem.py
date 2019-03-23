@@ -19,7 +19,7 @@ class OptProblem(object):
     PROP_CURV_LINEAR = 'linear'
     PROP_CURV_QUADRATIC = 'quadratic'
     PROP_CURV_NONLINEAR = 'nonlinear'
-    PROP_VAR_BINARY = 'binary'
+    PROP_VAR_INTEGER = 'integer'
     PROP_VAR_CONTINUOUS = 'continuous'
     PROP_TYPE_FEASIBILITY = 'feasibility'
     PROP_TYPE_OPTIMIZATION = 'optimization'
