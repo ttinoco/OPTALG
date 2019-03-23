@@ -22,7 +22,9 @@ class TestOptSolvers(unittest.TestCase):
 
         augl = opt.opt_solver.OptSolverAugL()
         cbc = opt.opt_solver.OptSolverCbc()
+        cbc_cmd = opt.opt_solver.OptSolverCbcCMD()
         clp = opt.opt_solver.OptSolverClp()
+        clp_cmd = opt.opt_solver.OptSolverClpCMD()
         inlp = opt.opt_solver.OptSolverINLP()
         ipopt = opt.opt_solver.OptSolverIpopt()
         iqp = opt.opt_solver.OptSolverIQP()
@@ -38,22 +40,24 @@ class TestOptSolvers(unittest.TestCase):
         self.assertFalse(augl.supports_properties(['integer']))
 
         # cbc
-        self.assertTrue(cbc.supports_properties(['linear',
-                                                 'continuous',
-                                                 'integer',
-                                                 'feasibility',
-                                                 'optimization']))
-        self.assertFalse(cbc.supports_properties(['quadratic']))
-        self.assertFalse(cbc.supports_properties(['nonlinear']))
+        for s in [cbc, cbc_cmd]:
+            self.assertTrue(s.supports_properties(['linear',
+                                                     'continuous',
+                                                     'integer',
+                                                     'feasibility',
+                                                     'optimization']))
+            self.assertFalse(s.supports_properties(['quadratic']))
+            self.assertFalse(s.supports_properties(['nonlinear']))
 
         # clp
-        self.assertTrue(clp.supports_properties(['linear',
-                                                 'continuous',
-                                                 'feasibility',
-                                                 'optimization']))
-        self.assertFalse(clp.supports_properties(['quadratic']))
-        self.assertFalse(clp.supports_properties(['nonlinear']))
-        self.assertFalse(clp.supports_properties(['integer']))
+        for s in [clp, clp_cmd]:
+            self.assertTrue(s.supports_properties(['linear',
+                                                   'continuous',
+                                                   'feasibility',
+                                                   'optimization']))
+            self.assertFalse(s.supports_properties(['quadratic']))
+            self.assertFalse(s.supports_properties(['nonlinear']))
+            self.assertFalse(s.supports_properties(['integer']))
 
         # inlp
         self.assertTrue(inlp.supports_properties(['linear',
