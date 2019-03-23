@@ -367,7 +367,7 @@ class TestOptSolvers(unittest.TestCase):
             
             try:
                 solver.solve(problem)
-            except ImportError:
+            except opt.opt_solver.OptSolverError_NotAvailable:
                 continue
             
             x = solver.get_primal_variables()
@@ -434,7 +434,7 @@ class TestOptSolvers(unittest.TestCase):
                 xIpopt = Ipopt.get_primal_variables()
                 lamIpopt,nuIpopt,muIpopt,piIpopt = Ipopt.get_dual_variables()
                 has_ipopt = True
-            except ImportError:
+            except opt.opt_solver.OptSolverError_NotAvailable:
                 has_ipopt = False
 
             self.assertFalse(xIQP is xAugL)
