@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -21,7 +21,7 @@ class MixIntLinProblem(OptProblem):
                 Px integer
     """
 
-    def __init__(self,c,A,b,l,u,P,x=None):
+    def __init__(self, c, A, b, l, u, P, x=None):
         """
         Mixed integer linear program class.
         
@@ -51,7 +51,7 @@ class MixIntLinProblem(OptProblem):
         self.Hphi = coo_matrix((self.n,self.n))
         self.gphi = self.c
 
-        self.x = x
+        self.x = x if x is not None else np.zeros(self.n)
         
         # Check data
         assert(c.size == self.n)
@@ -64,7 +64,7 @@ class MixIntLinProblem(OptProblem):
         if x is not None:
             assert(x.size == A.shape[1])
  
-    def eval(self,x):
+    def eval(self, x):
 
         self.phi = np.dot(self.c,x)
         

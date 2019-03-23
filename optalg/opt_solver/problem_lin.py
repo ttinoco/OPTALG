@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -20,7 +20,7 @@ class LinProblem(OptProblem):
                 l <= x <= u
     """
 
-    def __init__(self,c,A,b,l,u,x=None,lam=None,mu=None,pi=None):
+    def __init__(self, c, A, b, l, u, x=None, lam=None, mu=None, pi=None):
         """
         Linear program class.
         
@@ -49,7 +49,7 @@ class LinProblem(OptProblem):
         self.Hphi = coo_matrix((self.n,self.n))
         self.gphi = self.c
 
-        self.x = x
+        self.x = x if x is not None else np.zeros(self.n)
         
         self.lam = lam
         self.mu = mu

@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -9,7 +9,7 @@
 from __future__ import print_function
 import numpy as np
 from .opt_solver_error import *
-from .problem import cast_problem
+from .problem import cast_problem, OptProblem
 from .opt_solver import OptSolver
 from scipy.sparse import bmat
 from optalg.lin_solver import new_linsolver
@@ -31,8 +31,19 @@ class OptSolverNR(OptSolver):
         self.parameters = OptSolverNR.parameters.copy()     
         self.linsolver = None
         self.problem = None
+
+    def supports_properties(self, properties):
+
+        for p in properties:
+            if p not in [OptProblem.PROP_CURV_LINEAR,
+                         OptProblem.PROP_CURV_QUADRATIC,
+                         OptProblem.PROP_CURV_NONLINEAR,
+                         OptProblem.PROP_VAR_CONTINUOUS,
+                         OptProblem.PROP_TYPE_FEASIBILITY]:
+                return False
+        return True
         
-    def func(self,x):
+    def func(self, x):
 
         fdata = self.fdata
         p = self.problem
@@ -56,7 +67,7 @@ class OptSolverNR(OptSolver):
         fdata.GradF = JTf+ATr
         return fdata
 
-    def solve(self,problem):
+    def solve(self, problem):
     
         # Local vars
         norm2 = self.norm2
@@ -86,12 +97,6 @@ class OptSolverNR(OptSolver):
             
         # Init eval
         fdata = self.func(self.x)
-        
-        # Analyze phase
-        try: 
-            self.linsolver.analyze(bmat([[problem.J],[problem.A]]))
-        except Exception:
-            raise OptSolverError_BadLinSystem(self)
             
         # Print header
         if not quiet:
@@ -111,6 +116,7 @@ class OptSolverNR(OptSolver):
         s = 0.         
         pmax = 0.      
         self.k = 0
+        analyzed = False
         while True:
             
             # Callbacks
@@ -150,6 +156,9 @@ class OptSolverNR(OptSolver):
             
             # Search direction
             try:
+                if not analyzed:
+                    self.linsolver.analyze(bmat([[problem.J],[problem.A]]))
+                    analyzed = True
                 p = self.linsolver.factorize_and_solve(bmat([[problem.J],[problem.A]]),
                                                        np.hstack([-fdata.f,-fdata.r]))
             except Exception:

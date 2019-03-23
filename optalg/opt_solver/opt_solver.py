@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -52,7 +52,7 @@ class OptSolver:
         self.norminf = lambda x: np.linalg.norm(x,np.inf) if x.size else 0.
         self.norm2 = lambda x: np.linalg.norm(x,2)
         
-    def add_callback(self,c):
+    def add_callback(self, c):
         """
         Adds callback funtion to solver.
         
@@ -63,7 +63,7 @@ class OptSolver:
         
         self.callbacks.append(c)
 
-    def add_termination(self,t):
+    def add_termination(self, t):
         """
         Adds termination condition to solver.
 
@@ -170,7 +170,7 @@ class OptSolver:
 
         return self.status == self.STATUS_SOLVED
 
-    def line_search(self,x,p,F,GradF,func,smax=np.inf,maxiter=40):
+    def line_search(self, x, p, F, GradF, func, smax=np.inf, maxiter=40):
         """
         Finds steplength along search direction p that 
         satisfies the strong Wolfe conditions.
@@ -250,7 +250,7 @@ class OptSolver:
         self.error_msg = ''
         self.obj_sca = 1. # objective scaling
 
-    def set_error_msg(self,msg):
+    def set_error_msg(self, msg):
         """
         Sets solver error message.
         
@@ -261,7 +261,7 @@ class OptSolver:
 
         self.error_msg = msg
 
-    def set_info_printer(self,printer):
+    def set_info_printer(self, printer):
         """
         Sets function for printing algorithm progress.
 
@@ -272,7 +272,7 @@ class OptSolver:
 
         self.info_printer = printer
 
-    def set_parameters(self,parameters):
+    def set_parameters(self, parameters):
         """
         Sets solver parameters.
 
@@ -285,7 +285,7 @@ class OptSolver:
             if key in self.parameters:
                 self.parameters[key] = value
 
-    def set_status(self,status):
+    def set_status(self, status):
         """
         Sets solver status.
 
@@ -296,7 +296,7 @@ class OptSolver:
 
         self.status = status
 
-    def solve(self,problem):
+    def solve(self, problem):
         """
         Solves optimization problem.
 
@@ -306,6 +306,21 @@ class OptSolver:
         """
 
         pass
+
+    def supports_properties(self, properties):
+        """
+        Checks whether solver supports properties.
+
+        Parameters
+        ----------
+        properties: list
+
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return True
 
 class OptFuncData:
     """

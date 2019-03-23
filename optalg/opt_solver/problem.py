@@ -1,19 +1,28 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
 import numpy as np
 from types import MethodType
-from scipy.sparse import eye, bmat, coo_matrix
+from scipy.sparse import eye, bmat, triu, coo_matrix
 
 class OptProblem(object):
     """
     Class for representing general optimization problems.
     """
+
+    # Properties
+    PROP_CURV_LINEAR = 'linear'
+    PROP_CURV_QUADRATIC = 'quadratic'
+    PROP_CURV_NONLINEAR = 'nonlinear'
+    PROP_VAR_BINARY = 'binary'
+    PROP_VAR_CONTINUOUS = 'continuous'
+    PROP_TYPE_FEASIBILITY = 'feasibility'
+    PROP_TYPE_OPTIMIZATION = 'optimization'
 
     def __init__(self):
         """
@@ -28,7 +37,7 @@ class OptProblem(object):
         self.phi = 0
         
         #: Objective function gradient
-        self.gphi = None 
+        self.gphi = None
         
         #: Objective function Hessian (lower triangular)
         self.Hphi = None 
@@ -75,7 +84,7 @@ class OptProblem(object):
         #: Wrapped problem
         self.wrapped_problem = None
 
-    def recover_primal_variables(self,x):
+    def recover_primal_variables(self, x):
         """
         Recovers primal variables for original problem.
 
@@ -86,7 +95,7 @@ class OptProblem(object):
 
         return x
 
-    def recover_dual_variables(self,lam,nu,mu,pi):
+    def recover_dual_variables(self, lam, nu, mu, pi):
         """
         Recovers dual variables for original problem.
 
@@ -98,7 +107,7 @@ class OptProblem(object):
         pi : ndarray
         """
 
-        return lam,nu,mu,pi
+        return lam, nu, mu, pi
         
     def get_num_primal_variables(self):
         """
@@ -151,7 +160,7 @@ class OptProblem(object):
             return self.f.size
         return 0
 
-    def combine_H(self,coeff,ensure_psd=False):
+    def combine_H(self, coeff, ensure_psd=False):
         """
         Forms and saves a linear combination of the individual constraint Hessians.
 
@@ -163,7 +172,7 @@ class OptProblem(object):
         
         pass
         
-    def eval(self,x):
+    def eval(self, x):
         """
         Evaluates the objective value and constraints
         at the give point.
@@ -182,6 +191,61 @@ class OptProblem(object):
 
         pass
 
+    def to_lin(self):
+        """
+        Converts problem to linear problem.
+
+        Returns
+        -------
+        p : |LinProblem|
+        """
+
+        from .problem_lin import LinProblem
+
+        self.eval(self.x)
+
+        c = self.gphi.copy()
+
+        return LinProblem(c, self.A, self.b, self.l, self.u, self.x)
+
+    def to_quad(self):
+        """
+        Converts problem to quadratic problem.
+
+        Returns
+        -------
+        p : |QuadProblem|
+        """
+
+        from .problem_quad import QuadProblem
+
+        self.eval(self.x)
+
+        H = self.Hphi + self.Hphi.T - triu(self.Hphi)
+        g = self.gphi - H*self.x
+
+        return QuadProblem(H, g, self.A, self.b, self.l, self.u, self.x)
+
+    def to_mixintlin(self):
+        """
+        Converts problem to mixed integer linear problem.
+
+        Returns
+        -------
+        p : |MixIntLinProblem|
+        """
+
+        from .problem_mixintlin import MixIntLinProblem
+
+        self.eval(self.x)
+
+        c = self.gphi.copy()
+
+        if self.P is None:
+            self.P = np.array([False]*self.x.size, dtype=bool)
+
+        return MixIntLinProblem(c, self.A, self.b, self.l, self.u, self.P, self.x)
+
 def cast_problem(problem):
     """
     Casts problem object with known interface as OptProblem.
@@ -192,7 +256,7 @@ def cast_problem(problem):
     """
     
     # Optproblem
-    if isinstance(problem,OptProblem):
+    if isinstance(problem, OptProblem):
         return problem
     
     # Other
@@ -243,7 +307,7 @@ def create_problem_from_type_base(problem):
     p.wrapped_problem = problem
     
     # Methods
-    def eval(cls,x):
+    def eval(cls, x):
         cls.wrapped_problem.eval(x)
         cls.phi = cls.wrapped_problem.phi
         cls.gphi = cls.wrapped_problem.gphi
@@ -251,12 +315,12 @@ def create_problem_from_type_base(problem):
         cls.f = cls.wrapped_problem.f
         cls.J = cls.wrapped_problem.J
         
-    def combine_H(cls,coeff,ensure_psd=False):
-        cls.wrapped_problem.combine_H(coeff,ensure_psd)
+    def combine_H(cls, coeff, ensure_psd=False):
+        cls.wrapped_problem.combine_H(coeff, ensure_psd)
         cls.H_combined = cls.wrapped_problem.H_combined
         
-    p.eval = MethodType(eval,p)
-    p.combine_H = MethodType(combine_H,p)
+    p.eval = MethodType(eval, p)
+    p.combine_H = MethodType(combine_H, p)
 
     # Return
     return p
@@ -295,7 +359,7 @@ def create_problem_from_type_A(problem):
     
     p.wrapped_problem = problem
 
-    def eval(cls,xz):
+    def eval(cls, xz):
         x = xz[:nx]
         z = xz[nx:]
         prob = cls.wrapped_problem
@@ -306,22 +370,22 @@ def create_problem_from_type_A(problem):
         cls.f = prob.f
         cls.J = coo_matrix((prob.J.data,(prob.J.row,prob.J.col)),shape=(prob.J.shape[0],nx+nz))
 
-    def combine_H(cls,coeff,ensure_psd=False):
+    def combine_H(cls, coeff, ensure_psd=False):
         prob = cls.wrapped_problem
         prob.combine_H(coeff,ensure_psd=ensure_psd)
         cls.H_combined = coo_matrix((prob.H_combined.data,(prob.H_combined.row,prob.H_combined.col)),shape=(nx+nz,nx+nz))
             
-    def recover_primal_variables(cls,x):
+    def recover_primal_variables(cls, x):
         return x[:nx]
     
-    def recover_dual_variables(cls,lam,nu,mu,pi):
+    def recover_dual_variables(cls, lam, nu, mu, pi):
         prob = cls.wrapped_problem
         return lam[:prob.A.shape[0]],nu,mu[nx:],pi[nx:]
                 
-    p.eval = MethodType(eval,p)
-    p.combine_H = MethodType(combine_H,p)
-    p.recover_primal_variables = MethodType(recover_primal_variables,p)
-    p.recover_dual_variables = MethodType(recover_dual_variables,p)
+    p.eval = MethodType(eval, p)
+    p.combine_H = MethodType(combine_H, p)
+    p.recover_primal_variables = MethodType(recover_primal_variables, p)
+    p.recover_dual_variables = MethodType(recover_dual_variables, p)
 
     # Return
     return p

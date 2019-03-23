@@ -1,7 +1,7 @@
 #*****************************************************#
 # This file is part of OPTALG.                        #
 #                                                     #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.         #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.         #
 #                                                     #
 # OPTALG is released under the BSD 2-clause license.  #
 #*****************************************************#
@@ -17,6 +17,79 @@ class TestOptSolvers(unittest.TestCase):
     def setUp(self):
 
         np.random.seed(2)
+
+    def test_solver_properties_support(self):
+
+        augl = opt.opt_solver.OptSolverAugL()
+        cbc = opt.opt_solver.OptSolverCbc()
+        clp = opt.opt_solver.OptSolverClp()
+        inlp = opt.opt_solver.OptSolverINLP()
+        ipopt = opt.opt_solver.OptSolverIpopt()
+        iqp = opt.opt_solver.OptSolverIQP()
+        nr = opt.opt_solver.OptSolverNR()
+
+        # augl
+        self.assertTrue(augl.supports_properties(['linear',
+                                                  'quadratic',
+                                                  'nonlinear',
+                                                  'continuous',
+                                                  'feasibility',
+                                                  'optimization']))
+        self.assertFalse(augl.supports_properties(['binary']))
+
+        # cbc
+        self.assertTrue(cbc.supports_properties(['linear',
+                                                 'continuous',
+                                                 'binary',
+                                                 'feasibility',
+                                                 'optimization']))
+        self.assertFalse(cbc.supports_properties(['quadratic']))
+        self.assertFalse(cbc.supports_properties(['nonlinear']))
+
+        # clp
+        self.assertTrue(clp.supports_properties(['linear',
+                                                 'continuous',
+                                                 'feasibility',
+                                                 'optimization']))
+        self.assertFalse(clp.supports_properties(['quadratic']))
+        self.assertFalse(clp.supports_properties(['nonlinear']))
+        self.assertFalse(clp.supports_properties(['binary']))
+
+        # inlp
+        self.assertTrue(inlp.supports_properties(['linear',
+                                                  'quadratic',
+                                                  'nonlinear',
+                                                  'continuous',
+                                                  'feasibility',
+                                                  'optimization']))
+        self.assertFalse(inlp.supports_properties(['binary']))
+
+        # ipopt
+        self.assertTrue(ipopt.supports_properties(['linear',
+                                                   'quadratic',
+                                                   'nonlinear',
+                                                   'continuous',
+                                                   'feasibility',
+                                                   'optimization']))
+        self.assertFalse(ipopt.supports_properties(['binary']))
+
+        # iqp
+        self.assertTrue(iqp.supports_properties(['linear',
+                                                 'quadratic',
+                                                 'continuous',
+                                                 'feasibility',
+                                                 'optimization']))
+        self.assertFalse(iqp.supports_properties(['binary']))
+        self.assertFalse(iqp.supports_properties(['nonlinear']))
+
+        # nr
+        self.assertTrue(nr.supports_properties(['linear',
+                                                'quadratic',
+                                                'nonlinear',
+                                                'continuous',
+                                                'feasibility']))
+        self.assertFalse(nr.supports_properties(['binary']))
+        self.assertFalse(nr.supports_properties(['optimization']))
 
     def test_ipopt(self):
 

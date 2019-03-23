@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -10,7 +10,7 @@ from __future__ import print_function
 import numpy as np
 from .opt_solver_error import *
 from .opt_solver import OptSolver
-from .problem_mixintlin import MixIntLinProblem
+from .problem import OptProblem
 
 class OptSolverCbc(OptSolver):
 
@@ -23,8 +23,19 @@ class OptSolverCbc(OptSolver):
         
         OptSolver.__init__(self)
         self.parameters = OptSolverCbc.parameters.copy()
+
+    def supports_properties(self, properties):
+
+        for p in properties:
+            if p not in [OptProblem.PROP_CURV_LINEAR,
+                         OptProblem.PROP_VAR_CONTINUOUS,
+                         OptProblem.PROP_VAR_BINARY,
+                         OptProblem.PROP_TYPE_FEASIBILITY,
+                         OptProblem.PROP_TYPE_OPTIMIZATION]:
+                return False
+        return True
         
-    def solve(self,problem):
+    def solve(self, problem):
 
         # Import
         from ._cbc import CbcContext
@@ -36,20 +47,21 @@ class OptSolverCbc(OptSolver):
         quiet = params['quiet']
 
         # Problem
-        if not isinstance(problem,MixIntLinProblem):
+        try:
+            self.problem = problem.to_mixintlin()
+        except:
             raise OptSolverError_BadProblemType(self)
-        self.problem = problem
 
         # Cbc context
         self.cbc_context = CbcContext()
-        self.cbc_context.loadProblem(problem.get_num_primal_variables(),
-                                     problem.A,
-                                     problem.l,
-                                     problem.u,
-                                     problem.c,
-                                     problem.b,
-                                     problem.b)
-        self.cbc_context.setInteger(problem.P)
+        self.cbc_context.loadProblem(self.problem.get_num_primal_variables(),
+                                     self.problem.A,
+                                     self.problem.l,
+                                     self.problem.u,
+                                     self.problem.c,
+                                     self.problem.b,
+                                     self.problem.b)
+        self.cbc_context.setInteger(self.problem.P)
         
         # Reset
         self.reset()

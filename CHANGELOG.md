@@ -1,6 +1,8 @@
 Unreleased
 ----------
 * Simplified barrier parameters in augl.
+* Added problem properties and methods for checking whether solvers support certain problem properties.
+* Added methods to convert general problem into linear, mixed integer linear, and quadratic problems.
 
 Version 1.1.7
 -------------

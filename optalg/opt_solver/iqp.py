@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -10,10 +10,9 @@ from __future__ import print_function
 import numpy as np
 from .opt_solver_error import *
 from .opt_solver import OptSolver
-from .problem import cast_problem
-from .problem_quad import QuadProblem
+from .problem import cast_problem, OptProblem
 from optalg.lin_solver import new_linsolver
-from scipy.sparse import bmat,triu,eye,spdiags,coo_matrix,tril
+from scipy.sparse import bmat, triu, eye, spdiags, coo_matrix, tril
 
 class OptSolverIQP(OptSolver):
     """
@@ -38,8 +37,19 @@ class OptSolverIQP(OptSolver):
         OptSolver.__init__(self)
         self.parameters = OptSolverIQP.parameters.copy()
         self.linsolver = None
+
+    def supports_properties(self, properties):
+
+        for p in properties:
+            if p not in [OptProblem.PROP_CURV_LINEAR,
+                         OptProblem.PROP_CURV_QUADRATIC,
+                         OptProblem.PROP_VAR_CONTINUOUS,
+                         OptProblem.PROP_TYPE_FEASIBILITY,
+                         OptProblem.PROP_TYPE_OPTIMIZATION]:
+                return False
+        return True
         
-    def solve(self,problem):
+    def solve(self, problem):
         """
         Solves optimization problem.
 
@@ -62,13 +72,13 @@ class OptSolverIQP(OptSolver):
         eps_cold = parameters['eps_cold']
 
         # Problem
-        if not isinstance(problem,QuadProblem):
+        try:
             problem = cast_problem(problem)
-            quad_problem = QuadProblem(None,None,None,None,None,None,problem=problem)
-        else:
-            quad_problem = problem
-        self.problem = problem
-        self.quad_problem = quad_problem
+            quad_problem = problem.to_quad()
+            self.problem = problem
+            self.quad_problem = quad_problem
+        except:
+            raise OptSolverError_BadProblemType(self)
 
         # Linsolver
         self.linsolver = new_linsolver(parameters['linsolver'],'symmetric')

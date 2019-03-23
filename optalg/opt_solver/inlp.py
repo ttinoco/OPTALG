@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -10,7 +10,7 @@ from __future__ import print_function
 import numpy as np
 from .opt_solver_error import *
 from .opt_solver import OptSolver
-from .problem import cast_problem
+from .problem import cast_problem, OptProblem
 from optalg.lin_solver import new_linsolver
 from scipy.sparse import bmat, triu, eye, spdiags, coo_matrix
 
@@ -39,7 +39,19 @@ class OptSolverINLP(OptSolver):
         self.parameters = OptSolverINLP.parameters.copy()
         self.linsolver = None
 
-    def solve(self,problem):
+    def supports_properties(self, properties):
+
+        for p in properties:
+            if p not in [OptProblem.PROP_CURV_LINEAR,
+                         OptProblem.PROP_CURV_QUADRATIC,
+                         OptProblem.PROP_CURV_NONLINEAR,
+                         OptProblem.PROP_VAR_CONTINUOUS,
+                         OptProblem.PROP_TYPE_FEASIBILITY,
+                         OptProblem.PROP_TYPE_OPTIMIZATION]:
+                return False
+        return True
+
+    def solve(self, problem):
         """
         Solves optimization problem.
         

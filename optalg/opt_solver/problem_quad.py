@@ -1,14 +1,14 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
 
 import numpy as np
 from .problem import OptProblem
-from scipy.sparse import tril,triu,coo_matrix
+from scipy.sparse import tril, coo_matrix
 
 class QuadProblem(OptProblem):
     """
@@ -20,7 +20,7 @@ class QuadProblem(OptProblem):
                 l <= x <= u
     """
 
-    def __init__(self,H,g,A,b,l,u,x=None,lam=None,mu=None,pi=None,problem=None):
+    def __init__(self, H, g, A, b, l, u, x=None, lam=None, mu=None, pi=None):
         """
         Quadratic program class.
         
@@ -32,19 +32,9 @@ class QuadProblem(OptProblem):
         l : vector
         u : vector
         x : vector
-        problem : OptProblem
         """
 
         OptProblem.__init__(self)
-
-        if problem is not None:
-            problem.eval(problem.x)
-            H = problem.Hphi + problem.Hphi.T - triu(problem.Hphi)
-            g = problem.gphi - H*problem.x
-            A = problem.A
-            b = problem.b
-            l = problem.l
-            u = problem.u
             
         self.H = coo_matrix(H)
         self.Hphi = tril(self.H) # lower triangular
@@ -58,7 +48,10 @@ class QuadProblem(OptProblem):
         self.J = coo_matrix((0,H.shape[0]))
         self.H_combined = coo_matrix(H.shape)
 
-        self.x = x
+        if x is not None:
+            self.x = x
+        else:
+            self.x = (self.u + self.l)/2.
         
         self.lam = lam
         self.mu = mu
@@ -80,7 +73,7 @@ class QuadProblem(OptProblem):
         if pi is not None:
             assert(pi.size == u.size)
  
-    def eval(self,x):
+    def eval(self, x):
 
         self.phi = 0.5*np.dot(x,self.H*x) + np.dot(self.g,x)
         self.gphi = self.H*x + self.g

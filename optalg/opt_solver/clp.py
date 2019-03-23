@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.   #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -10,7 +10,7 @@ from __future__ import print_function
 import numpy as np
 from .opt_solver_error import *
 from .opt_solver import OptSolver
-from .problem_lin import LinProblem
+from .problem import OptProblem
 
 class OptSolverClp(OptSolver):
 
@@ -24,7 +24,17 @@ class OptSolverClp(OptSolver):
         OptSolver.__init__(self)
         self.parameters = OptSolverClp.parameters.copy()
         
-    def solve(self,problem):
+    def supports_properties(self, properties):
+
+        for p in properties:
+            if p not in [OptProblem.PROP_CURV_LINEAR,
+                         OptProblem.PROP_VAR_CONTINUOUS,
+                         OptProblem.PROP_TYPE_FEASIBILITY,
+                         OptProblem.PROP_TYPE_OPTIMIZATION]:
+                return False
+        return True
+        
+    def solve(self, problem):
 
         # Import
         from ._clp import ClpContext
@@ -36,19 +46,20 @@ class OptSolverClp(OptSolver):
         quiet = params['quiet']
 
         # Problem
-        if not isinstance(problem,LinProblem):
+        try:
+            self.problem = problem.to_lin()
+        except:
             raise OptSolverError_BadProblemType(self)
-        self.problem = problem
 
         # Clp context
         self.clp_context = ClpContext()
-        self.clp_context.loadProblem(problem.get_num_primal_variables(),
-                                     problem.A,
-                                     problem.l,
-                                     problem.u,
-                                     problem.c,
-                                     problem.b,
-                                     problem.b)
+        self.clp_context.loadProblem(self.problem.get_num_primal_variables(),
+                                     self.problem.A,
+                                     self.problem.l,
+                                     self.problem.u,
+                                     self.problem.c,
+                                     self.problem.b,
+                                     self.problem.b)
         
         # Reset
         self.reset()

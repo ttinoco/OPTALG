@@ -1,7 +1,7 @@
 #****************************************************#
 # This file is part of OPTALG.                       #
 #                                                    #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.        #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.        #
 #                                                    #
 # OPTALG is released under the BSD 2-clause license. #
 #****************************************************#
@@ -10,7 +10,7 @@ from __future__ import print_function
 import numpy as np
 from functools import reduce
 from .opt_solver_error import *
-from .problem import cast_problem
+from .problem import cast_problem, OptProblem
 from .opt_solver import OptSolver
 from optalg.lin_solver import new_linsolver
 from scipy.sparse import bmat,eye,coo_matrix,tril
@@ -48,7 +48,19 @@ class OptSolverAugL(OptSolver):
         self.linsolver2 = None
         self.barrier = None
 
-    def solve(self,problem):
+    def supports_properties(self, properties):
+
+        for p in properties:
+            if p not in [OptProblem.PROP_CURV_LINEAR,
+                         OptProblem.PROP_CURV_QUADRATIC,
+                         OptProblem.PROP_CURV_NONLINEAR,
+                         OptProblem.PROP_VAR_CONTINUOUS,
+                         OptProblem.PROP_TYPE_FEASIBILITY,
+                         OptProblem.PROP_TYPE_OPTIMIZATION]:
+                return False
+        return True
+
+    def solve(self, problem):
         
         # Local vars
         norm2 = self.norm2
