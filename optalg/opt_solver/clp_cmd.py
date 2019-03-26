@@ -24,6 +24,10 @@ class OptSolverClpCMD(OptSolver):
         """
         Linear programming solver from COIN-OR (via command-line interface, version 1.15.3).
         """
+
+        # Check
+        if not utils.cmd_exists('clp'):
+            raise ImportError('clp cmd not available')
         
         OptSolver.__init__(self)
         self.parameters = OptSolverClpCMD.parameters.copy()
@@ -68,10 +72,6 @@ class OptSolverClpCMD(OptSolver):
             self.problem = problem.to_lin()
         except:
             raise OptSolverError_BadProblemType(self)
-
-        # Check
-        if not utils.cmd_exists('clp'):
-            raise OptSolverError_NotAvailable(self)
 
         # Solve
         status = ''

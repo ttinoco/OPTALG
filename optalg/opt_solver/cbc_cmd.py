@@ -24,6 +24,10 @@ class OptSolverCbcCMD(OptSolver):
         """
         Mixed integer linear "branch and cut" solver from COIN-OR (via command-line interface, version 2.8.5).
         """
+
+        # Check
+        if not utils.cmd_exists('cbc'):
+            raise ImportError('cbc cmd not available')
         
         OptSolver.__init__(self)
         self.parameters = OptSolverCbcCMD.parameters.copy()
@@ -69,10 +73,6 @@ class OptSolverCbcCMD(OptSolver):
             self.problem = problem.to_mixintlin()
         except:
             raise OptSolverError_BadProblemType(self)
-
-        # Check
-        if not utils.cmd_exists('cbc'):
-            raise OptSolverError_NotAvailable(self)
 
         # Solve
         status = ''

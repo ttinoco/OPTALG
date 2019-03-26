@@ -34,6 +34,9 @@ class OptSolverIpopt(OptSolver):
         """
         Interior point nonlinear optimization algorithm from COIN-OR.
         """
+
+        # Import
+        from ._ipopt import IpoptContext
         
         OptSolver.__init__(self)
         self.parameters = OptSolverIpopt.parameters.copy()
@@ -53,10 +56,7 @@ class OptSolverIpopt(OptSolver):
     def create_ipopt_context(self):
         
         # Import
-        try:
-            from ._ipopt import IpoptContext
-        except ImportError:
-            raise OptSolverError_NotAvailable(self)
+        from ._ipopt import IpoptContext
 
         # Problem
         problem = self.problem

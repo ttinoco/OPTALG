@@ -20,6 +20,9 @@ class OptSolverClp(OptSolver):
         """
         Linear programming solver from COIN-OR.
         """
+
+        # Import
+        from ._clp import ClpContext
         
         OptSolver.__init__(self)
         self.parameters = OptSolverClp.parameters.copy()
@@ -37,10 +40,7 @@ class OptSolverClp(OptSolver):
     def solve(self, problem):
 
         # Import
-        try:
-            from ._clp import ClpContext
-        except ImportError:
-            raise OptSolverError_NotAvailable(self)
+        from ._clp import ClpContext
 
         # Local vars
         params = self.parameters

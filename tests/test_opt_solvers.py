@@ -18,17 +18,9 @@ class TestOptSolvers(unittest.TestCase):
 
         np.random.seed(2)
 
-    def test_solver_properties_support(self):
+    def test_augl_properties_support(self):
 
         augl = opt.opt_solver.OptSolverAugL()
-        cbc = opt.opt_solver.OptSolverCbc()
-        cbc_cmd = opt.opt_solver.OptSolverCbcCMD()
-        clp = opt.opt_solver.OptSolverClp()
-        clp_cmd = opt.opt_solver.OptSolverClpCMD()
-        inlp = opt.opt_solver.OptSolverINLP()
-        ipopt = opt.opt_solver.OptSolverIpopt()
-        iqp = opt.opt_solver.OptSolverIQP()
-        nr = opt.opt_solver.OptSolverNR()
 
         # augl
         self.assertTrue(augl.supports_properties(['linear',
@@ -39,25 +31,72 @@ class TestOptSolvers(unittest.TestCase):
                                                   'optimization']))
         self.assertFalse(augl.supports_properties(['integer']))
 
+    def test_cbc_properties_support(self):
+        
+        try:
+            cbc = opt.opt_solver.OptSolverCbc()
+        except ImportError:
+            raise unittest.SkipTest('no cbc')
+
         # cbc
-        for s in [cbc, cbc_cmd]:
-            self.assertTrue(s.supports_properties(['linear',
+        self.assertTrue(cbc.supports_properties(['linear',
+                                                 'continuous',
+                                                 'integer',
+                                                 'feasibility',
+                                                 'optimization']))
+        self.assertFalse(cbc.supports_properties(['quadratic']))
+        self.assertFalse(cbc.supports_properties(['nonlinear']))
+            
+    def test_cbc_cmd_properties_support(self):
+
+        try:
+            cbc_cmd = opt.opt_solver.OptSolverCbcCMD()
+        except ImportError:
+            raise unittest.SkipTest('no cbc cmd')
+
+        # cbc
+        self.assertTrue(cbc_cmd.supports_properties(['linear',
                                                      'continuous',
                                                      'integer',
                                                      'feasibility',
                                                      'optimization']))
-            self.assertFalse(s.supports_properties(['quadratic']))
-            self.assertFalse(s.supports_properties(['nonlinear']))
+        self.assertFalse(cbc_cmd.supports_properties(['quadratic']))
+        self.assertFalse(cbc_cmd.supports_properties(['nonlinear']))
+
+    def test_clp_properties_support(self):
+
+        try:
+            clp = opt.opt_solver.OptSolverClp()
+        except ImportError:
+            raise unittest.SkipTest('no clp')
 
         # clp
-        for s in [clp, clp_cmd]:
-            self.assertTrue(s.supports_properties(['linear',
-                                                   'continuous',
-                                                   'feasibility',
-                                                   'optimization']))
-            self.assertFalse(s.supports_properties(['quadratic']))
-            self.assertFalse(s.supports_properties(['nonlinear']))
-            self.assertFalse(s.supports_properties(['integer']))
+        self.assertTrue(clp.supports_properties(['linear',
+                                                 'continuous',
+                                                 'feasibility',
+                                                 'optimization']))
+        self.assertFalse(clp.supports_properties(['quadratic']))
+        self.assertFalse(clp.supports_properties(['nonlinear']))
+        self.assertFalse(clp.supports_properties(['integer']))
+
+    def test_clp_cmd_properties_support(self):
+
+        try:
+            clp_cmd = opt.opt_solver.OptSolverClpCMD()
+        except ImportError:
+            raise unittest.SkipTest('no clp cmd')
+
+        self.assertTrue(clp_cmd.supports_properties(['linear',
+                                                     'continuous',
+                                                     'feasibility',
+                                                     'optimization']))
+        self.assertFalse(clp_cmd.supports_properties(['quadratic']))
+        self.assertFalse(clp_cmd.supports_properties(['nonlinear']))
+        self.assertFalse(clp_cmd.supports_properties(['integer']))
+
+    def test_inlp_properties_support(self):
+
+        inlp = opt.opt_solver.OptSolverINLP()
 
         # inlp
         self.assertTrue(inlp.supports_properties(['linear',
@@ -68,6 +107,13 @@ class TestOptSolvers(unittest.TestCase):
                                                   'optimization']))
         self.assertFalse(inlp.supports_properties(['integer']))
 
+    def test_ipopt_properties_support(self):
+        
+        try:
+            ipopt = opt.opt_solver.OptSolverIpopt()
+        except ImportError:
+            raise unittest.SkipTest('no ipopt')
+
         # ipopt
         self.assertTrue(ipopt.supports_properties(['linear',
                                                    'quadratic',
@@ -77,6 +123,10 @@ class TestOptSolvers(unittest.TestCase):
                                                    'optimization']))
         self.assertFalse(ipopt.supports_properties(['integer']))
 
+    def test_iqp_properties_support(self):
+        
+        iqp = opt.opt_solver.OptSolverIQP()
+
         # iqp
         self.assertTrue(iqp.supports_properties(['linear',
                                                  'quadratic',
@@ -85,6 +135,10 @@ class TestOptSolvers(unittest.TestCase):
                                                  'optimization']))
         self.assertFalse(iqp.supports_properties(['integer']))
         self.assertFalse(iqp.supports_properties(['nonlinear']))
+
+    def test_nr_properties_support(self):
+        
+        nr = opt.opt_solver.OptSolverNR()
 
         # nr
         self.assertTrue(nr.supports_properties(['linear',
@@ -97,7 +151,11 @@ class TestOptSolvers(unittest.TestCase):
 
     def test_ipopt(self):
 
-        Ipopt = opt.opt_solver.OptSolverIpopt()
+        try:
+            Ipopt = opt.opt_solver.OptSolverIpopt()
+        except ImportError:
+            raise unittest.SkipTest('no ipopt')
+        
         Ipopt.set_parameters({'quiet': True, 'sb': 'yes'})
 
         n = 50
@@ -112,33 +170,28 @@ class TestOptSolvers(unittest.TestCase):
         u = l+20*np.random.rand(n)
         
         prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u)
-    
-        try:
             
-            # Default parameters
-            Ipopt.solve(prob)
-            self.assertEqual(Ipopt.get_status(),'solved')
-            
-            # Modify exposed parameters
-            new_parameters = {'tol': 1e-7,
-                              'inf': 1e8,
-                              'derivative_test': 'first-order',
-                              'hessian_approximation': 'exact',
-                              'linear_solver': 'mumps',
-                              'print_level': 1,
-                              'max_iter': 100,
-                              'mu_init': 1e-2,
-                              'expect_infeasible_problem' : 'yes',
-                              'check_derivatives_for_naninf' : 'yes',
-                              'diverging_iterates_tol' : 1e6,
-                              'max_cpu_time' : 10}
-            
-            Ipopt.set_parameters(new_parameters)
-            Ipopt.solve(prob)
-            
-        except opt.opt_solver.OptSolverError_NotAvailable:
-            raise unittest.SkipTest('no ipopt')
+        # Default parameters
+        Ipopt.solve(prob)
+        self.assertEqual(Ipopt.get_status(),'solved')
         
+        # Modify exposed parameters
+        new_parameters = {'tol': 1e-7,
+                          'inf': 1e8,
+                          'derivative_test': 'first-order',
+                          'hessian_approximation': 'exact',
+                          'linear_solver': 'mumps',
+                          'print_level': 1,
+                          'max_iter': 100,
+                          'mu_init': 1e-2,
+                          'expect_infeasible_problem' : 'yes',
+                          'check_derivatives_for_naninf' : 'yes',
+                          'diverging_iterates_tol' : 1e6,
+                          'max_cpu_time' : 10}
+        
+        Ipopt.set_parameters(new_parameters)
+        Ipopt.solve(prob)
+                    
         # Test with inf and nan
         x = np.random.randn(n)
         
@@ -161,14 +214,15 @@ class TestOptSolvers(unittest.TestCase):
         c = np.array([180.,160.,0.,0.,0.])
 
         problem = opt.opt_solver.LinProblem(c,A,b,l,u)
-        
-        solver = opt.opt_solver.OptSolverClp()
-        solver.set_parameters({'quiet':True})
 
         try:
-            solver.solve(problem)
-        except opt.opt_solver.OptSolverError_NotAvailable:
+            solver = opt.opt_solver.OptSolverClp()
+        except ImportError:
             raise unittest.SkipTest('no clp')
+        
+        solver.set_parameters({'quiet':True})
+        
+        solver.solve(problem)
             
         x = solver.get_primal_variables()
         lam,nu,mu,pi = solver.get_dual_variables()
@@ -213,14 +267,15 @@ class TestOptSolvers(unittest.TestCase):
         c = np.array([180.,160.,0.,0.,0.])
 
         problem = opt.opt_solver.LinProblem(c,A,b,l,u)
-        
-        solver = opt.opt_solver.OptSolverClpCMD()
-        solver.set_parameters({'quiet':True})
 
         try:
-            solver.solve(problem)
-        except opt.opt_solver.OptSolverError_NotAvailable:
+            solver = opt.opt_solver.OptSolverClpCMD()
+        except ImportError:
             raise unittest.SkipTest('no clp command-line solver')
+            
+        solver.set_parameters({'quiet':True})
+
+        solver.solve(problem)
             
         x = solver.get_primal_variables()
         #lam,nu,mu,pi = solver.get_dual_variables()
@@ -247,14 +302,15 @@ class TestOptSolvers(unittest.TestCase):
         P = np.array([True,True,False,False])
         
         problem = opt.opt_solver.MixIntLinProblem(c,A,b,l,u,P)
-        
-        solver = opt.opt_solver.OptSolverCbc()
-        solver.set_parameters({'quiet':True})
 
         try:
-            solver.solve(problem)
-        except opt.opt_solver.OptSolverError_NotAvailable:
+            solver = opt.opt_solver.OptSolverCbc()
+        except ImportError:
             raise unittest.SkipTest('no cbc')
+        
+        solver.set_parameters({'quiet':True})
+
+        solver.solve(problem)
 
         x = solver.get_primal_variables()
 
@@ -284,14 +340,15 @@ class TestOptSolvers(unittest.TestCase):
         P = np.array([True,True,False,False])
         
         problem = opt.opt_solver.MixIntLinProblem(c,A,b,l,u,P)
-        
-        solver = opt.opt_solver.OptSolverCbcCMD()
-        solver.set_parameters({'quiet':True})
 
         try:
-            solver.solve(problem)
-        except opt.opt_solver.OptSolverError_NotAvailable:
+            solver = opt.opt_solver.OptSolverCbcCMD()
+        except ImportError:
             raise unittest.SkipTest('no cbc command-line solver')
+        
+        solver.set_parameters({'quiet':True})
+
+        solver.solve(problem)
 
         self.assertEqual(solver.get_status(), 'solved')
         x = solver.get_primal_variables()
@@ -359,10 +416,15 @@ class TestOptSolvers(unittest.TestCase):
 
         problem = opt.opt_solver.LinProblem(c,A,b,l,u)
 
-        for solver in [opt.opt_solver.OptSolverIpopt(),
-                       opt.opt_solver.OptSolverINLP(),
-                       opt.opt_solver.OptSolverAugL()]:
+        for solver in [opt.opt_solver.OptSolverIpopt,
+                       opt.opt_solver.OptSolverINLP,
+                       opt.opt_solver.OptSolverAugL]:
 
+            try:
+                solver = solver()
+            except ImportError:
+                continue
+            
             solver.set_parameters({'quiet': True})
             
             try:
@@ -394,9 +456,12 @@ class TestOptSolvers(unittest.TestCase):
         
         AugL = opt.opt_solver.OptSolverAugL()
         AugL.set_parameters({'quiet': True, 'feastol':1e-5, 'optol': 1e-5})
-        
-        Ipopt = opt.opt_solver.OptSolverIpopt()
-        Ipopt.set_parameters({'quiet': True})
+
+        try:
+            Ipopt = opt.opt_solver.OptSolverIpopt()
+            Ipopt.set_parameters({'quiet': True})
+        except ImportError:
+            Ipopt = None
             
         for i in range(num_trials):
             
@@ -412,7 +477,7 @@ class TestOptSolvers(unittest.TestCase):
             u = l+20*np.random.rand(n)
             
             prob = opt.opt_solver.QuadProblem(H,g,A,b,l,u)
-            
+
             IQP.solve(prob)
             self.assertEqual(IQP.get_status(),'solved')
             xIQP = IQP.get_primal_variables()
@@ -428,20 +493,17 @@ class TestOptSolvers(unittest.TestCase):
             xAugL = AugL.get_primal_variables()
             lamAugL,nuAugL,muAugL,piAugL = AugL.get_dual_variables()
 
-            try:
+            if Ipopt is not None:
                 Ipopt.solve(prob)
                 self.assertEqual(Ipopt.get_status(),'solved')
                 xIpopt = Ipopt.get_primal_variables()
                 lamIpopt,nuIpopt,muIpopt,piIpopt = Ipopt.get_dual_variables()
-                has_ipopt = True
-            except opt.opt_solver.OptSolverError_NotAvailable:
-                has_ipopt = False
 
             self.assertFalse(xIQP is xAugL)
             self.assertFalse(xIQP is xINLP)
             self.assertLess(100*norm(xAugL-xIQP)/(norm(xIQP)+eps),eps)
             self.assertLess(100*norm(xINLP-xIQP)/(norm(xIQP)+eps),eps)
-            if has_ipopt:
+            if Ipopt is not None:
                 self.assertFalse(xIQP is xIpopt)
                 self.assertLess(100*norm(xIpopt-xIQP)/(norm(xIQP)+eps),eps)
 
@@ -450,7 +512,7 @@ class TestOptSolvers(unittest.TestCase):
                 self.assertFalse(lamIQP is lamINLP)
                 self.assertLess(100*norm(lamAugL-lamIQP)/(norm(lamIQP)+eps),eps)
                 self.assertLess(100*norm(lamINLP-lamIQP)/(norm(lamIQP)+eps),eps)
-                if has_ipopt:
+                if Ipopt is not None:
                     self.assertFalse(lamIQP is lamIpopt)
                     self.assertLess(100*norm(lamIpopt-lamIQP)/(norm(lamIQP)+eps),eps)
 
@@ -458,7 +520,7 @@ class TestOptSolvers(unittest.TestCase):
             self.assertFalse(muIQP is muINLP)
             #self.assertLess(100*norm(muAugL-muIQP)/(norm(muIQP)+eps),eps)
             self.assertLess(100*norm(muINLP-muIQP)/(norm(muIQP)+eps),eps)
-            if has_ipopt:
+            if Ipopt is not None:
                 self.assertFalse(muIQP is muIpopt)
                 self.assertLess(100*norm(muIpopt-muIQP)/(norm(muIQP)+eps),eps)
 
@@ -466,7 +528,7 @@ class TestOptSolvers(unittest.TestCase):
             self.assertFalse(piIQP is piINLP)
             #self.assertLess(100*norm(piAugL-piIQP)/(norm(piIQP)+eps),eps)
             self.assertLess(100*norm(piINLP-piIQP)/(norm(piIQP)+eps),eps)
-            if has_ipopt:
+            if Ipopt is not None:
                 self.assertFalse(piIQP is piIpopt)
                 self.assertLess(100*norm(piIpopt-piIQP)/(norm(piIQP)+eps),eps)
 
@@ -479,13 +541,13 @@ class TestOptSolvers(unittest.TestCase):
             prob.eval(xAugL)
             objAugL = prob.phi
 
-            if has_ipopt:
+            if Ipopt is not None:
                 prob.eval(xIpopt)
                 objIpopt = prob.phi
 
             self.assertLess(100*np.abs(objIQP-objAugL)/(np.abs(objIQP)+eps),eps)
             self.assertLess(100*np.abs(objIQP-objINLP)/(np.abs(objIQP)+eps),eps)
-            if has_ipopt:
+            if Ipopt is not None:
                 self.assertLess(100*np.abs(objIQP-objIpopt)/(np.abs(objIQP)+eps),eps)
 
     def test_augl_barrier(self):

@@ -20,6 +20,9 @@ class OptSolverCbc(OptSolver):
         """
         Mixed integer linear "branch and cut" solver from COIN-OR.
         """
+
+        # Import
+        from ._cbc import CbcContext
         
         OptSolver.__init__(self)
         self.parameters = OptSolverCbc.parameters.copy()
@@ -38,10 +41,7 @@ class OptSolverCbc(OptSolver):
     def solve(self, problem):
 
         # Import
-        try:
-            from ._cbc import CbcContext
-        except ImportError:
-            raise OptSolverError_NotAvailable(self)
+        from ._cbc import CbcContext
 
         # Local vars
         params = self.parameters
