@@ -63,6 +63,22 @@ class TestOptSolvers(unittest.TestCase):
         self.assertFalse(cbc_cmd.supports_properties(['quadratic']))
         self.assertFalse(cbc_cmd.supports_properties(['nonlinear']))
 
+    def test_cplex_cmd_properties_support(self):
+
+        try:
+            cplex_cmd = opt.opt_solver.OptSolverCplexCMD()
+        except ImportError:
+            raise unittest.SkipTest('no cplex cmd')
+
+        # cplex
+        self.assertTrue(cplex_cmd.supports_properties(['linear',
+                                                     'continuous',
+                                                     'integer',
+                                                     'feasibility',
+                                                     'optimization']))
+        self.assertFalse(cplex_cmd.supports_properties(['quadratic']))
+        self.assertFalse(cplex_cmd.supports_properties(['nonlinear']))
+
     def test_clp_properties_support(self):
 
         try:
@@ -347,6 +363,46 @@ class TestOptSolvers(unittest.TestCase):
             raise unittest.SkipTest('no cbc command-line solver')
         
         solver.set_parameters({'quiet':True})
+
+        solver.solve(problem)
+
+        self.assertEqual(solver.get_status(), 'solved')
+        x = solver.get_primal_variables()
+
+        self.assertAlmostEqual(x[0],1.)
+        self.assertAlmostEqual(x[1],2.)
+
+        problem.P[:] = False
+
+        solver.solve(problem)
+        
+        self.assertEqual(solver.get_status(), 'solved')
+        x = solver.get_primal_variables()
+
+        self.assertAlmostEqual(x[0],4.)
+        self.assertAlmostEqual(x[1],4.5)
+
+    def test_cplex_cmd(self):
+
+        A = np.array([[-2.,2. ,1.,0.],
+                      [-8.,10.,0.,1.]])
+        b = np.array([1.,13.])
+        
+        l = np.array([-1e8,-1e8,-1e8,0.])
+        u = np.array([1e8,1e8,0.,1e8])
+        
+        c = np.array([-1.,-1.,0.,0.])
+        
+        P = np.array([True,True,False,False])
+        
+        problem = opt.opt_solver.MixIntLinProblem(c,A,b,l,u,P)
+
+        try:
+            solver = opt.opt_solver.OptSolverCplexCMD()
+        except ImportError:
+            raise unittest.SkipTest('no cplex command-line solver')
+        
+        solver.set_parameters({'quiet': True})
 
         solver.solve(problem)
 

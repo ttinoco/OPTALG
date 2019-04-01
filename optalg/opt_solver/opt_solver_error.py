@@ -41,6 +41,14 @@ class OptSolverError_ClpCMDCall(OptSolverError):
     def __init__(self, solver=None):
         OptSolverError.__init__(self, solver, 'error while calling clp command-line solver')
 
+class OptSolverError_CplexCMD(OptSolverError):    
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self, solver, 'cplex command-line solver failed')
+
+class OptSolverError_CplexCMDCall(OptSolverError):    
+    def __init__(self, solver=None):
+        OptSolverError.__init__(self, solver, 'error while calling cplex command-line solver')
+
 class OptSolverError_Ipopt(OptSolverError):    
     def __init__(self, solver=None):
         OptSolverError.__init__(self, solver, 'ipopt solver failed')

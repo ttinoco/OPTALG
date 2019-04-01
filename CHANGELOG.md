@@ -5,6 +5,7 @@ Unreleased
 * Added methods to convert general problem into linear, mixed integer linear, and quadratic problems.
 * Added methods to write lp files from linear and mixed integer linear problems.
 * Added command-line interfaces for cbc and clp.
+* Added command-line interface for cplex.
 
 Version 1.1.7
 -------------

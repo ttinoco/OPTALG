@@ -15,6 +15,7 @@ from .clp import OptSolverClp
 from .clp_cmd import OptSolverClpCMD
 from .cbc import OptSolverCbc
 from .cbc_cmd import OptSolverCbcCMD
+from .cplex_cmd import OptSolverCplexCMD
 from .iqp import OptSolverIQP
 from .inlp import OptSolverINLP
 from .ipopt import OptSolverIpopt
