@@ -6,6 +6,7 @@ Unreleased
 * Added methods to write lp files from linear and mixed integer linear problems.
 * Added command-line interfaces for cbc and clp.
 * Added command-line interface for cplex.
+* Added acceleration factor to nr.
 
 Version 1.1.7
 -------------

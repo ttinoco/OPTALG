@@ -17,6 +17,7 @@ from optalg.lin_solver import new_linsolver
 class OptSolverNR(OptSolver):
     
     parameters = {'feastol':1e-4,
+                  'acc_factor': 1.,
                   'maxiter':100,
                   'linsolver':'default',
                   'quiet':False}
@@ -78,6 +79,7 @@ class OptSolverNR(OptSolver):
         feastol = params['feastol']
         maxiter = params['maxiter']
         quiet = params['quiet']
+        acc_factor = params['acc_factor']
 
         # Linear solver
         self.linsolver = new_linsolver(params['linsolver'],'unsymmetric')
@@ -169,5 +171,5 @@ class OptSolverNR(OptSolver):
             s,fdata = self.line_search(self.x,p,fdata.F,fdata.GradF,self.func)
 
             # Update x
-            self.x += s*p
+            self.x += acc_factor*s*p
             self.k += 1
