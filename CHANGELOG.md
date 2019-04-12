@@ -7,6 +7,7 @@ Unreleased
 * Added command-line interfaces for cbc and clp.
 * Added command-line interface for cplex.
 * Added acceleration factor to nr.
+* Added recovery strategy for augl linear system factorization error.
 
 Version 1.1.7
 -------------

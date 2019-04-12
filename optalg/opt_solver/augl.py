@@ -28,7 +28,7 @@ class OptSolverAugL(OptSolver):
                   'maxiter' : 1000,         # maximum iterations
                   'sigma_min' : 1e-12,      # minimum sigma
                   'sigma_init_min' : 1e-3,  # minimum initial sigma
-                  'sigma_init_max' : 1e6,   # maximum initial sigma
+                  'sigma_init_max' : 1e8,   # maximum initial sigma
                   'theta_min' : 1e-6,       # minimum barrier parameter
                   'theta_max' : 1e0 ,       # maximum initial barrier parameter
                   'lam_reg' : 1e-4,         # regularization of first order dual update
@@ -379,7 +379,7 @@ class OptSolverAugL(OptSolver):
         try:
             return self.linsolver1.factorize_and_solve(W,b)[:self.x.size]
         except Exception:
-            raise OptSolverError_BadSearchDir(self)
+            return np.zeros(self.x.size)
         
     def func(self,x):
         
