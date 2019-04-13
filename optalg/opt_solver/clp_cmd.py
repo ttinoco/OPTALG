@@ -53,7 +53,8 @@ class OptSolverClpCMD(OptSolver):
         x = np.zeros(problem.c.size)
         for l in f:
             l = l.split()
-            i = int(l[0])
+            name = l[1]
+            i = int(name.split('_')[1])
             val = float(l[2])
             x[i] = val
         f.close()
