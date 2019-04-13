@@ -92,7 +92,7 @@ class MixIntLinProblem(OptProblem):
                 pre = '+ '
             else:
                 pre = '- '
-            row += '%s%.10e x%d ' %(pre, np.abs(ci), i)
+            row += '%s%.10e x_%d ' %(pre, np.abs(ci), i)
             first = False
         f.write(row+'\n')
 
@@ -112,7 +112,7 @@ class MixIntLinProblem(OptProblem):
                     pre = '+ '
                 else:
                     pre = '- '
-                row += '%s%.10e x%d ' %(pre, np.abs(d), j)
+                row += '%s%.10e x_%d ' %(pre, np.abs(d), j)
                 first = False
             row += '= %.10e' %b
             f.write(row+'\n')
@@ -120,13 +120,13 @@ class MixIntLinProblem(OptProblem):
         # Bounds
         f.write('Bounds\n')
         for i in range(self.c.size):
-            f.write(' %.10e <= x%d <= %.10e\n' %(self.l[i], i, self.u[i]))
+            f.write(' %.10e <= x_%d <= %.10e\n' %(self.l[i], i, self.u[i]))
 
         # General
         f.write('General\n')
         row = ' '
         for i in np.where(self.P)[0]:
-            row += 'x%d ' %i
+            row += 'x_%d ' %i
         f.write(row+'\n')
         f.write('End\n')
         

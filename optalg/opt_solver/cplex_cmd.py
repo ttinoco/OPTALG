@@ -18,7 +18,7 @@ from .problem import OptProblem
 
 class OptSolverCplexCMD(OptSolver):
 
-    parameters = {'quiet' : False}
+    parameters = {'quiet' : False, 'debug': False}
 
     def __init__(self):
         """
@@ -56,8 +56,9 @@ class OptSolverCplexCMD(OptSolver):
         status = header.get('solutionStatusString')
 
         for var in root.find('variables'):
-            index = int(var.get('index'))
+            name = var.get('name')
             value = float(var.get('value'))
+            index = int(name.split('_')[1])
             x[index] = value
 
         return status, x
@@ -69,6 +70,7 @@ class OptSolverCplexCMD(OptSolver):
 
         # Parameters
         quiet = params['quiet']
+        debug = params['debug']
         
         # Problem
         try:
@@ -95,11 +97,11 @@ class OptSolverCplexCMD(OptSolver):
         except Exception as e:
             raise OptSolverError_CplexCMDCall(self)
         finally:
-            if os.path.isfile(input_filename):
+            if os.path.isfile(input_filename) and not debug:
                 os.remove(input_filename)
-            if os.path.isfile(output_filename):
+            if os.path.isfile(output_filename) and not debug:
                 os.remove(output_filename)
-            if os.path.isfile('cplex.log'):
+            if os.path.isfile('cplex.log') and not debug:
                 os.remove('cplex.log')
 
         if 'optimal' in status.lower():

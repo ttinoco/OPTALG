@@ -18,7 +18,7 @@ from .problem import OptProblem
 
 class OptSolverCbcCMD(OptSolver):
 
-    parameters = {'quiet' : False}
+    parameters = {'quiet' : False, 'debug': False}
 
     def __init__(self):
         """
@@ -53,7 +53,8 @@ class OptSolverCbcCMD(OptSolver):
         x = np.zeros(problem.c.size)
         for l in f:
             l = l.split()
-            i = int(l[0])
+            name = l[1]
+            i = int(name.split('_')[1])
             val = float(l[2])
             x[i] = val
         f.close()
@@ -67,6 +68,7 @@ class OptSolverCbcCMD(OptSolver):
 
         # Parameters
         quiet = params['quiet']
+        debug = params['debug']
 
         # Problem
         try:
@@ -93,9 +95,9 @@ class OptSolverCbcCMD(OptSolver):
         except Exception as e:
             raise OptSolverError_CbcCMDCall(self)
         finally:
-            if os.path.isfile(input_filename):
+            if os.path.isfile(input_filename) and not debug:
                 os.remove(input_filename)
-            if os.path.isfile(output_filename):
+            if os.path.isfile(output_filename) and not debug:
                 os.remove(output_filename)
 
         if status == 'Optimal':
