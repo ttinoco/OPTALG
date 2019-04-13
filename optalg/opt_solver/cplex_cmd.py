@@ -15,6 +15,7 @@ from . import utils
 from .opt_solver_error import *
 from .opt_solver import OptSolver
 from .problem import OptProblem
+from multiprocessing import cpu_count
 
 class OptSolverCplexCMD(OptSolver):
 
@@ -103,6 +104,9 @@ class OptSolverCplexCMD(OptSolver):
                 os.remove(output_filename)
             if os.path.isfile('cplex.log') and not debug:
                 os.remove('cplex.log')
+            for i in range(cpu_count()):
+                if os.path.isfile('clone%d.log' %i) and not debug:
+                    os.remove('clone%d.log' %i)
 
         if 'optimal' in status.lower():
             self.set_status(self.STATUS_SOLVED)
