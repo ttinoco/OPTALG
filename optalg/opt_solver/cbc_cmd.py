@@ -51,15 +51,25 @@ class OptSolverCbcCMD(OptSolver):
         status = l[0]    
         
         x = np.zeros(problem.c.size)
+        lam = np.zeros(problem.A.shape[0])
+        nu = np.zeros(0)
+        mu = np.zeros(x.size)
+        pi = np.zeros(x.size)
         for l in f:
             l = l.split()
             name = l[1]
-            i = int(name.split('_')[1])
-            val = float(l[2])
-            x[i] = val
+            if name[0] == 'x':
+                i = int(name.split('_')[1])
+                x[i] = float(l[2])
+                if float(l[3]) > 0.:
+                    pi[i] = float(l[3])
+                else:
+                    mu[i] = -float(l[3])
+            elif name[0] == 'c':
+                i = int(name.split('_')[1])
+                lam[i] = float(l[3])
         f.close()
-        return status, x
-
+        return status, x, lam, nu, mu, pi
         
     def solve(self, problem):
 
@@ -83,7 +93,13 @@ class OptSolverCbcCMD(OptSolver):
             input_filename = base_name+'.lp'
             output_filename = base_name+'.sol'
             self.problem.write_to_lp_file(input_filename)
-            cmd = ['cbc', input_filename, 'solve', 'solution', output_filename]
+            cmd = ['cbc',
+                   input_filename,
+                   'solve',
+                   'printingOptions',
+                   'all',
+                   'solution',
+                   output_filename]
             if not quiet:
                 code = subprocess.call(cmd)
             else:
@@ -91,7 +107,7 @@ class OptSolverCbcCMD(OptSolver):
                                        stdout=open(os.devnull, 'w'),
                                        stderr=subprocess.STDOUT)
             assert(code == 0)
-            status, self.x = self.read_solution(output_filename, self.problem)
+            status, self.x, self.lam, self.nu, self.mu, self.pi = self.read_solution(output_filename, self.problem)
         except Exception as e:
             raise OptSolverError_CbcCMDCall(self)
         finally:

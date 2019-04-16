@@ -3,6 +3,8 @@
 *~
 *.pyc
 *.pyd
+*.sol
+*.lp
 
 # PyCharm Project Files
 .idea/*

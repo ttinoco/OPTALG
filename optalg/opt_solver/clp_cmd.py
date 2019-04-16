@@ -18,7 +18,7 @@ from .problem import OptProblem
 
 class OptSolverClpCMD(OptSolver):
 
-    parameters = {'quiet' : False}
+    parameters = {'quiet' : False, 'debug': False}
 
     def __init__(self):
         """
@@ -51,14 +51,25 @@ class OptSolverClpCMD(OptSolver):
         f.readline()
         
         x = np.zeros(problem.c.size)
+        lam = np.zeros(problem.A.shape[0])
+        nu = np.zeros(0)
+        mu = np.zeros(x.size)
+        pi = np.zeros(x.size)
         for l in f:
             l = l.split()
             name = l[1]
-            i = int(name.split('_')[1])
-            val = float(l[2])
-            x[i] = val
+            if name[0] == 'x':
+                i = int(name.split('_')[1])
+                x[i] = float(l[2])
+                if float(l[3]) > 0.:
+                    pi[i] = float(l[3])
+                else:
+                    mu[i] = -float(l[3])
+            elif name[0] == 'c':
+                i = int(name.split('_')[1])
+                lam[i] = float(l[3])
         f.close()
-        return status, x
+        return status, x, lam, nu, mu, pi
         
     def solve(self, problem):
 
@@ -67,6 +78,7 @@ class OptSolverClpCMD(OptSolver):
 
         # Parameters
         quiet = params['quiet']
+        debug = params['debug']
 
         # Problem
         try:
@@ -79,9 +91,15 @@ class OptSolverClpCMD(OptSolver):
         try:
             base_name = next(tempfile._get_candidate_names())
             input_filename = base_name+'.lp'
-            output_filename = base_name+'.txt'
+            output_filename = base_name+'.sol'
             self.problem.write_to_lp_file(input_filename)
-            cmd = ['clp', input_filename, 'solve', 'solution', output_filename]
+            cmd = ['clp',
+                   input_filename,
+                   'solve',
+                   'printingOptions',
+                   'all',
+                   'solution',
+                   output_filename]
             if not quiet:
                 code = subprocess.call(cmd)
             else:
@@ -89,13 +107,13 @@ class OptSolverClpCMD(OptSolver):
                                        stdout=open(os.devnull, 'w'),
                                        stderr=subprocess.STDOUT)
             assert(code == 0)
-            status, self.x = self.read_solution(output_filename, self.problem)
+            status, self.x, self.lam, self.nu, self.mu, self.pi = self.read_solution(output_filename, self.problem)
         except Exception as e:
             raise OptSolverError_ClpCMDCall(self)
         finally:
-            if os.path.isfile(input_filename):
+            if os.path.isfile(input_filename) and not debug:
                 os.remove(input_filename)
-            if os.path.isfile(output_filename):
+            if os.path.isfile(output_filename) and not debug:
                 os.remove(output_filename)
 
         if status == 'optimal':

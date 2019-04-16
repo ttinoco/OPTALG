@@ -217,6 +217,84 @@ class TestOptSolvers(unittest.TestCase):
             self.assertRaises(opt.opt_solver.OptSolverError_Ipopt, Ipopt.solve, bad_prob)
             self.assertEqual(Ipopt.get_status(), 'error')
 
+    def test_cbc_cmd_lp_duals(self):
+            
+        A = np.array([[6.,1.,1.,0.,0.],
+                      [3.,1.,0.,1.,0.],
+                      [4.,6.,0.,0.,1.]])
+        b = np.array([12.,8.,24.])
+        
+        l = np.array([0.,0.,-1e0,-1e8,-1e8])
+        u = np.array([5.,5.,0.,0.,0.])
+        
+        c = np.array([180.,160.,0.,0.,0.])
+
+        problem = opt.opt_solver.LinProblem(c,A,b,l,u)
+
+        try:
+            solver = opt.opt_solver.OptSolverCbcCMD()
+        except ImportError:
+            raise unittest.SkipTest('no cbc cmd')
+
+        solver.set_parameters({'debug': False, 'quiet': True})
+        solver.solve(problem)
+        
+        x = solver.get_primal_variables()
+        lam, nu, mu, pi = solver.get_dual_variables()
+        
+        problem.eval(x)
+        self.assertLess(np.linalg.norm(np.dot(A,x)-b),1e-6)
+        self.assertTrue(np.all(l <= x))
+        self.assertTrue(np.all(x <= u))
+        self.assertEqual(nu.size, 0.)
+        self.assertEqual(lam.size, 3)
+        self.assertEqual(mu.size, 5)
+        self.assertEqual(pi.size, 5)
+        self.assertLess(norm(problem.gphi - problem.A.T*lam + mu - pi, np.inf), 1e-8)
+        self.assertGreaterEqual(np.min(mu), 0.)
+        self.assertGreaterEqual(np.min(pi), 0.)
+        self.assertLess(np.abs(np.dot(problem.u-x, mu)), 1e-8)
+        self.assertLess(np.abs(np.dot(x-problem.l, pi)), 1e-8)
+
+    def test_clp_cmd_lp_duals(self):
+
+        A = np.array([[6.,1.,1.,0.,0.],
+                      [3.,1.,0.,1.,0.],
+                      [4.,6.,0.,0.,1.]])
+        b = np.array([12.,8.,24.])
+        
+        l = np.array([0.,0.,-1e0,-1e8,-1e8])
+        u = np.array([5.,5.,0.,0.,0.])
+        
+        c = np.array([180.,160.,0.,0.,0.])
+
+        problem = opt.opt_solver.LinProblem(c,A,b,l,u)
+
+        try:
+            solver = opt.opt_solver.OptSolverClpCMD()
+        except ImportError:
+            raise unittest.SkipTest('no clp cmd')
+
+        solver.set_parameters({'debug': False, 'quiet': True})
+        solver.solve(problem)
+        
+        x = solver.get_primal_variables()
+        lam, nu, mu, pi = solver.get_dual_variables()
+        
+        problem.eval(x)
+        self.assertLess(np.linalg.norm(np.dot(A,x)-b),1e-6)
+        self.assertTrue(np.all(l <= x))
+        self.assertTrue(np.all(x <= u))
+        self.assertEqual(nu.size, 0.)
+        self.assertEqual(lam.size, 3)
+        self.assertEqual(mu.size, 5)
+        self.assertEqual(pi.size, 5)
+        self.assertLess(norm(problem.gphi - problem.A.T*lam + mu - pi, np.inf), 1e-8)
+        self.assertGreaterEqual(np.min(mu), 0.)
+        self.assertGreaterEqual(np.min(pi), 0.)
+        self.assertLess(np.abs(np.dot(problem.u-x, mu)), 1e-8)
+        self.assertLess(np.abs(np.dot(x-problem.l, pi)), 1e-8)
+
     def test_clp(self):
 
         A = np.array([[6.,1.,1.,0.,0.],

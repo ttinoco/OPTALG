@@ -101,7 +101,7 @@ class MixIntLinProblem(OptProblem):
         A = self.A.tocsr()
         for i in range(A.shape[0]):
             first = True
-            row = ' c%d: ' %i
+            row = ' c_%d: ' %i
             for k in range(A.indptr[i], A.indptr[i+1]):
                 j = A.indices[k]
                 d = A.data[k]
