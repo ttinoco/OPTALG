@@ -8,6 +8,7 @@ Unreleased
 * Added command-line interface for cplex.
 * Added acceleration factor to nr.
 * Added recovery strategy for augl linear system factorization error.
+* Lagrange multiplier extraction from cbc/clp/cplex solutions.
 
 Version 1.1.7
 -------------
