@@ -11,7 +11,7 @@ from .mumps import LinSolverMUMPS
 from .superlu import LinSolverSUPERLU
 from .umfpack import LinSolverUMFPACK
 
-def new_linsolver(name,prop):
+def new_linsolver(name='default', prop='unsymmetric'):
     """
     Creates a linear solver.
 
