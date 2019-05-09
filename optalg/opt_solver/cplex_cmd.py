@@ -18,8 +18,10 @@ from .problem import OptProblem
 from multiprocessing import cpu_count
 
 class OptSolverCplexCMD(OptSolver):
-
-    parameters = {'quiet' : False, 'debug': False}
+    
+    parameters = {'quiet' : False,
+                  'mipgap': None,
+                  'debug': False}                  
 
     def __init__(self):
         """
@@ -71,6 +73,7 @@ class OptSolverCplexCMD(OptSolver):
 
         # Parameters
         quiet = params['quiet']
+        mipgap = params['mipgap']
         debug = params['debug']
         
         # Problem
@@ -86,7 +89,13 @@ class OptSolverCplexCMD(OptSolver):
             input_filename = base_name+'.lp'
             output_filename = base_name+'.sol'
             self.problem.write_to_lp_file(input_filename)
-            cmd = ['cplex', '-c', 'read', input_filename, 'optimize', 'write', output_filename, 'quit']
+            cmd = ['cplex']
+            cmd += ['-c', 'read', input_filename]
+            cmd += ['optimize']
+            if mipgap is not None:
+                cmd += ['set mip tolerances mipgap %.2e' %mipgap]
+            cmd += ['write', output_filename]
+            cmd += ['quit']
             if not quiet:
                 code = subprocess.call(cmd)
             else:

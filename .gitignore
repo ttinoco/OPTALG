@@ -5,6 +5,7 @@
 *.pyd
 *.sol
 *.lp
+*.log
 
 # PyCharm Project Files
 .idea/*
