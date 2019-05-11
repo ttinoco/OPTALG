@@ -82,40 +82,38 @@ class MixIntLinProblem(OptProblem):
 
         # Objective
         f.write('Minimize\n')
-        row = ' obj: '
-        first = True
+        f.write(' obj:\n')
         for i in np.where(self.c != 0.)[0]:
             ci = self.c[i]
-            if first and ci > 0:
-                pre = ''
-            elif ci > 0:
-                pre = '+ '
+            if ci > 0:
+                pre = '+'
             else:
-                pre = '- '
-            row += '%s%.10e x_%d ' %(pre, np.abs(ci), i)
-            first = False
-        f.write(row+'\n')
+                pre = '-'
+            if np.abs(ci) == 1.:
+                f.write('     %s x_%d\n' %(pre, i))
+            else:
+                f.write('     %s %.10e x_%d\n' %(pre, np.abs(ci), i))
 
         # Constraints
         f.write('Subject to\n')
         A = self.A.tocsr()
         for i in range(A.shape[0]):
-            first = True
-            row = ' c_%d: ' %i
+            f.write(' c_%d:\n' %i)
             for k in range(A.indptr[i], A.indptr[i+1]):
                 j = A.indices[k]
                 d = A.data[k]
                 b = self.b[i]
-                if first and d > 0:
-                    pre = ''
-                elif d > 0:
-                    pre = '+ '
+                if d == 0.:
+                    continue
+                if d > 0:
+                    pre = '+'
                 else:
-                    pre = '- '
-                row += '%s%.10e x_%d ' %(pre, np.abs(d), j)
-                first = False
-            row += '= %.10e' %b
-            f.write(row+'\n')
+                    pre = '-'
+                if np.abs(d) == 1.:
+                    f.write('     %s x_%d\n' %(pre, j))
+                else:
+                    f.write('     %s %.10e x_%d\n' %(pre, np.abs(d), j))
+            f.write('     = %.10e\n' %b)
 
         # Bounds
         f.write('Bounds\n')
@@ -124,10 +122,9 @@ class MixIntLinProblem(OptProblem):
 
         # General
         f.write('General\n')
-        row = ' '
+        #row = ' '
         for i in np.where(self.P)[0]:
-            row += 'x_%d ' %i
-        f.write(row+'\n')
+            f.write('x_%d\n' %i)
         f.write('End\n')
         
         f.close()
