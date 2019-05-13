@@ -184,12 +184,19 @@ class OptProblem(object):
 
         pass
 
-    def show(self):
+    def show(self, inf=1e8):
         """
         Displays information about the problem.
         """
 
-        pass
+        print('\nProblem info')
+        print('------------')
+        print('vars: %d' %self.gphi.size)
+        print('integers: %d' %np.sum(self.P == True))
+        print('A: rows %d cols %d nnz %d' %(self.A.shape[0], self.A.shape[1], self.A.nnz))
+        print('J: rows %d cols %d nnz %d' %(self.J.shape[0], self.J.shape[1], self.J.nnz))
+        print('u: %d' %(np.sum(self.u < inf)))
+        print('l: %d' %(np.sum(self.l > -inf)))
 
     def to_lin(self):
         """
