@@ -51,6 +51,10 @@ class OptSolverCplexCMD(OptSolver):
         import xml.etree.ElementTree as ET
 
         x = np.zeros(problem.c.size)
+        lam = np.zeros(problem.A.shape[0])
+        nu = np.zeros(0)
+        mu = np.zeros(x.size)
+        pi = np.zeros(x.size)
 
         tree = ET.parse(filename)
         root = tree.getroot()
@@ -63,8 +67,21 @@ class OptSolverCplexCMD(OptSolver):
             value = float(var.get('value'))
             index = int(name.split('_')[1])
             x[index] = value
+            rcost = var.get('reducedCost')
+            if rcost is not None:
+                if float(rcost) > 0.:
+                    pi[index] = float(rcost)
+                else:
+                    mu[index] = -float(rcost)
 
-        return status, x
+        for c in root.find('linearConstraints'):
+            name = c.get('name')
+            index = int(name.split('_')[1])
+            dual = c.get('dual')
+            if dual is not None:
+                lam[index] = float(dual)
+            
+        return status, x, lam, nu, mu, pi
 
     def solve(self, problem):
 
@@ -103,7 +120,7 @@ class OptSolverCplexCMD(OptSolver):
                                        stdout=open(os.devnull, 'w'),
                                        stderr=subprocess.STDOUT)
             assert(code == 0)
-            status, self.x = self.read_solution(output_filename, self.problem)
+            status, self.x, self.lam, self.nu, self.mu, self.pi = self.read_solution(output_filename, self.problem)
         except Exception as e:
             raise OptSolverError_CplexCMDCall(self)
         finally:
