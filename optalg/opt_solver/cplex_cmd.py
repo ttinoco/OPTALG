@@ -21,6 +21,7 @@ class OptSolverCplexCMD(OptSolver):
     
     parameters = {'quiet' : False,
                   'mipgap': None,
+                  'feasibility': None,
                   'debug': False}                  
 
     def __init__(self):
@@ -91,6 +92,7 @@ class OptSolverCplexCMD(OptSolver):
         # Parameters
         quiet = params['quiet']
         mipgap = params['mipgap']
+        feasibility = params['feasibility']
         debug = params['debug']
         
         # Problem
@@ -111,6 +113,8 @@ class OptSolverCplexCMD(OptSolver):
             cmd += ['optimize']
             if mipgap is not None:
                 cmd += ['set mip tolerances mipgap %.2e' %mipgap]
+            if feasibility is not None:
+                cmd += ['set simplex tolerances feasibility %.2e' %feasibility]
             cmd += ['write', output_filename]
             cmd += ['quit']
             if not quiet:

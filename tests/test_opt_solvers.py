@@ -558,7 +558,7 @@ class TestOptSolvers(unittest.TestCase):
         except ImportError:
             raise unittest.SkipTest('no cplex command-line solver')
         
-        solver.set_parameters({'quiet': True})
+        solver.set_parameters({'quiet': True, 'feasibility': 1e-4})
 
         solver.solve(problem)
 
