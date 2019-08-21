@@ -110,11 +110,11 @@ class OptSolverCplexCMD(OptSolver):
             self.problem.write_to_lp_file(input_filename)
             cmd = ['cplex']
             cmd += ['-c', 'read', input_filename]
-            cmd += ['optimize']
             if mipgap is not None:
                 cmd += ['set mip tolerances mipgap %.2e' %mipgap]
             if feasibility is not None:
                 cmd += ['set simplex tolerances feasibility %.2e' %feasibility]
+            cmd += ['optimize']
             cmd += ['write', output_filename]
             cmd += ['quit']
             if not quiet:
