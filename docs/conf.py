@@ -51,7 +51,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'OPTALG'
-copyright = u'2018, Tomas Tinoco De Rubira'
+copyright = u'2019, Tomas Tinoco De Rubira'
 author = u'Tomas Tinoco De Rubira'
 
 # The version info for the project you're documenting, acts as replacement for

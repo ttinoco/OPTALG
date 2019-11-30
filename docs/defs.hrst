@@ -1,0 +1,18 @@
+.. |TrueFalse| replace:: {``True``, ``False``}
+
+.. |OptProblem| replace:: :class:`OptProblem <optalg.opt_solver.problem.OptProblem>`
+.. |LinProblem| replace:: :class:`LinProblem <optalg.opt_solver.problem_lin.LinProblem>`
+.. |MixIntLinProblem| replace:: :class:`MixIntLinProblem <optalg.opt_solver.problem_mixintlin.MixIntLinProblem>`
+.. |QuadProblem| replace:: :class:`LinProblem <optalg.opt_solver.problem_quad.QuadProblem>`
+
+.. |OptSolver| replace:: :class:`OptSolver <optalg.opt_solver.opt_solver.OptSolver>`
+.. |OptSolverNR| replace:: :class:`OptSolverNR <optalg.opt_solver.nr.OptSolverNR>`
+.. |OptSolverIQP| replace:: :class:`OptSolverIQP <optalg.opt_solver.iqp.OptSolverIQP>`
+.. |OptSolverClp| replace:: :class:`OptSolverClp <optalg.opt_solver.clp.OptSolverClp>`
+.. |OptSolverClpCMD| replace:: :class:`OptSolverClpCMD <optalg.opt_solver.clp_cmd.OptSolverClpCMD>`
+.. |OptSolverCbc| replace:: :class:`OptSolverCbc <optalg.opt_solver.cbc.OptSolverCbc>`
+.. |OptSolverCbcCMD| replace:: :class:`OptSolverCbcCMD <optalg.opt_solver.cbc_cmd.OptSolverCbcCMD>`
+.. |OptSolverCplexCMD| replace:: :class:`OptSolverCplexCMD <optalg.opt_solver.cplex_cmd.OptSolverCplexCMD>`
+.. |OptSolverINLP| replace:: :class:`OptSolverINLP <optalg.opt_solver.inlp.OptSolverINLP>`
+.. |OptSolverAugL| replace:: :class:`OptSolverAugL <optalg.opt_solver.augl.OptSolverAugL>`
+.. |OPtSolverIPOPT| replace:: :class:`OptSolverIpopt <optalg.opt_solver.ipopt.OptSolverIpopt>`

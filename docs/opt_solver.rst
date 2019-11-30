@@ -1,10 +1,12 @@
+.. include:: defs.hrst
+
 .. _opt_solver:
 
 ********************
 Optimization Solvers
 ********************
 
-In OPTALG, optimization solvers are objects of type :class:`OptSolver <optalg.opt_solver.opt_solver.OptSolver>`, and optimization problems are objects of type :class:`OptProblem <optalg.opt_solver.problem.OptProblem>` and represent general problems of the form 
+In OPTALG, optimization solvers are objects of type |OptSolver|, and optimization problems are objects of type |OptProblem| and represent general problems of the form 
 
 .. math:: 
    :nowrap:
@@ -14,19 +16,19 @@ In OPTALG, optimization solvers are objects of type :class:`OptSolver <optalg.op
    & \mbox{subject to} \quad && Ax = b           \ && : \lambda \\
    &                   \quad && f(x) = 0         \ && : \nu \\
    &                   \quad && l \le x \le u    \ && : \pi, \mu \\
-   &                   \quad && Px \in \{0,1\}^m,\ &&
+   &                   \quad && Px \in \mathbb{Z}^m,\ &&
    \end{alignat*}
 
 where :math:`P` is a matrix that extracts a sub-vector of :math:`x`. 
 
-Before solving a :class:`problem <optalg.opt_solver.problem.OptProblem>` with a specific solver, the solver parameters can be configured using the method :func:`set_parameters() <optalg.opt_solver.opt_solver.OptSolver.set_parameters>`. Then, the :func:`solve() <optalg.opt_solver.opt_solver.OptSolver.solve>` method can be invoked with the :class:`problem <optalg.opt_solver.problem.OptProblem>` to be solved as its argument. The status, optimal primal variables, and optimal dual variables can be extracted using the class methods :func:`get_status() <optalg.opt_solver.opt_solver.OptSolver.get_status>`, :func:`get_primal_variables() <optalg.opt_solver.opt_solver.OptSolver.get_primal_variables>`, and :func:`get_dual_variables() <optalg.opt_solver.opt_solver.OptSolver.get_dual_variables>`, respectively.
+Before solving a problem with a specific solver, the solver parameters can be configured using the method :func:`set_parameters() <optalg.opt_solver.opt_solver.OptSolver.set_parameters>`. Then, the :func:`solve() <optalg.opt_solver.opt_solver.OptSolver.solve>` method can be invoked with the problem to be solved as its argument. The status, optimal primal variables, and optimal dual variables can be extracted using the class methods :func:`get_status() <optalg.opt_solver.opt_solver.OptSolver.get_status>`, :func:`get_primal_variables() <optalg.opt_solver.opt_solver.OptSolver.get_primal_variables>`, and :func:`get_dual_variables() <optalg.opt_solver.opt_solver.OptSolver.get_dual_variables>`, respectively.
 
 .. _opt_solver_nr:
 
 NR
 ==
 
-This solver, which corresponds to the class :class:`OptSolverNR <optalg.opt_solver.nr.OptSolverNR>`, solves problems of the form
+This solver, which corresponds to the class |OptSolverNR|, solves problems of the form
 
 .. math:: 
    :nowrap:
@@ -41,10 +43,10 @@ using the Newton-Raphson algorithm. It requires the number of variables to be eq
 
 .. _opt_solver_clp:
 
-Clp
-===
+Clp and ClpCMD
+==============
 
-This is a wrapper of the solver `Clp`_ from COIN-OR. It corresponds to the class :class:`OptSolverClp <optalg.opt_solver.clp.OptSolverClp>`, and solves problems of the form 
+These are wrappers of the solver `Clp`_ from COIN-OR. They corresponds to the classes |OptSolverClp| and |OptSolverClpCMD|, and solve problems of the form 
 
 .. math:: 
    :nowrap:
@@ -55,14 +57,14 @@ This is a wrapper of the solver `Clp`_ from COIN-OR. It corresponds to the class
    &                   \quad && l \le x \le u  \ && : \pi, \mu.
    \end{alignat*}
 
-Linear optimization problems solved with this solver must be instances of the class :class:`LinProblem <optalg.opt_solver.problem_lin.LinProblem>`, which is a subclass of :class:`OptProblem <optalg.opt_solver.problem.OptProblem>`.
+Linear optimization problems solved with these solvers must be instances of the class |LinProblem|, which is a subclass of |OptProblem|.
 
 .. _opt_solver_cbc:
 
-Cbc
-===
+Cbc and CbcCMD
+==============
 
-This is a wrapper of the solver `Cbc`_ from COIN-OR. It corresponds to the class :class:`OptSolverCbc <optalg.opt_solver.cbc.OptSolverCbc>`, and solves problems of the form 
+These are wrappers of the solver `Cbc`_ from COIN-OR. They correspond to the classes |OptSolverCbc| and |OptSolverCbcCMD|, and solve problems of the form 
 
 .. math:: 
    :nowrap:
@@ -71,17 +73,24 @@ This is a wrapper of the solver `Cbc`_ from COIN-OR. It corresponds to the class
    & \mbox{minimize}   \quad && c^Tx              \\
    & \mbox{subject to} \quad && Ax = b            \\
    &                   \quad && l \le x \le u     \\
-   &                   \quad && Px \in \{0,1\}^m.
+   &                   \quad && Px \in \mathbb{Z}^m.
    \end{alignat*}
 
-Mixed-integer linear optimization problems solved with this solver must be instances of the class :class:`MixIntLinProblem <optalg.opt_solver.problem_mixintlin.MixIntLinProblem>`, which is a subclass of :class:`OptProblem <optalg.opt_solver.problem.OptProblem>`.
+Mixed-integer linear optimization problems solved with these solvers must be instances of the class |MixIntLinProblem|, which is a subclass of |OptProblem|.
+
+.. _opt_solver_cplex:
+
+CplexCMD
+========
+
+This is a wrapper of the solver CPLEX and uses a command-line interface. It corresponds to the class |OptSolverCplexCMD| and solves problems of type |MixIntLinProblem|. 
 
 .. _opt_solver_iqp:
 
 IQP
 ===
 
-This solver, which corresponds to the class :class:`OptSolverIQP <optalg.opt_solver.iqp.OptSolverIQP>`, solves convex quadratic problems of the form
+This solver, which corresponds to the class |OptSolverIQP|, solves convex quadratic problems of the form
 
 .. math:: 
    :nowrap:
@@ -92,7 +101,7 @@ This solver, which corresponds to the class :class:`OptSolverIQP <optalg.opt_sol
    &                   \quad && l \le x \le u           \ && : \pi, \mu
    \end{alignat*}
 
-using a primal-dual interior-point algorithm. Quadratic problems solved with this solver must be instances of the class :class:`QuadProblem <optalg.opt_solver.problem_quad.QuadProblem>`, which is a subclass of :class:`OptProblem <optalg.opt_solver.problem.OptProblem>`. The following example shows how to solve the quadratic problem
+using a primal-dual interior-point algorithm. Quadratic problems solved with this solver must be instances of the class |QuadProblem|, which is a subclass of |OptProblem|. The following example shows how to solve the quadratic problem
 
 .. math:: 
    :nowrap:
@@ -104,7 +113,7 @@ using a primal-dual interior-point algorithm. Quadratic problems solved with thi
    &                   \quad && 0.2 \le x_2 \le 0.8
    \end{alignat*}
 
-using :class:`OptSolverIQP <optalg.opt_solver.iqp.OptSolverIQP>`::
+using |OptSolverIQP|::
 
   >>> import numpy as np
   >>> from optalg.opt_solver import OptSolverIQP, QuadProblem
@@ -168,7 +177,7 @@ Then, the optimal primal and dual variables can be extracted, and feasibility an
 INLP
 ====
 
-This solver, which corresponds to the class :class:`OptSolverINLP <optalg.opt_solver.inlp.OptSolverINLP>`, solves general nonlinear optimization problems of the form
+This solver, which corresponds to the class |OptSolverINLP|, solves general nonlinear optimization problems of the form
 
 .. math:: 
    :nowrap:
@@ -187,7 +196,7 @@ using a primal-dual interior-point algorithm. It computes Newton steps for solvi
 AugL
 ====
 
-This solver, which corresponds to the class :class:`OptSolverAugL <optalg.opt_solver.augl.OptSolverAugL>`, solves optimization problems of the form
+This solver, which corresponds to the class |OptSolverAugL|, solves optimization problems of the form
 
 .. math:: 
    :nowrap:
@@ -206,7 +215,7 @@ using an Augmented Lagrangian algorithm. It requires the objective function :mat
 Ipopt
 =====
 
-This is a wrapper of the solver `IPOPT`_ from COIN-OR. It corresponds to the class :class:`OptSolverIpopt <optalg.opt_solver.ipopt.OptSolverIpopt>`, and solves optimization problems of the form
+This is a wrapper of the solver `IPOPT`_ from COIN-OR. It corresponds to the class |OptSolverIPOPT|, and solves optimization problems of the form
 
 .. math:: 
    :nowrap:

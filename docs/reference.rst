@@ -1,3 +1,5 @@
+.. include:: defs.hrst
+
 .. _reference:
 
 *************
@@ -52,6 +54,11 @@ Optimization Solvers
 
 .. autoclass:: optalg.opt_solver.clp.OptSolverClp
 
+.. autoclass:: optalg.opt_solver.clp_cmd.OptSolverClpCMD
+
 .. autoclass:: optalg.opt_solver.cbc.OptSolverCbc
 
+.. autoclass:: optalg.opt_solver.cbc_cmd.OptSolverCbcCMD
+
+.. autoclass:: optalg.opt_solver.cplex_cmd.OptSolverCplexCMD
 

@@ -17,7 +17,7 @@ In order to install OPTALG, the following tools are needed:
 
   * C compiler
   * `Make`_
-  * `Python`_ (2 or 3)
+  * `Python`_ (2.7 or 3.6)
   * `pip`_
   
 * Windows:
