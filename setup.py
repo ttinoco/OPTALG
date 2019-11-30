@@ -9,7 +9,6 @@
 import os
 import sys
 import numpy as np
-from subprocess import call
 from Cython.Build import cythonize
 from setuptools import setup, Extension
 
@@ -104,7 +103,7 @@ setup(name='OPTALG',
       classifiers=['Development Status :: 5 - Production/Stable',
                    'License :: OSI Approved :: BSD License',
                    'Programming Language :: Python :: 2.7',
-                   'Programming Language :: Python :: 3.5'],
+                   'Programming Language :: Python :: 3.6'],
       ext_modules=ext_modules)
       
 
