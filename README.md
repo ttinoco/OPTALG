@@ -11,7 +11,8 @@ OPTALG is a Python package that provides algorithms, wrappers, and tools for sol
 * Augmented Lagrangian algorithm for solving problems with convex objective.
 * Interface for the interior-point solver [Ipopt](https://projects.coin-or.org/Ipopt) (via cython).
 * Interface for the linear programming solver [Clp](https://projects.coin-or.org/Clp) (via command-line or cython).
-* Interface for mixed-integer linear programming solver [Cbc](https://projects.coin-or.org/Cbc) (via command-line or cython).
+* Interface for the mixed-integer linear programming solver [Cbc](https://projects.coin-or.org/Cbc) (via command-line or cython).
+* Interface for the mixed-integer linear programming solver CPLEX (via command-line).
 * Common interface for linear solvers ([SuperLU](http://crd-legacy.lbl.gov/~xiaoye/SuperLU/), [MUMPS](http://mumps-solver.org), [UMFPACK](https://directory.fsf.org/wiki/UMFPACK)) (via cython).
 
 This package is meant to be used by other Python packages and not by users directly. Currently, it is used by:

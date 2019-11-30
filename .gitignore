@@ -7,6 +7,9 @@
 *.lp
 *.log
 
+# VSCODE
+.vscode
+
 # PyCharm Project Files
 .idea/*
 
