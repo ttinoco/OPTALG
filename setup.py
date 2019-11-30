@@ -9,6 +9,7 @@
 import os
 import sys
 import numpy as np
+from subprocess import call
 from Cython.Build import cythonize
 from setuptools import setup, Extension
 
