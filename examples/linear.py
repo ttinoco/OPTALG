@@ -10,7 +10,7 @@ import sys
 sys.path.append('.')
 
 import numpy as np
-from optalg.opt_solver import OptSolverClp, LinProblem
+from optalg.opt_solver import OptSolverClpCMD, LinProblem
 
 A = np.array([[6.,1.,1.,0.,0.],
               [3.,1.,0.,1.,0.],
@@ -24,11 +24,12 @@ c = np.array([180.,160.,0.,0.,0.])
 
 problem = LinProblem(c,A,b,l,u)
 
-solver = OptSolverClp()
+solver = OptSolverClpCMD()
 solver.set_parameters({'quiet':False})
 
 solver.solve(problem)
 
 print(solver.get_primal_variables())
+print(solver.get_dual_variables())
 
 
